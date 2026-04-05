@@ -1,0 +1,20 @@
+.calculator-container {
+  flex-grow: 1;
+}
+
+.calculator-column {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.calculator-paper {
+  padding: 24px;
+}
+
+.calculator-schedule-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}

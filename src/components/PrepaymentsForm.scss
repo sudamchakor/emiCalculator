@@ -1,0 +1,20 @@
+.prepayments-paper {
+  padding: 16px;
+}
+
+.prepayments-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+
+.prepayments-grid {
+  margin-top: 8px;
+}
+
+.prepayments-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}

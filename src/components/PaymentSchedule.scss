@@ -1,0 +1,81 @@
+.schedule-row-main {
+  background-color: #f0f8ff;
+
+  & > * {
+    border-bottom: unset;
+  }
+}
+
+.schedule-cell-collapse {
+  padding-bottom: 0 !important;
+  padding-top: 0 !important;
+}
+
+.schedule-box-collapse {
+  margin: 8px;
+}
+
+.schedule-row-header-inner {
+  background-color: #e6e6fa;
+}
+
+.schedule-row-inner {
+  &:nth-of-type(odd) {
+    background-color: #fdf5e6;
+  }
+}
+
+.schedule-title {
+  margin-top: 16px !important;
+  margin-bottom: 16px !important;
+  text-align: center;
+}
+
+.schedule-tabs {
+  margin-bottom: 16px;
+}
+
+.schedule-table-container {
+  max-height: 400px;
+}
+
+.schedule-header-cell-primary {
+  background-color: #1e90ff !important;
+  color: white !important;
+}
+.schedule-header-cell-icon {
+  width: 40px;
+  background-color: #1e90ff !important;
+  color: white !important;
+}
+
+.schedule-header-cell-principal {
+  background-color: #9C27B0 !important;
+  color: white !important;
+}
+
+.schedule-header-cell-interest {
+  background-color: #00BCD4 !important;
+  color: white !important;
+}
+
+.schedule-header-cell-prepayment {
+  background-color: #3F51B5 !important;
+  color: white !important;
+}
+
+.schedule-header-cell-taxes {
+  background-color: #4CAF50 !important;
+  color: white !important;
+}
+
+.schedule-chart-box {
+  width: 100%;
+  height: 400px;
+}
+
+.schedule-chart-caption {
+  margin-bottom: 8px !important;
+  display: block !important;
+  text-align: center;
+}

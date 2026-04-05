@@ -1,0 +1,12 @@
+.home-loan-paper {
+  padding: 16px;
+}
+
+.home-loan-input-group {
+  display: flex;
+  gap: 8px;
+}
+
+.home-loan-form-control {
+  min-width: 80px;
+}
