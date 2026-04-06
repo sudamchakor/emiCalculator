@@ -1,48 +1,62 @@
-import React from 'react';
-import { Grid, Box, Paper, Typography } from '@mui/material';
-import HomeLoanForm from '../components/HomeLoanForm';
-import ExpensesForm from '../components/ExpensesForm';
-import PrepaymentsForm from '../components/PrepaymentsForm';
-import PieChartComponent from '../components/PieChartComponent';
-import PaymentSchedule from '../components/PaymentSchedule';
-import TotalMonthlyPayment from '../components/TotalMonthlyPayment';
-import './Calculator.scss';
+import React from "react";
+import { Grid, Box, Paper, Typography } from "@mui/material";
+import HomeLoanForm from "../components/HomeLoanForm";
+import PrepaymentsForm from "../components/PrepaymentsForm";
+import PieChartComponent from "../components/PieChartComponent";
+import PaymentSchedule from "../components/PaymentSchedule";
+import TotalMonthlyPayment from "../components/TotalMonthlyPayment";
+import "./Calculator.scss";
+import { useEmiContext } from "../context/EmiContext";
 
 const Calculator = () => {
+  const { calculatedValues } = useEmiContext();
+
+  const schedule = calculatedValues.schedule;
+  const startMonthYear = schedule.length > 0 ? schedule[0].date : "";
+  const endMonthYear =
+    schedule.length > 0 ? schedule[schedule.length - 1].date : "";
+
   return (
     <Box className="calculator-container">
       <Grid container spacing={3}>
-        {/* Left Column: Inputs */}
-        <Grid item xs={12} md={6}>
-          <Box className="calculator-column">
-            <HomeLoanForm />
-            <ExpensesForm />
-            <PrepaymentsForm />
-          </Box>
+        {/* Full Width Row: Inputs (Home Loan + Expenses) */}
+        <Grid item xs={12}>
+          <HomeLoanForm />
         </Grid>
 
-        {/* Right Column: Charts and Tables */}
+        <Grid item xs={12}>
+          <Paper elevation={3} className="calculator-paper">
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                <PrepaymentsForm />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TotalMonthlyPayment />
+              </Grid>
+            </Grid>
+          </Paper>
+        </Grid>
         <Grid item xs={12} md={6}>
-          <Box className="calculator-column">
-            <TotalMonthlyPayment />
-
-            <Paper elevation={3} className="calculator-paper">
-              <Typography variant="h6" gutterBottom>Payment Breakdown</Typography>
-              <PieChartComponent />
-            </Paper>
-          </Box>
+          <Paper elevation={3} className="calculator-paper">
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                <PieChartComponent />
+              </Grid>
+            </Grid>
+          </Paper>
         </Grid>
 
         {/* Full Width Row: Payment Schedule */}
         <Grid item xs={12}>
           <Paper elevation={3} className="calculator-paper">
             <Box className="calculator-schedule-header">
-              <Typography variant="h6">Home Loan Payment Schedule</Typography>
+              <Typography variant="h6">
+                Home Loan Payment Schedule ({startMonthYear} - {endMonthYear})
+              </Typography>
             </Box>
             <PaymentSchedule />
           </Paper>
         </Grid>
-
       </Grid>
     </Box>
   );

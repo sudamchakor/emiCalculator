@@ -1,29 +1,41 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo } from "react";
 import {
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Paper, Box, Typography, IconButton, Collapse, Grid
-} from '@mui/material';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
-import { useEmiContext } from '../context/EmiContext';
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid, ComposedChart } from 'recharts';
-import './PaymentSchedule.scss';
-
-// PieChartComponent colors to reuse
-const COLORS = ['#FF5722', '#E91E63', '#9C27B0', '#3F51B5', '#00BCD4', '#4CAF50', '#FFEB3B'];
-const COLOR_PRINCIPAL = COLORS[2];
-const COLOR_PREPAYMENT = COLORS[3];
-const COLOR_INTEREST = COLORS[4];
-const COLOR_TAXES_INS_MAINT = COLORS[5];
-
-// Darker colors for lines
-const LINE_PRINCIPAL = '#6a1b9a'; // darker version of #9C27B0
-const LINE_PREPAYMENT = '#303f9f'; // darker version of #3F51B5
-const LINE_INTEREST = '#0097a7'; // darker version of #00BCD4
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Box,
+  Typography,
+  IconButton,
+  Collapse,
+  Grid,
+} from "@mui/material";
+import { useTheme } from "@mui/material/styles";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
+import { useEmiContext } from "../context/EmiContext";
+import {
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  CartesianGrid,
+  ComposedChart,
+} from "recharts";
+import "./PaymentSchedule.scss";
 
 // Row Component for Burn Down Table to handle Collapsible Years
 const BurnDownRow = ({ yearData }) => {
   const [open, setOpen] = useState(false);
+  const { currency } = useEmiContext();
 
   return (
     <React.Fragment>
@@ -40,11 +52,36 @@ const BurnDownRow = ({ yearData }) => {
         <TableCell component="th" scope="row">
           <strong>{yearData.year}</strong>
         </TableCell>
-        <TableCell align="right"><strong>{yearData.totalPrincipal.toFixed(2)}</strong></TableCell>
-        <TableCell align="right"><strong>{yearData.totalInterest.toFixed(2)}</strong></TableCell>
-        <TableCell align="right"><strong>{yearData.totalPrepayment.toFixed(2)}</strong></TableCell>
-        <TableCell align="right"><strong>{yearData.totalTaxesInsMaint.toFixed(2)}</strong></TableCell>
-        <TableCell align="right"><strong>{yearData.yearEndBalance.toFixed(2)}</strong></TableCell>
+        <TableCell align="right">
+          <strong>
+            {currency}
+            {yearData.totalPrincipal.toFixed(2)}
+          </strong>
+        </TableCell>
+        <TableCell align="right">
+          <strong>
+            {currency}
+            {yearData.totalInterest.toFixed(2)}
+          </strong>
+        </TableCell>
+        <TableCell align="right">
+          <strong>
+            {currency}
+            {yearData.totalPrepayment.toFixed(2)}
+          </strong>
+        </TableCell>
+        <TableCell align="right">
+          <strong>
+            {currency}
+            {yearData.totalTaxesInsMaint.toFixed(2)}
+          </strong>
+        </TableCell>
+        <TableCell align="right">
+          <strong>
+            {currency}
+            {yearData.yearEndBalance.toFixed(2)}
+          </strong>
+        </TableCell>
       </TableRow>
       <TableRow>
         <TableCell className="schedule-cell-collapse" colSpan={7}>
@@ -64,14 +101,36 @@ const BurnDownRow = ({ yearData }) => {
                 </TableHead>
                 <TableBody>
                   {yearData.months.map((monthRow) => (
-                    <TableRow key={`burn-${monthRow.month}`} className="schedule-row-inner">
+                    <TableRow
+                      key={`burn-${monthRow.month}`}
+                      className="schedule-row-inner"
+                    >
                       <TableCell>{monthRow.month}</TableCell>
                       <TableCell>{monthRow.date}</TableCell>
-                      <TableCell align="right">{monthRow.principal.toFixed(2)}</TableCell>
-                      <TableCell align="right">{monthRow.interest.toFixed(2)}</TableCell>
-                      <TableCell align="right">{monthRow.prepayment.toFixed(2)}</TableCell>
-                      <TableCell align="right">{(monthRow.taxes + monthRow.homeInsurance + monthRow.maintenance).toFixed(2)}</TableCell>
-                      <TableCell align="right">{monthRow.balance.toFixed(2)}</TableCell>
+                      <TableCell align="right">
+                        {currency}
+                        {monthRow.principal.toFixed(2)}
+                      </TableCell>
+                      <TableCell align="right">
+                        {currency}
+                        {monthRow.interest.toFixed(2)}
+                      </TableCell>
+                      <TableCell align="right">
+                        {currency}
+                        {monthRow.prepayment.toFixed(2)}
+                      </TableCell>
+                      <TableCell align="right">
+                        {currency}
+                        {(
+                          monthRow.taxes +
+                          monthRow.homeInsurance +
+                          monthRow.maintenance
+                        ).toFixed(2)}
+                      </TableCell>
+                      <TableCell align="right">
+                        {currency}
+                        {monthRow.balance.toFixed(2)}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -85,11 +144,40 @@ const BurnDownRow = ({ yearData }) => {
 };
 
 const PaymentSchedule = () => {
-  const { calculatedValues } = useEmiContext();
+  const { calculatedValues, currency } = useEmiContext();
+  const theme = useTheme();
 
   const schedule = calculatedValues.schedule;
-  const startMonthYear = schedule.length > 0 ? schedule[0].date : '';
-  const endMonthYear = schedule.length > 0 ? schedule[schedule.length - 1].date : '';
+
+  const getThemeColors = () => {
+    if (theme.palette.mode === "dark") {
+      return {
+        principal: theme.palette.primary.light,
+        interest: theme.palette.secondary.main,
+        prepayment: theme.palette.error.light,
+        taxes: theme.palette.warning.light,
+        linePrincipal: theme.palette.primary.main,
+        linePrepayment: theme.palette.error.main,
+        lineInterest: theme.palette.secondary.dark,
+        lineBalance: theme.palette.success.main,
+        text: "#fff",
+      };
+    } else {
+      return {
+        principal: theme.palette.primary.main,
+        interest: theme.palette.secondary.main,
+        prepayment: "#f44336", // red
+        taxes: "#ff9800", // orange
+        linePrincipal: theme.palette.primary.dark,
+        linePrepayment: "#d32f2f",
+        lineInterest: theme.palette.secondary.dark,
+        lineBalance: "#4caf50", // green
+        text: "#000",
+      };
+    }
+  };
+
+  const colors = getThemeColors();
 
   // Aggregate data for the chart if there are too many items on the X-axis
   const chartData = useMemo(() => {
@@ -99,7 +187,7 @@ const PaymentSchedule = () => {
 
     const yearlyData = {};
     schedule.forEach((row) => {
-      const year = row.date.split(' ')[1]; // Extracting year from 'MMM YYYY'
+      const year = row.date.split(" ")[1]; // Extracting year from 'MMM YYYY'
       if (!yearlyData[year]) {
         yearlyData[year] = {
           date: year,
@@ -109,7 +197,7 @@ const PaymentSchedule = () => {
           taxes: 0,
           homeInsurance: 0,
           maintenance: 0,
-          balance: row.balance // Will update to reflect the year-end balance
+          balance: row.balance, // Will update to reflect the year-end balance
         };
       }
       yearlyData[year].principal += row.principal;
@@ -128,7 +216,7 @@ const PaymentSchedule = () => {
   const groupedSchedule = useMemo(() => {
     const years = {};
     schedule.forEach((row) => {
-      const year = row.date.split(' ')[1];
+      const year = row.date.split(" ")[1];
       if (!years[year]) {
         years[year] = {
           year: year,
@@ -137,13 +225,14 @@ const PaymentSchedule = () => {
           totalPrepayment: 0,
           totalTaxesInsMaint: 0,
           yearEndBalance: 0,
-          months: []
+          months: [],
         };
       }
       years[year].totalPrincipal += row.principal;
       years[year].totalInterest += row.interest;
       years[year].totalPrepayment += row.prepayment;
-      years[year].totalTaxesInsMaint += (row.taxes + row.homeInsurance + row.maintenance);
+      years[year].totalTaxesInsMaint +=
+        row.taxes + row.homeInsurance + row.maintenance;
       years[year].yearEndBalance = row.balance;
       years[year].months.push(row);
     });
@@ -152,29 +241,58 @@ const PaymentSchedule = () => {
 
   return (
     <Box>
-      <Typography variant="h6" className="schedule-title">
-        ({startMonthYear} - {endMonthYear})
-      </Typography>
-
       <Grid container spacing={3}>
         {/* Left Side: Burn Down Table */}
         <Grid item xs={12} lg={6}>
-          <TableContainer component={Paper} className="schedule-table-container">
+          <TableContainer
+            component={Paper}
+            className="schedule-table-container"
+          >
             <Table stickyHeader size="small">
               <TableHead>
                 <TableRow>
                   <TableCell className="schedule-header-cell-icon" />
-                  <TableCell className="schedule-header-cell-primary">Year</TableCell>
-                  <TableCell align="right" className="schedule-header-cell-principal">Principal</TableCell>
-                  <TableCell align="right" className="schedule-header-cell-interest">Interest Paid</TableCell>
-                  <TableCell align="right" className="schedule-header-cell-prepayment">Prepayment</TableCell>
-                  <TableCell align="right" className="schedule-header-cell-taxes">Taxes, Ins. & Maint.</TableCell>
-                  <TableCell align="right" className="schedule-header-cell-primary">Remaining Balance</TableCell>
+                  <TableCell className="schedule-header-cell-primary">
+                    Year
+                  </TableCell>
+                  <TableCell
+                    align="right"
+                    className="schedule-header-cell-principal"
+                  >
+                    Principal
+                  </TableCell>
+                  <TableCell
+                    align="right"
+                    className="schedule-header-cell-interest"
+                  >
+                    Interest Paid
+                  </TableCell>
+                  <TableCell
+                    align="right"
+                    className="schedule-header-cell-prepayment"
+                  >
+                    Prepayment
+                  </TableCell>
+                  <TableCell
+                    align="right"
+                    className="schedule-header-cell-taxes"
+                  >
+                    Taxes, Ins. & Maint.
+                  </TableCell>
+                  <TableCell
+                    align="right"
+                    className="schedule-header-cell-primary"
+                  >
+                    Remaining Balance
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {groupedSchedule.map((yearData) => (
-                  <BurnDownRow key={`year-${yearData.year}`} yearData={yearData} />
+                  <BurnDownRow
+                    key={`year-${yearData.year}`}
+                    yearData={yearData}
+                  />
                 ))}
               </TableBody>
             </Table>
@@ -185,28 +303,117 @@ const PaymentSchedule = () => {
         <Grid item xs={12} lg={6}>
           <Box className="schedule-chart-box">
             {schedule.length > 36 && (
-              <Typography variant="caption" color="textSecondary" className="schedule-chart-caption">
-                Data has been aggregated yearly as the tenure is longer than 36 months.
+              <Typography
+                variant="caption"
+                color="textSecondary"
+                className="schedule-chart-caption"
+              >
+                Data has been aggregated yearly as the tenure is longer than 36
+                months.
               </Typography>
             )}
             <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis yAxisId="left" />
-                <YAxis yAxisId="right" orientation="right" />
-                <Tooltip formatter={(value) => `₹${Number(value).toFixed(2)}`} />
-                <Legend />
-                <Bar yAxisId="left" dataKey="principal" stackId="a" fill={COLOR_PRINCIPAL} name="Principal" />
-                <Bar yAxisId="left" dataKey="interest" stackId="a" fill={COLOR_INTEREST} name="Interest" />
-                <Bar yAxisId="left" dataKey="prepayment" stackId="a" fill={COLOR_PREPAYMENT} name="Prepayment" />
-                <Bar yAxisId="left" dataKey="taxes" stackId="a" fill={COLOR_TAXES_INS_MAINT} name="Taxes" />
-                <Bar yAxisId="left" dataKey="homeInsurance" stackId="a" fill={COLOR_TAXES_INS_MAINT} name="Home Ins." />
-                <Bar yAxisId="left" dataKey="maintenance" stackId="a" fill={COLOR_TAXES_INS_MAINT} name="Maint." />
-                <Line yAxisId="left" type="monotone" dataKey="principal" stroke={LINE_PRINCIPAL} name="Principal (Line)" dot={false} strokeWidth={2} />
-                <Line yAxisId="left" type="monotone" dataKey="prepayment" stroke={LINE_PREPAYMENT} name="Prepayment (Line)" dot={false} strokeWidth={2} />
-                <Line yAxisId="left" type="monotone" dataKey="interest" stroke={LINE_INTEREST} name="Interest (Line)" dot={false} strokeWidth={2} />
-                <Line yAxisId="right" type="monotone" dataKey="balance" stroke="#ff7300" name="Balance" />
+              <ComposedChart
+                data={chartData}
+                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke={theme.palette.divider}
+                />
+                <XAxis dataKey="date" stroke={colors.text} />
+                <YAxis yAxisId="left" stroke={colors.text} />
+                <YAxis
+                  yAxisId="right"
+                  orientation="right"
+                  stroke={colors.text}
+                />
+                <Tooltip
+                  formatter={(value) =>
+                    `${currency}${Number(value).toFixed(2)}`
+                  }
+                  contentStyle={{
+                    backgroundColor: theme.palette.background.paper,
+                    color: theme.palette.text.primary,
+                  }}
+                />
+                <Legend wrapperStyle={{ color: colors.text }} />
+                <Bar
+                  yAxisId="left"
+                  dataKey="principal"
+                  stackId="a"
+                  fill={colors.principal}
+                  name="Principal"
+                />
+                <Bar
+                  yAxisId="left"
+                  dataKey="interest"
+                  stackId="a"
+                  fill={colors.interest}
+                  name="Interest"
+                />
+                <Bar
+                  yAxisId="left"
+                  dataKey="prepayment"
+                  stackId="a"
+                  fill={colors.prepayment}
+                  name="Prepayment"
+                />
+                <Bar
+                  yAxisId="left"
+                  dataKey="taxes"
+                  stackId="a"
+                  fill={colors.taxes}
+                  name="Taxes"
+                />
+                <Bar
+                  yAxisId="left"
+                  dataKey="homeInsurance"
+                  stackId="a"
+                  fill={colors.taxes}
+                  name="Home Ins."
+                />
+                <Bar
+                  yAxisId="left"
+                  dataKey="maintenance"
+                  stackId="a"
+                  fill={colors.taxes}
+                  name="Maint."
+                />
+                <Line
+                  yAxisId="left"
+                  type="monotone"
+                  dataKey="principal"
+                  stroke={colors.linePrincipal}
+                  name="Principal (Line)"
+                  dot={false}
+                  strokeWidth={2}
+                />
+                <Line
+                  yAxisId="left"
+                  type="monotone"
+                  dataKey="prepayment"
+                  stroke={colors.linePrepayment}
+                  name="Prepayment (Line)"
+                  dot={false}
+                  strokeWidth={2}
+                />
+                <Line
+                  yAxisId="left"
+                  type="monotone"
+                  dataKey="interest"
+                  stroke={colors.lineInterest}
+                  name="Interest (Line)"
+                  dot={false}
+                  strokeWidth={2}
+                />
+                <Line
+                  yAxisId="right"
+                  type="monotone"
+                  dataKey="balance"
+                  stroke={colors.lineBalance}
+                  name="Balance"
+                />
               </ComposedChart>
             </ResponsiveContainer>
           </Box>

@@ -1,45 +1,53 @@
-import React, { useState } from 'react';
-import { AppBar, Toolbar, Typography, Box, Button, Menu, MenuItem } from '@mui/material';
-import CalculateIcon from '@mui/icons-material/Calculate';
-import { Link } from 'react-router-dom';
-import * as XLSX from 'xlsx';
-import { useEmiContext } from '../context/EmiContext';
-import './Header.css';
+import React, { useState } from "react";
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  Box,
+  Menu,
+  MenuItem,
+  Select,
+  FormControl,
+} from "@mui/material";
+import CalculateIcon from "@mui/icons-material/Calculate";
+import { Link } from "react-router-dom";
+import * as XLSX from "xlsx";
+import { useEmiContext } from "../context/EmiContext";
+import "./Header.css";
+import { SettingsRounded } from "@mui/icons-material";
 
 const Header = () => {
-  const { calculatedValues } = useEmiContext();
-  const [anchorEl, setAnchorEl] = useState(null);
-  const open = Boolean(anchorEl);
+  const { calculatedValues, currency, setCurrency, themeMode, setThemeMode } =
+    useEmiContext();
 
-  const handleClick = (event) => {
-    setAnchorEl(event.currentTarget);
+  const handleExport = (event) => {
+    const value = event.target.value;
+    if (value === "pdf") {
+      window.print();
+    } else if (value === "excel") {
+      if (!calculatedValues || !calculatedValues.schedule) return;
+      const tableData = calculatedValues.schedule.map((row) => ({
+        Month: row.month,
+        Date: row.date,
+        Principal: row.principal.toFixed(2),
+        Interest: row.interest.toFixed(2),
+        Prepayment: row.prepayment.toFixed(2),
+        Balance: row.balance.toFixed(2),
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(tableData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Schedule");
+      XLSX.writeFile(wb, "emi_schedule.xlsx");
+    }
   };
 
-  const handleClose = () => {
-    setAnchorEl(null);
+  const handleCurrencyChange = (event) => {
+    setCurrency(event.target.value);
   };
 
-  const handleDownloadPDF = () => {
-    window.print();
-    handleClose();
-  };
-
-  const handleDownloadExcel = () => {
-    if (!calculatedValues || !calculatedValues.schedule) return;
-    const tableData = calculatedValues.schedule.map(row => ({
-      Month: row.month,
-      Date: row.date,
-      Principal: row.principal.toFixed(2),
-      Interest: row.interest.toFixed(2),
-      Prepayment: row.prepayment.toFixed(2),
-      Balance: row.balance.toFixed(2),
-    }));
-
-    const ws = XLSX.utils.json_to_sheet(tableData);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Schedule');
-    XLSX.writeFile(wb, 'emi_schedule.xlsx');
-    handleClose();
+  const handleThemeChange = (event) => {
+    setThemeMode(event.target.value);
   };
 
   return (
@@ -52,20 +60,31 @@ const Header = () => {
           </Link>
         </Typography>
         <Box className="header-actions">
-          <Button color="inherit" onClick={handleClick} className="header-button">
-            Export
-          </Button>
-          <Menu
-            anchorEl={anchorEl}
-            open={open}
-            onClose={handleClose}
-          >
-            <MenuItem onClick={handleDownloadPDF}>Export PDF</MenuItem>
-            <MenuItem onClick={handleDownloadExcel}>Export Excel</MenuItem>
-          </Menu>
+          <FormControl variant="standard" sx={{ m: 1, minWidth: 100 }}>
+            <Select
+              value=""
+              onChange={handleExport}
+              displayEmpty
+              className="header-select"
+              disableUnderline
+            >
+              <MenuItem value="" disabled>
+                Export
+              </MenuItem>
+              <MenuItem value="pdf">PDF</MenuItem>
+              <MenuItem value="excel">Excel</MenuItem>
+            </Select>
+          </FormControl>
+
           <Typography variant="button">
             <Link to="/faq" className="header-link">
               FAQ
+            </Link>
+          </Typography>
+
+          <Typography variant="button">
+            <Link to="/settings" className="header-link">
+              <SettingsRounded className="header-icon" />
             </Link>
           </Typography>
         </Box>
