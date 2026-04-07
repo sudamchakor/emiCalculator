@@ -2,6 +2,7 @@ import React from "react";
 import { Paper, Typography, Box, Grid, Divider } from "@mui/material";
 import { useEmiContext } from "../context/EmiContext";
 import "./TotalMonthlyPayment.scss";
+import CalcGrid from "./CalcGrid";
 
 const TotalMonthlyPayment = () => {
   const { calculatedValues, expenses, currency } = useEmiContext();
@@ -23,59 +24,42 @@ const TotalMonthlyPayment = () => {
       </Typography>
       <Box className="total-monthly-box">
         <Grid container spacing={2}>
-          <Grid item xs={8}>
-            <Typography variant="body1">Monthly EMI</Typography>
-          </Grid>
-          <Grid item xs={4}>
-            <Typography variant="body1" align="right">
-              {currency}
-              {emi}
-            </Typography>
-          </Grid>
-
-          <Grid item xs={8}>
-            <Typography variant="body1">Property Taxes (Monthly)</Typography>
-          </Grid>
-          <Grid item xs={4}>
-            <Typography variant="body1" align="right">
-              {currency}
-              {monthlyTaxes}
-            </Typography>
-          </Grid>
-
-          <Grid item xs={8}>
-            <Typography variant="body1">Home Insurance (Monthly)</Typography>
-          </Grid>
-          <Grid item xs={4}>
-            <Typography variant="body1" align="right">
-              {currency}
-              {monthlyInsurance}
-            </Typography>
-          </Grid>
-
-          <Grid item xs={8}>
-            <Typography variant="body1">Maintenance (Monthly)</Typography>
-          </Grid>
-          <Grid item xs={4}>
-            <Typography variant="body1" align="right">
-              {currency}
-              {monthlyMaintenance}
-            </Typography>
-          </Grid>
+          <CalcGrid
+            label={"Monthly EMI"}
+            currency={currency}
+            value={emi}
+            variant={"body1"}
+          />
+          <CalcGrid
+            label={"Property Taxes"}
+            currency={currency}
+            value={monthlyTaxes}
+            variant={"body1"}
+          />
+          <CalcGrid
+            label={"Home Insurance"}
+            currency={currency}
+            value={monthlyInsurance}
+            variant={"body1"}
+          />
+          <CalcGrid
+            label={"Maintenance"}
+            currency={currency}
+            value={monthlyMaintenance}
+            variant={"body1"}
+          />
         </Grid>
 
         <Divider className="total-monthly-divider" />
 
         <Grid container spacing={2}>
-          <Grid item xs={8}>
-            <Typography variant="h6">Total Monthly Payment</Typography>
-          </Grid>
-          <Grid item xs={4}>
-            <Typography variant="h6" align="right" color="primary">
-              {currency}
-              {totalMonthlyPayment}
-            </Typography>
-          </Grid>
+          <CalcGrid
+            label={"Total Monthly Payment"}
+            currency={currency}
+            value={totalMonthlyPayment}
+            variant="h6"
+            color="primary"
+          />
         </Grid>
       </Box>
     </Box>
