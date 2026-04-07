@@ -1,36 +1,48 @@
 import React from "react";
-import { Box, Typography, Grid, Card, CardActionArea, Stack } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Grid,
+  Card,
+  CardActionArea,
+  Stack,
+} from "@mui/material";
 
 const themes = [
   {
-    name: "Light",
-    value: "light",
-    colors: ["#2a9d8f", "#264653", "#e9c46a", "#f4a261", "#e76f51"],
-  },
-  {
-    name: "Dark",
-    value: "dark",
-    colors: ["#90CAF9", "#BBDEFB", "#121212", "#1E1E1E", "#E0E0E0"],
-  },
-  {
-    name: "Blue",
-    value: "blue",
-    colors: ["#0077b6", "#00b4d8", "#caf0f8", "#023e8a", "#0096c7"],
-  },
-  {
-    name: "Green",
-    value: "green",
-    colors: ["#40916c", "#52b788", "#d8f3dc", "#2d6a4f", "#74c69d"],
-  },
-  {
-    name: "Yellow",
-    value: "yellow",
-    colors: ["#fb8500", "#ffb703", "#fff3e0", "#023047", "#219ebc"],
-  },
-  {
-    name: "DodgerBlue",
+    name: "DodgerBlue", // M3 Professional Baseline
     value: "dodgerblue",
-    colors: ["#1E90FF", "#6495ED", "#E0FFFF", "#F0F8FF", "#191970"],
+    colors: ["#0061A4", "#D1E4FF", "#F8FAFF", "#001D35", "#535F70"],
+  },
+  {
+    name: "Dark", // M3 Charcoal (Standard Dark)
+    value: "dark",
+    colors: ["#D0BCFF", "#381E72", "#1C1B1F", "#E6E1E5", "#938F99"],
+  },
+  {
+    name: "Zinc", // Most popular for Dashboards (Neutral)
+    value: "zinc",
+    colors: ["#18181B", "#F4F4F5", "#FFFFFF", "#09090B", "#71717A"],
+  },
+  {
+    name: "Emerald", // High-Trust Financial Green
+    value: "green",
+    colors: ["#006D3A", "#D3E8D3", "#F1F8F1", "#00210E", "#748C7D"],
+  },
+  {
+    name: "Rose", // Trending Soft Aesthetic
+    value: "rose",
+    colors: ["#9C4275", "#FFD8EB", "#FFF8F9", "#201A1D", "#81737A"],
+  },
+  {
+    name: "Amber", // High-Contrast Warning/Warning
+    value: "yellow",
+    colors: ["#7A5900", "#FFDF9E", "#FFF8F1", "#261900", "#4D4639"],
+  },
+  {
+    name: "Indigo", // Premium "Fintech" Look
+    value: "indigo",
+    colors: ["#4355B9", "#DEE0FF", "#FEFBFF", "#001158", "#5B5D72"],
   },
 ];
 
@@ -43,9 +55,7 @@ const ThemeSelector = ({ selectedTheme, onThemeChange, disabled }) => {
             variant="outlined"
             sx={{
               borderColor:
-                selectedTheme === theme.value
-                  ? "primary.main"
-                  : "transparent",
+                selectedTheme === theme.value ? "primary.main" : "transparent",
               borderWidth: 2,
             }}
           >
@@ -65,7 +75,12 @@ const ThemeSelector = ({ selectedTheme, onThemeChange, disabled }) => {
                   />
                 ))}
               </Stack>
-              <Typography variant="caption" align="center" display="block" p={1}>
+              <Typography
+                variant="caption"
+                align="center"
+                display="block"
+                p={1}
+              >
                 {theme.name}
               </Typography>
             </CardActionArea>

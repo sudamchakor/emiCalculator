@@ -3,6 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import { ThemeProvider, createTheme, CssBaseline, Box } from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { HelmetProvider } from 'react-helmet-async'; // Import HelmetProvider
 
 // Context
 import { EmiProvider, useEmiContext } from "./context/EmiContext";
@@ -75,7 +76,9 @@ function App() {
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <EmiProvider>
-        <AppContent />
+        <HelmetProvider> {/* Wrap AppContent with HelmetProvider */}
+          <AppContent />
+        </HelmetProvider>
       </EmiProvider>
     </LocalizationProvider>
   );
