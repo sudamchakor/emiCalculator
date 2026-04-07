@@ -1,5 +1,5 @@
-import React, { useMemo } from "react";
-import { Routes, Route } from "react-router-dom";
+import React, { useMemo, useEffect } from "react";
+import { Routes, Route, BrowserRouter } from "react-router-dom";
 import { ThemeProvider, createTheme, CssBaseline, Box } from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -11,6 +11,7 @@ import { EmiProvider, useEmiContext } from "./context/EmiContext";
 import Header from "./components/Header";
 import Calculator from "./pages/Calculator";
 import FAQ from "./pages/FAQ";
+import Settings from "./components/Settings";
 
 // Styles
 import "./App.css";
@@ -23,10 +24,13 @@ import {
   yellow,
   amber,
 } from "@mui/material/colors";
-import Settings from "./components/Settings";
 
 const AppContent = () => {
   const { themeMode } = useEmiContext();
+
+  useEffect(() => {
+    document.body.setAttribute("data-theme", themeMode);
+  }, [themeMode]);
 
   const theme = useMemo(() => {
     let palette = {

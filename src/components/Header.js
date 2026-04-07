@@ -42,14 +42,6 @@ const Header = () => {
     }
   };
 
-  const handleCurrencyChange = (event) => {
-    setCurrency(event.target.value);
-  };
-
-  const handleThemeChange = (event) => {
-    setThemeMode(event.target.value);
-  };
-
   return (
     <AppBar position="fixed" className="header-appbar">
       <Toolbar>
@@ -84,7 +76,7 @@ const Header = () => {
 
           <Typography variant="button">
             <Link to="/settings" className="header-link">
-              <SettingsRounded className="header-icon" />
+              <SettingsRounded className="header-icon" style={{ marginBottom: '-6px'}} />
             </Link>
           </Typography>
         </Box>

@@ -55,31 +55,31 @@ const BurnDownRow = ({ yearData }) => {
         <TableCell align="right">
           <strong>
             {currency}
-            {yearData.totalPrincipal.toFixed(2)}
+            {Math.round(yearData.totalPrincipal)}
           </strong>
         </TableCell>
         <TableCell align="right">
           <strong>
             {currency}
-            {yearData.totalInterest.toFixed(2)}
+            {Math.round(yearData.totalInterest)}
           </strong>
         </TableCell>
         <TableCell align="right">
           <strong>
             {currency}
-            {yearData.totalPrepayment.toFixed(2)}
+            {Math.round(yearData.totalPrepayment)}
           </strong>
         </TableCell>
         <TableCell align="right">
           <strong>
             {currency}
-            {yearData.totalTaxesInsMaint.toFixed(2)}
+            {Math.round(yearData.totalTaxesInsMaint)}
           </strong>
         </TableCell>
         <TableCell align="right">
           <strong>
             {currency}
-            {yearData.yearEndBalance.toFixed(2)}
+            {Math.round(yearData.yearEndBalance)}
           </strong>
         </TableCell>
       </TableRow>
@@ -109,27 +109,27 @@ const BurnDownRow = ({ yearData }) => {
                       <TableCell>{monthRow.date}</TableCell>
                       <TableCell align="right">
                         {currency}
-                        {monthRow.principal.toFixed(2)}
+                        {Math.round(monthRow.principal)}
                       </TableCell>
                       <TableCell align="right">
                         {currency}
-                        {monthRow.interest.toFixed(2)}
+                        {Math.round(monthRow.interest)}
                       </TableCell>
                       <TableCell align="right">
                         {currency}
-                        {monthRow.prepayment.toFixed(2)}
+                        {Math.round(monthRow.prepayment)}
                       </TableCell>
                       <TableCell align="right">
                         {currency}
-                        {(
+                        {Math.round(
                           monthRow.taxes +
                           monthRow.homeInsurance +
                           monthRow.maintenance
-                        ).toFixed(2)}
+                        )}
                       </TableCell>
                       <TableCell align="right">
                         {currency}
-                        {monthRow.balance.toFixed(2)}
+                        {Math.round(monthRow.balance)}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -243,7 +243,7 @@ const PaymentSchedule = () => {
     <Box>
       <Grid container spacing={3}>
         {/* Left Side: Burn Down Table */}
-        <Grid item xs={12} lg={6}>
+        <Grid item xs={12}>
           <TableContainer
             component={Paper}
             className="schedule-table-container"
@@ -300,7 +300,7 @@ const PaymentSchedule = () => {
         </Grid>
 
         {/* Right Side: Chart View */}
-        <Grid item xs={12} lg={6}>
+        <Grid item xs={12}>
           <Box className="schedule-chart-box">
             {schedule.length > 36 && (
               <Typography
@@ -330,7 +330,7 @@ const PaymentSchedule = () => {
                 />
                 <Tooltip
                   formatter={(value) =>
-                    `${currency}${Number(value).toFixed(2)}`
+                    `${currency}${Math.round(value)}`
                   }
                   contentStyle={{
                     backgroundColor: theme.palette.background.paper,

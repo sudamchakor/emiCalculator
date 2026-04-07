@@ -79,7 +79,7 @@ const PieChartComponent = () => {
       </Typography>
       <Grid container spacing={3} alignItems="center">
         {/* Left side: Pie Chart */}
-        <Grid item xs={12}>
+        <Grid item xs={12} md={6}>
           <Box className="pie-chart-container">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -115,7 +115,7 @@ const PieChartComponent = () => {
         </Grid>
 
         {/* Right side: Payment Details */}
-        <Grid item xs={12}>
+        <Grid item xs={12} md={6}>
           <Box className="pie-chart-details">
             <Grid container spacing={2}>
               <Grid item xs={8}>

@@ -57,7 +57,7 @@ const Settings = () => {
 
   useEffect(() => {
     if (autoSave) saveSettingsToLocal({ currency, themeMode, autoSave });
-  }, [currency, themeMode, autoSave]);
+  }, [currency, themeMode, autoSave, saveSettingsToLocal]);
 
   useEffect(() => {
     if (saveTrigger > 0) setOpenToast(true);
@@ -140,11 +140,13 @@ const Settings = () => {
                 <Select
                   value={currency}
                   label="Preferred Currency"
+                  variant="outlined"
                   onChange={(e) => setCurrency(e.target.value)}
                 >
-                  <MenuItem value="INR">INR - Indian Rupee (₹)</MenuItem>
-                  <MenuItem value="USD">USD - US Dollar ($)</MenuItem>
-                  <MenuItem value="EUR">EUR - Euro (€)</MenuItem>
+                  <MenuItem value="₹">INR - Indian Rupee (₹)</MenuItem>
+                  <MenuItem value="$">USD - US Dollar ($)</MenuItem>
+                  <MenuItem value="€">EUR - Euro (€)</MenuItem>
+                  <MenuItem value="£">GBP - British Pound (£)</MenuItem>
                 </Select>
               </FormControl>
             </Box>
@@ -166,7 +168,7 @@ const Settings = () => {
                 </Typography>
               </Box>
               <Switch
-                checked={autoSave}
+                checked={!!autoSave}
                 onChange={(e) => setAutoSave(e.target.checked)}
               />
             </Stack>
