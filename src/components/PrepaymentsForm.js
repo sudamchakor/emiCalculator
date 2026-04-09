@@ -1,19 +1,48 @@
-import React, { useState } from "react";
-import {
-  TextField,
-  InputAdornment,
-  Box,
-  Paper,
-  Typography,
-  Grid,
-  Collapse,
-  IconButton,
-} from "@mui/material";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import ExpandLessIcon from "@mui/icons-material/ExpandLess";
+import React from "react";
+import styled from "styled-components";
+import { Box, Typography, Grid } from "@mui/material";
 import { useEmiContext } from "../context/EmiContext";
-import "./PrepaymentsForm.scss";
+import { AmountInput, DatePickerInput } from "./common/CommonComponents";
+
+const PrepaymentsHeader = styled(Box)`
+  padding: 16px 0 16px 16px;
+  background-color: #f5f5f5;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 16px;
+`;
+
+const PrepaymentsGrid = styled(Grid)`
+  padding: 0 16px 16px 16px;
+`;
+
+const PrepaymentSection = ({
+  title,
+  amountValue,
+  onAmountChange,
+  dateLabel,
+  dateValue,
+  onDateChange,
+  currency,
+}) => (
+  <Grid item xs={12} sm={3}>
+    <Typography variant="subtitle2" gutterBottom>
+      {title}
+    </Typography>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <AmountInput
+        label="Amount"
+        value={amountValue}
+        onChange={onAmountChange}
+        currency={currency}
+      />
+      <DatePickerInput
+        label={dateLabel}
+        value={dateValue}
+        onChange={onDateChange}
+      />
+    </Box>
+  </Grid>
+);
 
 const PrepaymentsForm = () => {
   const { prepayments, updatePrepayments, currency } = useEmiContext();
@@ -34,123 +63,51 @@ const PrepaymentsForm = () => {
 
   return (
     <>
-      <Box className="prepayments-header">
+      <PrepaymentsHeader>
         <Typography variant="h6">Partial Prepayments</Typography>
-      </Box>
+      </PrepaymentsHeader>
 
-      <Grid container spacing={2} className="prepayments-grid">
-        {/* Monthly Prepayment */}
-        <Grid item xs={12} sm={3}>
-          <Typography variant="subtitle2" gutterBottom>
-            Monthly Payment
-          </Typography>
-          <Box className="prepayments-input-group">
-            <TextField
-              fullWidth
-              label="Amount"
-              type="number"
-              value={prepayments.monthly.amount || ""}
-              onChange={(e) => handleAmountChange("monthly", e)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">{currency}</InputAdornment>
-                ),
-              }}
-            />
-            <DatePicker
-              label="Starting from"
-              views={["year", "month"]}
-              value={prepayments.monthly.startDate}
-              onChange={(newValue) => handleDateChange("monthly", newValue)}
-              slotProps={{ textField: { fullWidth: true } }}
-            />
-          </Box>
-        </Grid>
+      <PrepaymentsGrid container spacing={2}>
+        <PrepaymentSection
+          title="Monthly Payment"
+          amountValue={prepayments.monthly.amount}
+          onAmountChange={(e) => handleAmountChange("monthly", e)}
+          dateLabel="Starting from"
+          dateValue={prepayments.monthly.startDate}
+          onDateChange={(newValue) => handleDateChange("monthly", newValue)}
+          currency={currency}
+        />
 
-        {/* Yearly Prepayment */}
-        <Grid item xs={12} sm={3}>
-          <Typography variant="subtitle2" gutterBottom>
-            Yearly Payment
-          </Typography>
-          <Box className="prepayments-input-group">
-            <TextField
-              fullWidth
-              label="Amount"
-              type="number"
-              value={prepayments.yearly.amount || ""}
-              onChange={(e) => handleAmountChange("yearly", e)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">{currency}</InputAdornment>
-                ),
-              }}
-            />
-            <DatePicker
-              label="Starting from"
-              views={["year", "month"]}
-              value={prepayments.yearly.startDate}
-              onChange={(newValue) => handleDateChange("yearly", newValue)}
-              slotProps={{ textField: { fullWidth: true } }}
-            />
-          </Box>
-        </Grid>
+        <PrepaymentSection
+          title="Yearly Payment"
+          amountValue={prepayments.yearly.amount}
+          onAmountChange={(e) => handleAmountChange("yearly", e)}
+          dateLabel="Starting from"
+          dateValue={prepayments.yearly.startDate}
+          onDateChange={(newValue) => handleDateChange("yearly", newValue)}
+          currency={currency}
+        />
 
-        {/* Quarterly Prepayment */}
-        <Grid item xs={12} sm={3}>
-          <Typography variant="subtitle2" gutterBottom>
-            Quarterly Payment
-          </Typography>
-          <Box className="prepayments-input-group">
-            <TextField
-              fullWidth
-              label="Amount"
-              type="number"
-              value={prepayments.quarterly.amount || ""}
-              onChange={(e) => handleAmountChange("quarterly", e)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">{currency}</InputAdornment>
-                ),
-              }}
-            />
-            <DatePicker
-              label="Starting from"
-              views={["year", "month"]}
-              value={prepayments.quarterly.startDate}
-              onChange={(newValue) => handleDateChange("quarterly", newValue)}
-              slotProps={{ textField: { fullWidth: true } }}
-            />
-          </Box>
-        </Grid>
+        <PrepaymentSection
+          title="Quarterly Payment"
+          amountValue={prepayments.quarterly.amount}
+          onAmountChange={(e) => handleAmountChange("quarterly", e)}
+          dateLabel="Starting from"
+          dateValue={prepayments.quarterly.startDate}
+          onDateChange={(newValue) => handleDateChange("quarterly", newValue)}
+          currency={currency}
+        />
 
-        {/* One-Time Prepayment */}
-        <Grid item xs={12} sm={3}>
-          <Typography variant="subtitle2" gutterBottom>
-            One-time Payment
-          </Typography>
-          <Box className="prepayments-input-group">
-            <TextField
-              fullWidth
-              label="Amount"
-              type="number"
-              value={prepayments.oneTime.amount || ""}
-              onChange={(e) => handleAmountChange("oneTime", e)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">{currency}</InputAdornment>
-                ),
-              }}
-            />
-            <DatePicker
-              label="In the month of"
-              views={["year", "month"]}
-              value={prepayments.oneTime.date}
-              onChange={(newValue) => handleDateChange("oneTime", newValue)}
-              slotProps={{ textField: { fullWidth: true } }}
-            />
-          </Box>
-        </Grid>
-      </Grid>
+        <PrepaymentSection
+          title="One-time Payment"
+          amountValue={prepayments.oneTime.amount}
+          onAmountChange={(e) => handleAmountChange("oneTime", e)}
+          dateLabel="In the month of"
+          dateValue={prepayments.oneTime.date}
+          onDateChange={(newValue) => handleDateChange("oneTime", newValue)}
+          currency={currency}
+        />
+      </PrepaymentsGrid>
     </>
   );
 };

@@ -1,23 +1,20 @@
-import React, { useState } from "react";
-import {
-  TextField,
-  InputAdornment,
-  Box,
-  Paper,
-  Typography,
-  Grid,
-  MenuItem,
-  Select,
-  FormControl,
-  Collapse,
-  IconButton,
-  Divider,
-} from "@mui/material";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import ExpandLessIcon from "@mui/icons-material/ExpandLess";
+import React from "react";
+import styled from "styled-components";
+import { Box, Paper, Typography, Grid, Divider } from "@mui/material";
 import { useEmiContext } from "../context/EmiContext";
-import "./HomeLoanForm.css";
+import { AmountInput, AmountWithUnitInput, DatePickerInput } from "./common/CommonComponents";
+
+const StyledPaper = styled(Paper)`
+  padding: 24px;
+  margin-bottom: 24px;
+`;
+
+const SectionHeader = styled(Box)`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+`;
 
 const HomeLoanForm = () => {
   const {
@@ -52,148 +49,97 @@ const HomeLoanForm = () => {
   };
 
   return (
-    <Paper elevation={3} className="home-loan-paper">
+    <StyledPaper elevation={3}>
       <Typography variant="h6" gutterBottom>
         Home Loan Details
       </Typography>
       <Grid container spacing={2}>
         <Grid item xs={12} sm={3}>
-          <TextField
-            fullWidth
+          <AmountInput
             label="Home Value (HV)"
-            type="number"
-            value={loanDetails.homeValue || ""}
+            value={loanDetails.homeValue}
             onChange={(e) => handleChange("homeValue", e)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">{currency}</InputAdornment>
-              ),
-            }}
+            currency={currency}
           />
         </Grid>
 
         <Grid item xs={12} sm={3}>
-          <Box className="home-loan-input-group">
-            <TextField
-              sx={{ flex: 1 }}
-              fullWidth
-              label="Margin / Down Payment"
-              type="number"
-              value={loanDetails.marginAmount || ""}
-              onChange={(e) => handleChange("marginAmount", e)}
-            />
-            <FormControl className="home-loan-form-control">
-              <Select
-                value={loanDetails.marginUnit}
-                onChange={(e) =>
-                  handleUnitChange("marginUnit", "marginAmount", e)
-                }
-              >
-                <MenuItem value="Rs">{currency}</MenuItem>
-                <MenuItem value="%">%</MenuItem>
-              </Select>
-            </FormControl>
-          </Box>
+          <AmountWithUnitInput
+            label="Margin / Down Payment"
+            value={loanDetails.marginAmount}
+            onAmountChange={(e) => handleChange("marginAmount", e)}
+            unitValue={loanDetails.marginUnit}
+            onUnitChange={(e) => handleUnitChange("marginUnit", "marginAmount", e)}
+            unitOptions={[
+              { value: "Rs", label: currency },
+              { value: "%", label: "%" },
+            ]}
+          />
           <Typography variant="caption" color="textSecondary">
             Value in {currency}: {calculatedValues.marginInRs.toFixed(2)}
           </Typography>
         </Grid>
 
         <Grid item xs={12} sm={3}>
-          <TextField
-            fullWidth
+          <AmountInput
             label="Loan Insurance (LI)"
-            type="number"
-            value={loanDetails.loanInsurance || ""}
+            value={loanDetails.loanInsurance}
             onChange={(e) => handleChange("loanInsurance", e)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">{currency}</InputAdornment>
-              ),
-            }}
+            currency={currency}
           />
         </Grid>
 
         <Grid item xs={12} sm={3}>
-          <TextField
-            fullWidth
-            disabled
+          <AmountInput
             label="Loan Amount"
             value={calculatedValues.loanAmount.toFixed(2)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">{currency}</InputAdornment>
-              ),
-            }}
+            disabled={true}
+            currency={currency}
           />
         </Grid>
 
         <Grid item xs={12} sm={3}>
-          <TextField
-            fullWidth
+          <AmountInput
             label="Interest Rate"
-            type="number"
-            value={loanDetails.interestRate || ""}
+            value={loanDetails.interestRate}
             onChange={(e) => handleChange("interestRate", e)}
-            InputProps={{
-              endAdornment: <InputAdornment position="end">%</InputAdornment>,
-            }}
+            currency="%"
           />
         </Grid>
 
         <Grid item xs={12} sm={3}>
-          <Box className="home-loan-input-group">
-            <TextField
-              sx={{ flex: 1 }}
-              fullWidth
-              label="Loan Tenure"
-              type="number"
-              value={loanDetails.loanTenure || ""}
-              onChange={(e) => handleChange("loanTenure", e)}
-            />
-            <FormControl className="home-loan-form-control">
-              <Select
-                value={loanDetails.tenureUnit}
-                onChange={(e) =>
-                  handleUnitChange("tenureUnit", "loanTenure", e)
-                }
-              >
-                <MenuItem value="years">Y</MenuItem>
-                <MenuItem value="months">M</MenuItem>
-              </Select>
-            </FormControl>
-          </Box>
+          <AmountWithUnitInput
+            label="Loan Tenure"
+            value={loanDetails.loanTenure}
+            onAmountChange={(e) => handleChange("loanTenure", e)}
+            unitValue={loanDetails.tenureUnit}
+            onUnitChange={(e) => handleUnitChange("tenureUnit", "loanTenure", e)}
+            unitOptions={[
+              { value: "years", label: "Y" },
+              { value: "months", label: "M" },
+            ]}
+          />
         </Grid>
 
         <Grid item xs={12} sm={3}>
-          <Box className="home-loan-input-group">
-            <TextField
-              sx={{ flex: 1 }}
-              fullWidth
-              label="Loan Fees & Charges"
-              type="number"
-              value={loanDetails.loanFees || ""}
-              onChange={(e) => handleChange("loanFees", e)}
-            />
-            <FormControl className="home-loan-form-control">
-              <Select
-                value={loanDetails.feesUnit}
-                onChange={(e) => handleUnitChange("feesUnit", "loanFees", e)}
-              >
-                <MenuItem value="Rs">{currency}</MenuItem>
-                <MenuItem value="%">%</MenuItem>
-              </Select>
-            </FormControl>
-          </Box>
+          <AmountWithUnitInput
+            label="Loan Fees & Charges"
+            value={loanDetails.loanFees}
+            onAmountChange={(e) => handleChange("loanFees", e)}
+            unitValue={loanDetails.feesUnit}
+            onUnitChange={(e) => handleUnitChange("feesUnit", "loanFees", e)}
+            unitOptions={[
+              { value: "Rs", label: currency },
+              { value: "%", label: "%" },
+            ]}
+          />
         </Grid>
 
         <Grid item xs={12} sm={3}>
-          <DatePicker
+          <DatePickerInput
             label="Start Month & Year"
-            views={["year", "month"]}
             value={loanDetails.startDate}
             onChange={(newValue) => updateLoanDetails("startDate", newValue)}
-            slotProps={{ textField: { fullWidth: true } }}
           />
         </Grid>
       </Grid>
@@ -202,107 +148,63 @@ const HomeLoanForm = () => {
         <Divider />
       </Box>
 
-      <Box
-        className="expenses-header"
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "8px",
-        }}
-      >
+      <SectionHeader>
         <Typography variant="h6">Homeowner Expenses</Typography>
-      </Box>
+      </SectionHeader>
 
       <Grid container spacing={2}>
         <Grid item xs={12} sm={3}>
-          <Box className="home-loan-input-group">
-            <TextField
-              sx={{ flex: 1 }}
-              fullWidth
-              label="One-time Expenses"
-              type="number"
-              value={expenses.oneTimeExpenses || ""}
-              onChange={(e) => handleExpenseChange("oneTimeExpenses", e)}
-            />
-            <FormControl className="home-loan-form-control">
-              <Select
-                value={expenses.oneTimeUnit}
-                onChange={(e) =>
-                  handleExpenseUnitChange("oneTimeUnit", "oneTimeExpenses", e)
-                }
-              >
-                <MenuItem value="Rs">{currency}</MenuItem>
-                <MenuItem value="%">%</MenuItem>
-              </Select>
-            </FormControl>
-          </Box>
+          <AmountWithUnitInput
+            label="One-time Expenses"
+            value={expenses.oneTimeExpenses}
+            onAmountChange={(e) => handleExpenseChange("oneTimeExpenses", e)}
+            unitValue={expenses.oneTimeUnit}
+            onUnitChange={(e) => handleExpenseUnitChange("oneTimeUnit", "oneTimeExpenses", e)}
+            unitOptions={[
+              { value: "Rs", label: currency },
+              { value: "%", label: "%" },
+            ]}
+          />
         </Grid>
 
         <Grid item xs={12} sm={3}>
-          <Box className="home-loan-input-group">
-            <TextField
-              sx={{ flex: 1 }}
-              fullWidth
-              label="Property Taxes / year"
-              type="number"
-              value={expenses.propertyTaxes || ""}
-              onChange={(e) => handleExpenseChange("propertyTaxes", e)}
-            />
-            <FormControl className="home-loan-form-control">
-              <Select
-                value={expenses.taxesUnit}
-                onChange={(e) =>
-                  handleExpenseUnitChange("taxesUnit", "propertyTaxes", e)
-                }
-              >
-                <MenuItem value="Rs">{currency}</MenuItem>
-                <MenuItem value="%">%</MenuItem>
-              </Select>
-            </FormControl>
-          </Box>
+          <AmountWithUnitInput
+            label="Property Taxes / year"
+            value={expenses.propertyTaxes}
+            onAmountChange={(e) => handleExpenseChange("propertyTaxes", e)}
+            unitValue={expenses.taxesUnit}
+            onUnitChange={(e) => handleExpenseUnitChange("taxesUnit", "propertyTaxes", e)}
+            unitOptions={[
+              { value: "Rs", label: currency },
+              { value: "%", label: "%" },
+            ]}
+          />
         </Grid>
 
         <Grid item xs={12} sm={3}>
-          <Box className="home-loan-input-group">
-            <TextField
-              sx={{ flex: 1 }}
-              fullWidth
-              label="Home Insurance / year"
-              type="number"
-              value={expenses.homeInsurance || ""}
-              onChange={(e) => handleExpenseChange("homeInsurance", e)}
-            />
-            <FormControl className="home-loan-form-control">
-              <Select
-                value={expenses.homeInsUnit}
-                onChange={(e) =>
-                  handleExpenseUnitChange("homeInsUnit", "homeInsurance", e)
-                }
-              >
-                <MenuItem value="Rs">{currency}</MenuItem>
-                <MenuItem value="%">%</MenuItem>
-              </Select>
-            </FormControl>
-          </Box>
+          <AmountWithUnitInput
+            label="Home Insurance / year"
+            value={expenses.homeInsurance}
+            onAmountChange={(e) => handleExpenseChange("homeInsurance", e)}
+            unitValue={expenses.homeInsUnit}
+            onUnitChange={(e) => handleExpenseUnitChange("homeInsUnit", "homeInsurance", e)}
+            unitOptions={[
+              { value: "Rs", label: currency },
+              { value: "%", label: "%" },
+            ]}
+          />
         </Grid>
 
         <Grid item xs={12} sm={3}>
-          <TextField
-            fullWidth
+          <AmountInput
             label="Maintenance Expenses / month"
-            type="number"
-            value={expenses.maintenance || ""}
+            value={expenses.maintenance}
             onChange={(e) => handleExpenseChange("maintenance", e)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">{currency}</InputAdornment>
-              ),
-            }}
+            currency={currency}
           />
         </Grid>
       </Grid>
-    </Paper>
+    </StyledPaper>
   );
 };
 
