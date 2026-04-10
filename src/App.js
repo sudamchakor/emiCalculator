@@ -15,6 +15,12 @@ import FAQ from "./pages/FAQ";
 import Settings from "./components/Settings";
 import { themes } from "./components/ThemeSelector";
 
+// New Calculator Pages
+import CreditCardEmiCalculator from "./pages/CreditCardEmiCalculator";
+import PersonalLoanCalculator from "./pages/PersonalLoanCalculator";
+import InvestmentCalculator from "./pages/InvestmentCalculator";
+
+
 // Styles
 import "./App.css";
 
@@ -68,6 +74,16 @@ const AppContent = () => {
         <Box component="main" className="main-content">
           <Routes>
             <Route path="/" element={<Calculator />} />
+            <Route path="/credit-card-emi" element={<CreditCardEmiCalculator />} />
+            
+            {/* The single unified InvestmentCalculator page */}
+            <Route path="/investment" element={<InvestmentCalculator />} />
+            <Route path="/investment/sip" element={<InvestmentCalculator />} />
+            <Route path="/investment/lumpsum" element={<InvestmentCalculator />} />
+            <Route path="/investment/step-up-sip" element={<InvestmentCalculator />} />
+            <Route path="/investment/swp" element={<InvestmentCalculator />} />
+            
+            <Route path="/personal-loan" element={<PersonalLoanCalculator />} />
             <Route path="/faq" element={<FAQ />} />
             <Route path="/settings" element={<Settings />} />
           </Routes>
