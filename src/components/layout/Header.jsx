@@ -20,7 +20,8 @@ import ShowChartIcon from "@mui/icons-material/ShowChart";
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import * as XLSX from "xlsx";
-import { useEmiContext } from "../../context/EmiContext";
+import { useSelector, useDispatch } from 'react-redux';
+import { selectCalculatedValues, selectCurrency, selectThemeMode, setCurrency, setThemeMode } from '../../store/emiSlice';
 import "./Header.css";
 import { SettingsRounded } from "@mui/icons-material";
 
@@ -33,8 +34,10 @@ const calculators = [
 ];
 
 const Header = () => {
-  const { calculatedValues, currency, setCurrency, themeMode, setThemeMode } =
-    useEmiContext();
+  const calculatedValues = useSelector(selectCalculatedValues);
+  const currency = useSelector(selectCurrency);
+  const themeMode = useSelector(selectThemeMode);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
   const [anchorEl, setAnchorEl] = useState(null);

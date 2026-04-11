@@ -29,7 +29,7 @@ import {
   selectAge,
   selectCalculatedSalary,
   selectTaxComparison,
-} from '../store/taxSlice';
+} from '../../../store/taxSlice';
 import '../../../styles/taxCalculator.css';
 
 const TaxDashboard = () => {

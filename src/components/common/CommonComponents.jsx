@@ -8,6 +8,7 @@ import {
   ToggleButtonGroup,
 } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import dayjs from "dayjs";
 
 export const InputGroup = styled(Box)`
   display: flex;
@@ -117,12 +118,26 @@ export const AmountWithUnitInput = ({
   </InputGroup>
 );
 
-export const DatePickerInput = ({ label, value, onChange }) => (
-  <DatePicker
-    label={label}
-    views={["year", "month"]}
-    value={value}
-    onChange={onChange}
-    slotProps={{ textField: { fullWidth: true } }}
-  />
-);
+export const DatePickerInput = ({ label, value, onChange }) => {
+  // Convert ISO string to Dayjs object if needed
+  const dayjsValue = value ? (typeof value === 'string' ? dayjs(value) : value) : null;
+
+  const handleChange = (newValue) => {
+    if (newValue) {
+      // Convert Dayjs object to ISO string before passing to parent
+      onChange(newValue.toISOString());
+    } else {
+      onChange(null);
+    }
+  };
+
+  return (
+    <DatePicker
+      label={label}
+      views={["year", "month"]}
+      value={dayjsValue}
+      onChange={handleChange}
+      slotProps={{ textField: { fullWidth: true } }}
+    />
+  );
+};

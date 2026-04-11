@@ -4,9 +4,12 @@ import { ThemeProvider, createTheme, CssBaseline, Box } from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { HelmetProvider } from "react-helmet-async";
-
-// Context
-import { EmiProvider, useEmiContext } from "./context/EmiContext";
+import { Provider } from 'react-redux';
+import { PersistGate } from 'redux-persist/integration/react';
+import { useSelector } from 'react-redux';
+import store, { persistor } from './store';
+import { selectThemeMode } from './store/emiSlice';
+import { EmiProvider } from "./context/EmiContext";
 
 // Components
 import Header from "./components/layout/Header";
@@ -24,46 +27,85 @@ import TaxCalculator from "./pages/TaxCalculator";
 // Styles
 import "./App.css";
 
+// Error Boundary Component
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error("Error caught by boundary:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <Box sx={{ padding: 4, color: 'red' }}>
+          <h1>Something went wrong</h1>
+          <p>{this.state.error?.toString()}</p>
+          <button onClick={() => window.location.reload()}>Reload Page</button>
+        </Box>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
 const AppContent = () => {
-  const { themeMode } = useEmiContext();
+  const themeMode = useSelector(selectThemeMode);
   const [muiTheme, setMuiTheme] = useState(() => createTheme());
 
   useEffect(() => {
-    let currentThemeValue = themeMode;
-    if (currentThemeValue === "light") {
-      currentThemeValue = "dodgerblue";
+    try {
+      let currentThemeValue = themeMode || "light";
+      if (currentThemeValue === "light") {
+        currentThemeValue = "dodgerblue";
+      }
+
+      const selectedTheme = themes.find((t) => t.value === currentThemeValue) || themes[0];
+      if (!selectedTheme) {
+        console.warn("No theme found, using default");
+        return;
+      }
+
+      const [primary, secondary, background, textPrimary, textSecondary] = selectedTheme.colors;
+
+      document.body.setAttribute("data-theme", String(currentThemeValue));
+
+      // Set variables to ensure any vanilla CSS gets updated immediately
+      document.body.style.setProperty("--primary-color", primary);
+      document.body.style.setProperty("--secondary-color", secondary);
+      document.body.style.setProperty("--background-color", background);
+      document.body.style.setProperty("--surface-color", currentThemeValue === "dark" ? "#1C1B1F" : "#ffffff");
+      document.body.style.setProperty("--text-primary-color", textPrimary);
+      document.body.style.setProperty("--text-secondary-color", textSecondary);
+
+      const newTheme = createTheme({
+        palette: {
+          mode: currentThemeValue === "dark" ? "dark" : "light",
+          primary: { main: primary },
+          secondary: { main: secondary },
+          background: {
+            default: background,
+            paper: currentThemeValue === "dark" ? "#1C1B1F" : "#ffffff",
+          },
+          text: {
+            primary: textPrimary,
+            secondary: textSecondary,
+          },
+        },
+      });
+
+      setMuiTheme(newTheme);
+    } catch (error) {
+      console.error("Error setting theme:", error);
     }
-
-    const selectedTheme = themes.find((t) => t.value === currentThemeValue) || themes[0];
-    const [primary, secondary, background, textPrimary, textSecondary] = selectedTheme.colors;
-
-    document.body.setAttribute("data-theme", String(currentThemeValue));
-    
-    // Set variables to ensure any vanilla CSS gets updated immediately
-    document.body.style.setProperty("--primary-color", primary);
-    document.body.style.setProperty("--secondary-color", secondary);
-    document.body.style.setProperty("--background-color", background);
-    document.body.style.setProperty("--surface-color", currentThemeValue === "dark" ? "#1C1B1F" : "#ffffff");
-    document.body.style.setProperty("--text-primary-color", textPrimary);
-    document.body.style.setProperty("--text-secondary-color", textSecondary);
-
-    const newTheme = createTheme({
-      palette: {
-        mode: currentThemeValue === "dark" ? "dark" : "light",
-        primary: { main: primary },
-        secondary: { main: secondary },
-        background: {
-          default: background,
-          paper: currentThemeValue === "dark" ? "#1C1B1F" : "#ffffff",
-        },
-        text: {
-          primary: textPrimary,
-          secondary: textSecondary,
-        },
-      },
-    });
-
-    setMuiTheme(newTheme);
   }, [themeMode]);
 
   return (
@@ -96,13 +138,19 @@ const AppContent = () => {
 
 function App() {
   return (
-    <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <EmiProvider>
-        <HelmetProvider>
-          <AppContent />
-        </HelmetProvider>
-      </EmiProvider>
-    </LocalizationProvider>
+    <Provider store={store}>
+      <PersistGate loading={<Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>Loading...</Box>} persistor={persistor}>
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <HelmetProvider>
+            <EmiProvider>
+              <ErrorBoundary>
+                <AppContent />
+              </ErrorBoundary>
+            </EmiProvider>
+          </HelmetProvider>
+        </LocalizationProvider>
+      </PersistGate>
+    </Provider>
   );
 }
 

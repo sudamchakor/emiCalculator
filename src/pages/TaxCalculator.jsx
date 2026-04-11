@@ -1,15 +1,13 @@
 import React from 'react';
-import { Provider } from 'react-redux';
-import { PersistGate } from 'redux-persist/integration/react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { Box, CssBaseline } from '@mui/material';
-import store, { persistor } from '../components/taxCalculator/store';
-import TaxDashboard from '../components/taxCalculator/containers/TaxDashboard';
-import { useEmiContext } from '../context/EmiContext';
+import { useSelector } from 'react-redux';
+import { selectThemeMode } from '../store/emiSlice';
 import { themes } from '../components/ThemeSelector';
+import TaxDashboard from '../components/taxCalculator/containers/TaxDashboard';
 
 const TaxCalculator = () => {
-  const { themeMode } = useEmiContext();
+  const themeMode = useSelector(selectThemeMode);
 
   // Get the theme based on current theme mode
   let currentThemeValue = themeMode;
@@ -47,14 +45,10 @@ const TaxCalculator = () => {
 
   return (
     <Box>
-      <Provider store={store}>
-        <PersistGate loading={null} persistor={persistor}>
-          <ThemeProvider theme={taxTheme}>
-            <CssBaseline />
-            <TaxDashboard />
-          </ThemeProvider>
-        </PersistGate>
-      </Provider>
+      <ThemeProvider theme={taxTheme}>
+        <CssBaseline />
+        <TaxDashboard />
+      </ThemeProvider>
     </Box>
   );
 };

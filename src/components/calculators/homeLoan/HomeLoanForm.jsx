@@ -1,7 +1,8 @@
 import React from "react";
 import styled from "styled-components";
 import { Box, Paper, Typography, Grid, Divider } from "@mui/material";
-import { useEmiContext } from "../../../context/EmiContext";
+import { useSelector, useDispatch } from 'react-redux';
+import { selectLoanDetails, selectExpenses, selectCalculatedValues, selectCurrency, updateLoanDetails, updateExpenses, changeLoanUnit, changeExpenseUnit } from "../../../store/emiSlice";
 import { AmountInput, AmountWithUnitInput, DatePickerInput } from "../../common/CommonComponents";
 
 const StyledPaper = styled(Paper)`
@@ -17,35 +18,30 @@ const SectionHeader = styled(Box)`
 `;
 
 const HomeLoanForm = () => {
-  const {
-    loanDetails,
-    updateLoanDetails,
-    changeLoanUnit,
-    expenses,
-    updateExpenses,
-    changeExpenseUnit,
-    calculatedValues,
-    currency,
-  } = useEmiContext();
+  const dispatch = useDispatch();
+  const loanDetails = useSelector(selectLoanDetails);
+  const expenses = useSelector(selectExpenses);
+  const calculatedValues = useSelector(selectCalculatedValues);
+  const currency = useSelector(selectCurrency);
 
   const handleUnitChange = (unitField, amountField, event) => {
-    changeLoanUnit(unitField, amountField, event.target.value);
+    dispatch(changeLoanUnit({ unitField, amountField, value: event.target.value }));
   };
 
   const handleChange = (field, event) => {
     let value = parseFloat(event.target.value);
     if (isNaN(value)) value = 0;
-    updateLoanDetails(field, value);
+    dispatch(updateLoanDetails({ key: field, value }));
   };
 
   const handleExpenseUnitChange = (unitField, amountField, event) => {
-    changeExpenseUnit(unitField, amountField, event.target.value);
+    dispatch(changeExpenseUnit({ unitField, amountField, value: event.target.value }));
   };
 
   const handleExpenseChange = (field, event) => {
     let value = parseFloat(event.target.value);
     if (isNaN(value)) value = 0;
-    updateExpenses(field, value);
+    dispatch(updateExpenses({ key: field, value }));
   };
 
   return (
@@ -139,7 +135,7 @@ const HomeLoanForm = () => {
           <DatePickerInput
             label="Start Month & Year"
             value={loanDetails.startDate}
-            onChange={(newValue) => updateLoanDetails("startDate", newValue)}
+            onChange={(newValue) => dispatch(updateLoanDetails({ key: "startDate", value: newValue }))}
           />
         </Grid>
       </Grid>
