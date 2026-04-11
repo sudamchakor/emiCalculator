@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import {
   Typography, Paper, Box, Button,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Select, MenuItem, FormControl, InputLabel,
-  Tooltip, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Grid
+  Tooltip, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Grid, Skeleton
 } from '@mui/material';
 import ArrowRightAltIcon from '@mui/icons-material/ArrowRightAlt';
 import AddIcon from '@mui/icons-material/Add';
@@ -35,6 +35,7 @@ import '../styles/taxCalculator.css';
 const TaxDashboard = () => {
   const dispatch = useDispatch();
   const [mounted, setMounted] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   // Dynamic Row Modal State
   const [modalOpen, setModalOpen] = useState(false);
@@ -64,23 +65,31 @@ const TaxDashboard = () => {
   if (!mounted) return null;
 
   const handleMonthChange = (index, field, value) => {
+    setIsUpdating(true);
     dispatch(updateMonthData({ index, field, value, populateRemaining: false }));
+    setTimeout(() => setIsUpdating(false), 300); // Simulate update time
   };
 
   const handlePopulateRowFromCurrent = (index, field) => {
+    setIsUpdating(true);
     dispatch(updateMonthData({ index, field, value: calculatedSalary.months[index][field], populateRemaining: true }));
+    setTimeout(() => setIsUpdating(false), 300);
   };
 
   const handleSettingChange = (field, value) => {
+    setIsUpdating(true);
     dispatch(updateSettings({ [field]: value }));
+    setTimeout(() => setIsUpdating(false), 300);
   };
 
   const handleDeclarationChange = (section, field, subfield, value) => {
+    setIsUpdating(true);
     if (subfield) {
        dispatch(updateDeclaration({ section, field, value: { [subfield]: value } }));
     } else {
        dispatch(updateDeclaration({ section, field, value }));
     }
+    setTimeout(() => setIsUpdating(false), 300);
   };
 
   const openAddModal = (type) => {
@@ -204,7 +213,25 @@ const TaxDashboard = () => {
   );
 
   return (
-    <Box sx={{ flexGrow: 1, p: 3 }} className="dashboard-container">
+    <Box sx={{ flexGrow: 1, p: 3, position: 'relative' }} className="dashboard-container">
+      {isUpdating && (
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            bgcolor: 'rgba(255, 255, 255, 0.8)',
+            zIndex: 10,
+          }}
+        >
+          <Skeleton variant="rectangular" width="100%" height="100%" />
+        </Box>
+      )}
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
          <Typography variant="h4" fontWeight="bold" color="primary">
             Indian Tax Comparison (FY 2025-26)
@@ -263,7 +290,7 @@ const TaxDashboard = () => {
           <DataCard title="A. Exemptions under Section 10 & 17">
               <ExemptionRow label="HRA Exemption (sec 10 (13A))"
                   produced={
-                    <TextField size="small" sx={{ width: 100 }} value={declarations.exemptions.hra.produced} onChange={(e) => handleDeclarationChange('exemptions', 'hra', 'produced', e.target.value)} />
+                    <TextField size="small" sx={{ width: 100 }} value={declarations.exemptions.hra.produced} onChange={(e) => handleDeclarationChange('exemptions', 'hra', 'produced', e.target.value)} placeholder="Enter HRA" />
                   }
                   limited={declarations.exemptions.hra.limited}
               />
@@ -398,21 +425,25 @@ const TaxDashboard = () => {
             </Box>
 
             <Box sx={{ mt: 2 }}>
-              <Typography variant="h6" fontWeight="bold">Tax Breakdown</Typography>
+              <Typography variant="h6" fontWeight="bold">Old Regime</Typography>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
-                <Typography variant="body1">Old Regime Taxable:</Typography>
+                <Typography variant="body1">Taxable Income:</Typography>
                 <Typography variant="body1" fontWeight="bold">₹{Math.round(taxComparison.oldRegime.taxableIncome).toLocaleString()}</Typography>
               </Box>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
-                <Typography variant="body1">Old Regime Tax:</Typography>
+                <Typography variant="body1">Tax:</Typography>
                 <Typography variant="body1" fontWeight="bold">₹{Math.round(taxComparison.oldRegime.tax).toLocaleString()}</Typography>
               </Box>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1, pt: 1, borderTop: '1px solid #ccc' }}>
-                <Typography variant="body1">New Regime Taxable:</Typography>
+            </Box>
+
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="h6" fontWeight="bold">New Regime</Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
+                <Typography variant="body1">Taxable Income:</Typography>
                 <Typography variant="body1" fontWeight="bold">₹{Math.round(taxComparison.newRegime.taxableIncome).toLocaleString()}</Typography>
               </Box>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
-                <Typography variant="body1">New Regime Tax:</Typography>
+                <Typography variant="body1">Tax:</Typography>
                 <Typography variant="body1" fontWeight="bold">₹{Math.round(taxComparison.newRegime.tax).toLocaleString()}</Typography>
               </Box>
             </Box>

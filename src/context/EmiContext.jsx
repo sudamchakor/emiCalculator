@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useMemo } from "react";
+import React, { createContext, useState, useContext, useMemo, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { selectThemeMode, selectCurrency, selectAutoSave, setThemeMode as reduxSetThemeMode, setCurrency as reduxSetCurrency, setAutoSave as reduxSetAutoSave } from "../store/emiSlice";
 import dayjs from "dayjs";
@@ -64,6 +64,8 @@ export const EmiProvider = ({ children }) => {
     maintenance: 0, // monthly Rs
   });
 
+  // State for loading
+  const [isCalculating, setIsCalculating] = useState(false);
 
   const [saveTrigger, setSaveTrigger] = useState(0);
 
@@ -230,6 +232,13 @@ export const EmiProvider = ({ children }) => {
     };
   }, [loanDetails, expenses, prepayments]);
 
+  // Effect to handle loading state
+  useEffect(() => {
+    setIsCalculating(true);
+    const timer = setTimeout(() => setIsCalculating(false), 500); // Simulate loading for 500ms
+    return () => clearTimeout(timer);
+  }, [loanDetails, expenses, prepayments]);
+
   const updateLoanDetails = (key, value) => {
     setLoanDetails((prev) => ({ ...prev, [key]: value }));
   };
@@ -336,6 +345,8 @@ export const EmiProvider = ({ children }) => {
         setAutoSave,
         saveSettingsToLocal,
         saveTrigger,
+        isCalculating,
+        setIsCalculating,
       }}
     >
       {children}

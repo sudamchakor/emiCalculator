@@ -1,12 +1,12 @@
 import React from "react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import { useEmiContext } from "../../context/EmiContext";
-import { Box, Typography, Grid, Divider } from "@mui/material";
+import { Box, Typography, Grid, Divider, Skeleton } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import "./PieChartComponent.scss";
 
 const PieChartComponent = () => {
-  const { calculatedValues, expenses, currency } = useEmiContext();
+  const { calculatedValues, expenses, currency, isCalculating } = useEmiContext();
   const theme = useTheme();
 
   // Ensuring high contrast for Principal and Interest
@@ -56,6 +56,53 @@ const PieChartComponent = () => {
     calculatedValues.homeInsYearlyInRs *
       (calculatedValues.schedule.length / 12) +
     expenses.maintenance * calculatedValues.schedule.length;
+
+  if (isCalculating) {
+    return (
+      <Box>
+        <Typography variant="h6" gutterBottom>
+          Payment Breakdown
+        </Typography>
+        <Grid container spacing={3} alignItems="center" direction={{ xs: 'column', md: 'row' }}>
+          <Grid item xs={12} md={6} width="100%">
+            <Box className="pie-chart-container" sx={{ height: { xs: 300, md: 400 }, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Skeleton variant="circular" width={200} height={200} />
+            </Box>
+          </Grid>
+          <Grid item xs={12} md={6} width="100%">
+            <Box className="pie-chart-details">
+              <Grid container spacing={2}>
+                {Array.from({ length: 6 }).map((_, index) => (
+                  <React.Fragment key={index}>
+                    <Grid item xs={8}>
+                      <Skeleton variant="text" width="80%" />
+                    </Grid>
+                    <Grid item xs={4}>
+                      <Skeleton variant="text" width="60%" />
+                    </Grid>
+                    {index < 5 && (
+                      <Grid item xs={12}>
+                        <Divider style={{ borderStyle: "dotted", width: '100%' }} />
+                      </Grid>
+                    )}
+                  </React.Fragment>
+                ))}
+              </Grid>
+              <Divider sx={{ my: 2, width: '100%' }} />
+              <Grid container spacing={2}>
+                <Grid item xs={8}>
+                  <Skeleton variant="text" width="70%" height={30} />
+                </Grid>
+                <Grid item xs={4}>
+                  <Skeleton variant="text" width="50%" height={30} />
+                </Grid>
+              </Grid>
+            </Box>
+          </Grid>
+        </Grid>
+      </Box>
+    );
+  }
 
   return (
     <Box>

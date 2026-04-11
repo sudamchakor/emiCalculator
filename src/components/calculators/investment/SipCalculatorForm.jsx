@@ -67,6 +67,7 @@ const SipCalculatorForm = ({ onCalculate, sharedState, onSharedStateChange }) =>
             InputProps={{
               startAdornment: <InputAdornment position="start">₹</InputAdornment>,
             }}
+            placeholder="Enter monthly investment"
             sx={{ width: 120 }}
           />
         </Grid>
@@ -90,6 +91,7 @@ const SipCalculatorForm = ({ onCalculate, sharedState, onSharedStateChange }) =>
             InputProps={{
               endAdornment: <InputAdornment position="end">%</InputAdornment>,
             }}
+            placeholder="Enter return rate"
             sx={{ width: 100 }}
           />
         </Grid>
@@ -113,6 +115,7 @@ const SipCalculatorForm = ({ onCalculate, sharedState, onSharedStateChange }) =>
             InputProps={{
               endAdornment: <InputAdornment position="end">Yr</InputAdornment>,
             }}
+            placeholder="Enter time period"
             sx={{ width: 100 }}
           />
         </Grid>

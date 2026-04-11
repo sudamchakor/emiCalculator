@@ -7,6 +7,7 @@ import {
   Grid,
   Paper,
   InputAdornment,
+  CircularProgress,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { useEmiContext } from "../context/EmiContext";
@@ -53,8 +54,10 @@ const PersonalLoanCalculator = () => {
     totalInterest: 0,
     totalPayment: 0,
   });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    setLoading(true);
     const p = loanAmount;
     const r = interestRate / 12 / 100;
     const n = tenure * 12;
@@ -68,6 +71,7 @@ const PersonalLoanCalculator = () => {
       totalInterest: Math.round(totalInt),
       totalPayment: Math.round(totalPayable),
     });
+    setLoading(false);
   }, [loanAmount, interestRate, tenure]);
 
   return (
@@ -113,6 +117,7 @@ const PersonalLoanCalculator = () => {
                     <InputAdornment position="start">₹</InputAdornment>
                   ),
                 }}
+                placeholder="Enter loan amount"
                 sx={{
                   width: 140,
                   "& .MuiOutlinedInput-root": { borderRadius: 2 },
@@ -150,6 +155,7 @@ const PersonalLoanCalculator = () => {
                     <InputAdornment position="end">%</InputAdornment>
                   ),
                 }}
+                placeholder="Enter interest rate"
                 sx={{
                   width: 100,
                   "& .MuiOutlinedInput-root": { borderRadius: 2 },
@@ -187,6 +193,7 @@ const PersonalLoanCalculator = () => {
                     <InputAdornment position="end">Yr</InputAdornment>
                   ),
                 }}
+                placeholder="Enter tenure"
                 sx={{
                   width: 100,
                   "& .MuiOutlinedInput-root": { borderRadius: 2 },
@@ -205,67 +212,87 @@ const PersonalLoanCalculator = () => {
 
         {/* Right Side: Visual Summary */}
         <Grid item xs={12} md={5}>
-          <Typography
-            variant="h6"
-            fontWeight="600"
-            sx={{ mb: 4, color: "text.primary" }}
-          >
-            Loan Summary
-          </Typography>
+          <Box sx={{ position: "relative" }}>
+            {loading && (
+              <Box
+                sx={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  bgcolor: "rgba(255, 255, 255, 0.8)",
+                  zIndex: 1,
+                }}
+              >
+                <CircularProgress />
+              </Box>
+            )}
+            <Typography
+              variant="h6"
+              fontWeight="600"
+              sx={{ mb: 4, color: "text.primary" }}
+            >
+              Loan Summary
+            </Typography>
 
-          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
-            <Box>
-              <Typography variant="caption" color="textSecondary">
-                Monthly EMI
-              </Typography>
-              <Typography variant="h5" fontWeight="bold">
-                ₹ {details.monthlyEmi.toLocaleString("en-IN")}
-              </Typography>
+            <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
+              <Box>
+                <Typography variant="caption" color="textSecondary">
+                  Monthly EMI
+                </Typography>
+                <Typography variant="h5" fontWeight="bold">
+                  ₹ {details.monthlyEmi.toLocaleString("en-IN")}
+                </Typography>
+              </Box>
+              <Box sx={{ textAlign: "right" }}>
+                <Typography variant="caption" color="textSecondary">
+                  Total Interest
+                </Typography>
+                <Typography
+                  variant="h5"
+                  fontWeight="bold"
+                  sx={{ color: "#2e7d32" }}
+                >
+                  ₹ {details.totalInterest.toLocaleString("en-IN")}
+                </Typography>
+              </Box>
             </Box>
-            <Box sx={{ textAlign: "right" }}>
+
+            <Box sx={{ mb: 4 }}>
               <Typography variant="caption" color="textSecondary">
-                Total Interest
+                Total Payable
               </Typography>
               <Typography
                 variant="h5"
                 fontWeight="bold"
-                sx={{ color: "#2e7d32" }}
+                sx={{ color: "#9c27b0" }}
               >
-                ₹ {details.totalInterest.toLocaleString("en-IN")}
+                ₹ {details.totalPayment.toLocaleString("en-IN")}
               </Typography>
             </Box>
-          </Box>
 
-          <Box sx={{ mb: 4 }}>
-            <Typography variant="caption" color="textSecondary">
-              Total Payable
-            </Typography>
-            <Typography
-              variant="h5"
-              fontWeight="bold"
-              sx={{ color: "#9c27b0" }}
+            {/* Placeholder for your Chart */}
+            <Paper
+              variant="outlined"
+              sx={{
+                height: 200,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: 3,
+                borderStyle: "dashed",
+                bgcolor: "#fafafa",
+              }}
             >
-              ₹ {details.totalPayment.toLocaleString("en-IN")}
-            </Typography>
+              <Typography variant="body2" color="textSecondary">
+                Chart Visualization
+              </Typography>
+            </Paper>
           </Box>
-
-          {/* Placeholder for your Chart */}
-          <Paper
-            variant="outlined"
-            sx={{
-              height: 200,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              borderRadius: 3,
-              borderStyle: "dashed",
-              bgcolor: "#fafafa",
-            }}
-          >
-            <Typography variant="body2" color="textSecondary">
-              Chart Visualization
-            </Typography>
-          </Paper>
         </Grid>
       </Grid>
     </Paper>

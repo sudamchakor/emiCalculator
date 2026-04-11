@@ -10,6 +10,7 @@ import {
   IconButton,
   Collapse,
   Box,
+  Skeleton,
 } from "@mui/material";
 import { useEmiContext } from "../context/EmiContext";
 import { useTheme } from "@mui/material/styles";
@@ -121,7 +122,7 @@ const Row = ({ yearData, currency }) => {
 };
 
 const PaymentScheduleTable = () => {
-  const { calculatedValues, currency } = useEmiContext();
+  const { calculatedValues, currency, isCalculating } = useEmiContext();
   const schedule = calculatedValues.schedule;
   const theme = useTheme();
 
@@ -155,6 +156,63 @@ const PaymentScheduleTable = () => {
     fontWeight: "bold",
     ...cellBorderStyle,
   };
+
+  if (isCalculating) {
+    return (
+      <TableContainer component={Paper} variant="outlined">
+        <Table size="small" sx={{ minWidth: 650, tableLayout: "fixed" }} aria-label="collapsible table">
+          <TableHead>
+            <TableRow>
+              <TableCell sx={{ ...headerCellStyle, width: "15%", backgroundColor: theme.palette.grey[200] }}>Year</TableCell>
+              <TableCell align="right" sx={{ ...headerCellStyle, width: "14%", backgroundColor: theme.palette.primary.main, color: theme.palette.primary.contrastText }}>
+                Principal
+              </TableCell>
+              <TableCell align="right" sx={{ ...headerCellStyle, width: "14%", backgroundColor: theme.palette.secondary.main, color: theme.palette.secondary.contrastText }}>
+                Interest
+              </TableCell>
+              <TableCell align="right" sx={{ ...headerCellStyle, width: "14%", backgroundColor: theme.palette.success.main, color: theme.palette.success.contrastText }}>
+                Prepayment
+              </TableCell>
+              <TableCell align="right" sx={{ ...headerCellStyle, width: "15%", backgroundColor: theme.palette.info.main, color: theme.palette.info.contrastText }}>
+                Total Payment
+              </TableCell>
+              <TableCell align="right" sx={{ ...headerCellStyle, width: "14%", backgroundColor: theme.palette.warning.main, color: theme.palette.warning.contrastText }}>
+                Balance
+              </TableCell>
+              <TableCell align="right" sx={{ ...headerCellStyle, width: "14%", backgroundColor: theme.palette.grey[200] }}>Loan Paid To Date</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {Array.from({ length: 5 }).map((_, index) => (
+              <TableRow key={index}>
+                <TableCell sx={{ ...cellBorderStyle, width: "15%" }}>
+                  <Skeleton variant="text" width="60%" />
+                </TableCell>
+                <TableCell align="right" sx={{ ...cellBorderStyle, width: "14%" }}>
+                  <Skeleton variant="text" width="80%" />
+                </TableCell>
+                <TableCell align="right" sx={{ ...cellBorderStyle, width: "14%" }}>
+                  <Skeleton variant="text" width="80%" />
+                </TableCell>
+                <TableCell align="right" sx={{ ...cellBorderStyle, width: "14%" }}>
+                  <Skeleton variant="text" width="80%" />
+                </TableCell>
+                <TableCell align="right" sx={{ ...cellBorderStyle, width: "15%" }}>
+                  <Skeleton variant="text" width="80%" />
+                </TableCell>
+                <TableCell align="right" sx={{ ...cellBorderStyle, width: "14%" }}>
+                  <Skeleton variant="text" width="80%" />
+                </TableCell>
+                <TableCell align="right" sx={{ ...cellBorderStyle, width: "14%" }}>
+                  <Skeleton variant="text" width="50%" />
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    );
+  }
 
   return (
     <TableContainer component={Paper} variant="outlined">

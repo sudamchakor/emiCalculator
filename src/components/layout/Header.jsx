@@ -112,7 +112,7 @@ const Header = () => {
           component="div"
           className="header-calculator-selector"
           onClick={handleMenuOpen}
-          style={{ cursor: "pointer", display: "flex", alignItems: "center" }}
+          style={{ cursor: "pointer", display: "flex", alignItems: "center", marginRight: "32px" }}
         >
           {activeCalculator.label} <ArrowDropDownIcon fontSize="small" />
         </Typography>
@@ -138,8 +138,8 @@ const Header = () => {
           ))}
         </Menu>
 
-        <Box className="header-actions" sx={{ marginLeft: 0 }}>
-          <FormControl variant="standard" sx={{ m: 0, minWidth: 70 }}>
+        <Box className="header-actions">
+          <FormControl variant="standard" sx={{ minWidth: 70 }}>
             <Select
               value=""
               onChange={handleExport}

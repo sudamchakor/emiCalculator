@@ -1,18 +1,46 @@
 import React from "react";
 import styled from "styled-components";
-import { Box, Typography, Grid } from "@mui/material";
+import { Box, Typography, Grid, Paper, CircularProgress } from "@mui/material";
 import { useEmiContext } from "../context/EmiContext";
 import { AmountInput, DatePickerInput } from "./common/CommonComponents";
 
+const StyledPaper = styled(Paper)`
+  padding: 24px;
+  margin-bottom: 24px;
+  position: relative;
+`;
+
 const PrepaymentsHeader = styled(Box)`
-  padding: 16px 0 16px 16px;
-  background-color: #f5f5f5;
-  border-bottom: 1px solid #ddd;
-  margin-bottom: 16px;
+  margin-bottom: 24px;
 `;
 
 const PrepaymentsGrid = styled(Grid)`
-  padding: 0 16px 16px 16px;
+  position: relative;
+`;
+
+const LoadingOverlay = styled(Box)`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(255, 255, 255, 0.85);
+  z-index: 10;
+  border-radius: 4px;
+`;
+
+const InputContainer = styled(Box)`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 100%;
+
+  @media (max-width: 600px) {
+    min-width: 100%;
+  }
 `;
 
 const PrepaymentSection = ({
@@ -24,28 +52,34 @@ const PrepaymentSection = ({
   onDateChange,
   currency,
 }) => (
-  <Grid item xs={12} sm={3}>
-    <Typography variant="subtitle2" gutterBottom>
-      {title}
-    </Typography>
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+  <Grid item xs={12} sm={6} md={3}>
+    <InputContainer>
+      <Typography
+        variant="subtitle2"
+        gutterBottom
+        sx={{ fontWeight: 600, color: "text.primary" }}
+      >
+        {title}
+      </Typography>
       <AmountInput
         label="Amount"
         value={amountValue}
         onChange={onAmountChange}
         currency={currency}
+        aria-label={`${title} amount`}
       />
       <DatePickerInput
         label={dateLabel}
         value={dateValue}
         onChange={onDateChange}
       />
-    </Box>
+    </InputContainer>
   </Grid>
 );
 
 const PrepaymentsForm = () => {
-  const { prepayments, updatePrepayments, currency } = useEmiContext();
+  const { prepayments, updatePrepayments, currency, isCalculating } =
+    useEmiContext();
 
   const handleAmountChange = (type, event) => {
     let value = parseFloat(event.target.value);
@@ -64,10 +98,25 @@ const PrepaymentsForm = () => {
   return (
     <>
       <PrepaymentsHeader>
-        <Typography variant="h6">Partial Prepayments</Typography>
+        <Typography
+          variant="h6"
+          sx={{ fontWeight: 600, color: "text.primary" }}
+        >
+          Partial Prepayments
+        </Typography>
       </PrepaymentsHeader>
 
-      <PrepaymentsGrid container spacing={2}>
+      <PrepaymentsGrid
+        container
+        spacing={2}
+        role="region"
+        aria-label="Prepayments section"
+      >
+        {isCalculating && (
+          <LoadingOverlay>
+            <CircularProgress size={40} aria-label="Loading prepayments" />
+          </LoadingOverlay>
+        )}
         <PrepaymentSection
           title="Monthly Payment"
           amountValue={prepayments.monthly.amount}

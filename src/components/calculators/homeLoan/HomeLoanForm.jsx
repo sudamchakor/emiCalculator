@@ -46,20 +46,21 @@ const HomeLoanForm = () => {
 
   return (
     <StyledPaper elevation={3}>
-      <Typography variant="h6" gutterBottom>
+      <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: "text.primary" }}>
         Home Loan Details
       </Typography>
       <Grid container spacing={2}>
-        <Grid item xs={12} sm={3}>
+        <Grid item xs={12} sm={6} md={6} lg={4} xl={3}>
           <AmountInput
             label="Home Value (HV)"
             value={loanDetails.homeValue}
             onChange={(e) => handleChange("homeValue", e)}
             currency={currency}
+            placeholder="Enter home value"
           />
         </Grid>
 
-        <Grid item xs={12} sm={3}>
+        <Grid item xs={12} sm={6} md={6} lg={4} xl={3}>
           <AmountWithUnitInput
             label="Margin / Down Payment"
             value={loanDetails.marginAmount}
@@ -70,22 +71,24 @@ const HomeLoanForm = () => {
               { value: "Rs", label: currency },
               { value: "%", label: "%" },
             ]}
+            placeholder="Enter margin amount"
           />
           <Typography variant="caption" color="textSecondary">
             Value in {currency}: {calculatedValues.marginInRs.toFixed(2)}
           </Typography>
         </Grid>
 
-        <Grid item xs={12} sm={3}>
+        <Grid item xs={12} sm={6} md={6} lg={4} xl={3}>
           <AmountInput
             label="Loan Insurance (LI)"
             value={loanDetails.loanInsurance}
             onChange={(e) => handleChange("loanInsurance", e)}
             currency={currency}
+            placeholder="Enter loan insurance"
           />
         </Grid>
 
-        <Grid item xs={12} sm={3}>
+        <Grid item xs={12} sm={6} md={6} lg={4} xl={3}>
           <AmountInput
             label="Loan Amount"
             value={calculatedValues.loanAmount.toFixed(2)}
@@ -94,16 +97,17 @@ const HomeLoanForm = () => {
           />
         </Grid>
 
-        <Grid item xs={12} sm={3}>
+        <Grid item xs={12} sm={6} md={6} lg={4} xl={3}>
           <AmountInput
             label="Interest Rate"
             value={loanDetails.interestRate}
             onChange={(e) => handleChange("interestRate", e)}
             currency="%"
+            placeholder="Enter interest rate"
           />
         </Grid>
 
-        <Grid item xs={12} sm={3}>
+        <Grid item xs={12} sm={6} md={6} lg={4} xl={3}>
           <AmountWithUnitInput
             label="Loan Tenure"
             value={loanDetails.loanTenure}
@@ -114,10 +118,11 @@ const HomeLoanForm = () => {
               { value: "years", label: "Y" },
               { value: "months", label: "M" },
             ]}
+            placeholder="Enter tenure"
           />
         </Grid>
 
-        <Grid item xs={12} sm={3}>
+        <Grid item xs={12} sm={6} md={6} lg={4} xl={3}>
           <AmountWithUnitInput
             label="Loan Fees & Charges"
             value={loanDetails.loanFees}
@@ -128,10 +133,11 @@ const HomeLoanForm = () => {
               { value: "Rs", label: currency },
               { value: "%", label: "%" },
             ]}
+            placeholder="Enter fees"
           />
         </Grid>
 
-        <Grid item xs={12} sm={3}>
+        <Grid item xs={12} sm={6} md={6} lg={4} xl={3}>
           <DatePickerInput
             label="Start Month & Year"
             value={loanDetails.startDate}
@@ -145,11 +151,11 @@ const HomeLoanForm = () => {
       </Box>
 
       <SectionHeader>
-        <Typography variant="h6">Homeowner Expenses</Typography>
+        <Typography variant="h6" sx={{ fontWeight: 600, color: "text.primary" }}>Homeowner Expenses</Typography>
       </SectionHeader>
 
       <Grid container spacing={2}>
-        <Grid item xs={12} sm={3}>
+        <Grid item xs={12} sm={6} md={6} lg={4} xl={3}>
           <AmountWithUnitInput
             label="One-time Expenses"
             value={expenses.oneTimeExpenses}
@@ -160,10 +166,11 @@ const HomeLoanForm = () => {
               { value: "Rs", label: currency },
               { value: "%", label: "%" },
             ]}
+            placeholder="Enter one-time expenses"
           />
         </Grid>
 
-        <Grid item xs={12} sm={3}>
+        <Grid item xs={12} sm={6} md={6} lg={4} xl={3}>
           <AmountWithUnitInput
             label="Property Taxes / year"
             value={expenses.propertyTaxes}
@@ -174,10 +181,11 @@ const HomeLoanForm = () => {
               { value: "Rs", label: currency },
               { value: "%", label: "%" },
             ]}
+            placeholder="Enter property taxes"
           />
         </Grid>
 
-        <Grid item xs={12} sm={3}>
+        <Grid item xs={12} sm={6} md={6} lg={4} xl={3}>
           <AmountWithUnitInput
             label="Home Insurance / year"
             value={expenses.homeInsurance}
@@ -188,15 +196,17 @@ const HomeLoanForm = () => {
               { value: "Rs", label: currency },
               { value: "%", label: "%" },
             ]}
+            placeholder="Enter home insurance"
           />
         </Grid>
 
-        <Grid item xs={12} sm={3}>
+        <Grid item xs={12} sm={6} md={6} lg={4} xl={3}>
           <AmountInput
-            label="Maintenance Expenses / month"
+            label="Maintenance / month"
             value={expenses.maintenance}
             onChange={(e) => handleExpenseChange("maintenance", e)}
             currency={currency}
+            placeholder="Enter maintenance cost"
           />
         </Grid>
       </Grid>
