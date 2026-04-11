@@ -30,7 +30,7 @@ const initialState = {
     maintenance: 0, // monthly Rs
   },
   currency: "₹",
-  themeMode: "light",
+  themeMode: "dodgerblue",
   autoSave: true,
 };
 

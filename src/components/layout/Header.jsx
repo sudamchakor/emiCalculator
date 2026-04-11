@@ -103,10 +103,10 @@ const Header = () => {
           </Typography>
         </Box>
 
-        {/* Spacer to push calculator selector to the right */}
+        {/* Spacer to push items to the right */}
         <Box sx={{ flexGrow: 1 }} />
 
-        {/* Calculator Selector - Moved to Right */}
+        {/* Calculator Selector */}
         <Typography
           variant="body2"
           component="div"
@@ -138,8 +138,8 @@ const Header = () => {
           ))}
         </Menu>
 
-        <Box className="header-actions">
-          <FormControl variant="standard" sx={{ m: 1, minWidth: 100 }}>
+        <Box className="header-actions" sx={{ marginLeft: 0 }}>
+          <FormControl variant="standard" sx={{ m: 0, minWidth: 70 }}>
             <Select
               value=""
               onChange={handleExport}

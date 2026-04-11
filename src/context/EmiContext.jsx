@@ -1,4 +1,6 @@
 import React, { createContext, useState, useContext, useMemo } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { selectThemeMode, selectCurrency, selectAutoSave, setThemeMode as reduxSetThemeMode, setCurrency as reduxSetCurrency, setAutoSave as reduxSetAutoSave } from "../store/emiSlice";
 import dayjs from "dayjs";
 
 // Create the Context
@@ -9,6 +11,26 @@ export const useEmiContext = () => useContext(EmiContext);
 
 // The Provider Component
 export const EmiProvider = ({ children }) => {
+  const dispatch = useDispatch();
+
+  // Use Redux selectors for theme, currency, and autoSave
+  const themeMode = useSelector(selectThemeMode);
+  const currency = useSelector(selectCurrency);
+  const autoSave = useSelector(selectAutoSave);
+
+  // Wrapper functions that dispatch Redux actions
+  const setThemeMode = (newTheme) => {
+    dispatch(reduxSetThemeMode(newTheme));
+  };
+
+  const setCurrency = (newCurrency) => {
+    dispatch(reduxSetCurrency(newCurrency));
+  };
+
+  const setAutoSave = (newAutoSave) => {
+    dispatch(reduxSetAutoSave(newAutoSave));
+  };
+
   // State for Home Loan Details
   const [loanDetails, setLoanDetails] = useState({
     homeValue: 5000000,
@@ -42,32 +64,12 @@ export const EmiProvider = ({ children }) => {
     maintenance: 0, // monthly Rs
   });
 
-  const [currency, setCurrency] = useState(
-    () => localStorage.getItem("emi_currency") || "₹",
-  );
-  const [themeMode, setThemeMode] = useState(
-    () => localStorage.getItem("emi_theme") || "light",
-  );
-
-  // Persistent AutoSave state
-  const [autoSave, setAutoSave] = useState(() => {
-    const saved = localStorage.getItem("emi_autosave");
-    return saved !== null ? JSON.parse(saved) : true;
-  });
 
   const [saveTrigger, setSaveTrigger] = useState(0);
 
   const saveSettingsToLocal = (data) => {
-    try {
-      if (data.currency) localStorage.setItem("emi_currency", data.currency);
-      if (data.themeMode) localStorage.setItem("emi_theme", data.themeMode);
-      if (data.autoSave !== undefined) {
-        localStorage.setItem("emi_autosave", JSON.stringify(data.autoSave));
-      }
-      setSaveTrigger((prev) => prev + 1);
-    } catch (e) {
-      console.error(e);
-    }
+    // Settings are now persisted via Redux, just signal the update
+    setSaveTrigger((prev) => prev + 1);
   };
 
   // Derived values & Calculations

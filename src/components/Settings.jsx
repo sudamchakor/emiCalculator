@@ -17,36 +17,31 @@ import {
   Snackbar,
   Alert,
 } from "@mui/material";
-import { useEmiContext } from "../context/EmiContext";
+import { useDispatch, useSelector } from 'react-redux';
+import { setThemeMode, setCurrency, setAutoSave, selectThemeMode, selectCurrency, selectAutoSave } from '../store/emiSlice';
 import ThemeSelector from "./ThemeSelector";
 
 const Settings = () => {
-  const {
-    currency,
-    setCurrency,
-    themeMode,
-    setThemeMode,
-    autoSave,
-    setAutoSave,
-    saveSettingsToLocal,
-    saveTrigger,
-  } = useEmiContext();
+  const dispatch = useDispatch();
+  const themeMode = useSelector(selectThemeMode);
+  const currency = useSelector(selectCurrency);
+  const autoSave = useSelector(selectAutoSave);
 
   const [useSystemDefault, setUseSystemDefault] = useState(false);
   const [openToast, setOpenToast] = useState(false);
   const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
 
   useEffect(() => {
-    if (useSystemDefault) setThemeMode(prefersDarkMode ? "dark" : "light");
-  }, [useSystemDefault, prefersDarkMode, setThemeMode]);
+    if (useSystemDefault) {
+      dispatch(setThemeMode(prefersDarkMode ? "dark" : "light"));
+    }
+  }, [useSystemDefault, prefersDarkMode, dispatch]);
 
   useEffect(() => {
-    if (autoSave) saveSettingsToLocal({ currency, themeMode, autoSave });
-  }, [currency, themeMode, autoSave, saveSettingsToLocal]);
-
-  useEffect(() => {
-    if (saveTrigger > 0) setOpenToast(true);
-  }, [saveTrigger]);
+    setOpenToast(true);
+    const timer = setTimeout(() => setOpenToast(false), 1500);
+    return () => clearTimeout(timer);
+  }, [themeMode, currency, autoSave]);
 
   return (
     <Box sx={{ width: "100%", py: 2 }}>
@@ -84,7 +79,7 @@ const Settings = () => {
 
               <ThemeSelector
                 selectedTheme={themeMode}
-                onThemeChange={setThemeMode}
+                onThemeChange={(newTheme) => dispatch(setThemeMode(newTheme))}
                 disabled={useSystemDefault}
               />
             </Box>
@@ -106,7 +101,7 @@ const Settings = () => {
                   value={currency}
                   label="Preferred Currency"
                   variant="outlined"
-                  onChange={(e) => setCurrency(e.target.value)}
+                  onChange={(e) => dispatch(setCurrency(e.target.value))}
                 >
                   <MenuItem value="₹">INR - Indian Rupee (₹)</MenuItem>
                   <MenuItem value="$">USD - US Dollar ($)</MenuItem>
@@ -134,7 +129,7 @@ const Settings = () => {
               </Box>
               <Switch
                 checked={!!autoSave}
-                onChange={(e) => setAutoSave(e.target.checked)}
+                onChange={(e) => dispatch(setAutoSave(e.target.checked))}
               />
             </Stack>
           </Stack>

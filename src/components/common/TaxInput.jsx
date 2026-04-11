@@ -27,3 +27,4 @@ const TaxInput = ({ label, value, onChange, prefix = '₹', ...props }) => {
 };
 
 export default TaxInput;
+

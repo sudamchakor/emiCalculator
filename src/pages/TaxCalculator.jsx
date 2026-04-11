@@ -4,7 +4,7 @@ import { Box, CssBaseline } from '@mui/material';
 import { useSelector } from 'react-redux';
 import { selectThemeMode } from '../store/emiSlice';
 import { themes } from '../components/ThemeSelector';
-import TaxDashboard from '../components/taxCalculator/containers/TaxDashboard';
+import TaxDashboard from '../components/TaxDashboard';
 
 const TaxCalculator = () => {
   const themeMode = useSelector(selectThemeMode);

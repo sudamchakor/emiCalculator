@@ -5,6 +5,7 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  Stack,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import "./FAQ.scss";
@@ -16,7 +17,8 @@ const FAQ = () => {
         Frequently Asked Questions
       </Typography>
 
-      <Accordion>
+      <Stack spacing={2}>
+        <Accordion>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Typography>What calculators are available on this platform?</Typography>
         </AccordionSummary>
@@ -201,6 +203,7 @@ const FAQ = () => {
           </Typography>
         </AccordionDetails>
       </Accordion>
+      </Stack>
     </Container>
   );
 };

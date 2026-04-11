@@ -23,3 +23,4 @@ const ExemptionRow = ({ label, produced, limited }) => {
 };
 
 export default ExemptionRow;
+

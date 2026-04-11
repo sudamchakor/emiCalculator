@@ -10,8 +10,8 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SettingsIcon from '@mui/icons-material/Settings';
-import DataCard from '../components/common/DataCard';
-import ExemptionRow from '../components/common/ExemptionRow';
+import DataCard from './common/DataCard';
+import ExemptionRow from './common/ExemptionRow';
 import {
   updateMonthData,
   populateRowFromFirstMonth,
@@ -29,8 +29,8 @@ import {
   selectAge,
   selectCalculatedSalary,
   selectTaxComparison,
-} from '../../../store/taxSlice';
-import '../../../styles/taxCalculator.css';
+} from '../store/taxSlice';
+import '../styles/taxCalculator.css';
 
 const TaxDashboard = () => {
   const dispatch = useDispatch();
@@ -142,12 +142,12 @@ const TaxDashboard = () => {
         {isHovered && index < 11 && (
           <Tooltip title={`Populate remaining months with this value`}>
              <IconButton
-               size="small"
-               onClick={() => handlePopulateRowFromCurrent(index, field)}
-               sx={{ position: 'absolute', right: -10, top: '50%', transform: 'translateY(-50%)', zIndex: 10, bgcolor: 'background.paper', boxShadow: 1, padding: '2px' }}
+              size="small"
+              onClick={() => handlePopulateRowFromCurrent(index, field)}
+              sx={{ position: 'absolute', right: -10, top: '50%', transform: 'translateY(-50%)', zIndex: 10, bgcolor: 'background.paper', boxShadow: 1, padding: '2px' }}
              >
-               <ArrowRightAltIcon fontSize="small" color="primary" />
-            </IconButton>
+              <ArrowRightAltIcon fontSize="small" color="primary" />
+             </IconButton>
           </Tooltip>
         )}
       </TableCell>
@@ -524,3 +524,4 @@ const TaxDashboard = () => {
 };
 
 export default TaxDashboard;
+

@@ -27,7 +27,7 @@ const calculateOldRegimeSlabs = (taxableIncome, age) => {
 
   // Above 10 Lakhs (30%)
   tax += remainingIncome * 0.30;
-  
+
   return tax;
 };
 
@@ -76,46 +76,46 @@ export const calculateTax = (income, declarations, houseProperty, meta) => {
   const ded = declarations.deductions;
   const otherIncome = declarations.otherIncome;
 
-  const totalOtherIncome = (parseFloat(otherIncome.bonus) || 0) + 
-                           (parseFloat(otherIncome.savingsInt) || 0) + 
-                           (parseFloat(otherIncome.dividends) || 0) + 
-                           (parseFloat(otherIncome.capitalGains) || 0) + 
+  const totalOtherIncome = (parseFloat(otherIncome.bonus) || 0) +
+                           (parseFloat(otherIncome.savingsInt) || 0) +
+                           (parseFloat(otherIncome.dividends) || 0) +
+                           (parseFloat(otherIncome.capitalGains) || 0) +
                            (parseFloat(otherIncome.crypto) || 0);
 
   const totalIncome = (parseFloat(income.salary) || 0) + totalOtherIncome;
 
   const OLD_STANDARD_DEDUCTION = 50000;
   const NEW_STANDARD_DEDUCTION = 75000;
-  
-  const totalExemptions = (ex.hra.limited || 0) + 
-                          (ex.transport.limited || 0) + 
-                          (ex.gratuity.limited || 0) + 
-                          (ex.childrenEduc.limited || 0) + 
-                          (ex.lta.limited || 0) + 
+
+  const totalExemptions = (ex.hra.limited || 0) +
+                          (ex.transport.limited || 0) +
+                          (ex.gratuity.limited || 0) +
+                          (ex.childrenEduc.limited || 0) +
+                          (ex.lta.limited || 0) +
                           (ex.uniform.limited || 0);
 
   const sec80C = c80.limited || 0;
-  const otherDeductions = (ded.sec80D.limited || 0) + 
-                          (ded.sec80DD_DDB.limited || 0) + 
-                          (ded.sec80E_EEB.limited || 0) + 
-                          (ded.sec80G.limited || 0) + 
-                          (ded.sec80GG.limited || 0) + 
+  const otherDeductions = (ded.sec80D.limited || 0) +
+                          (ded.sec80DD_DDB.limited || 0) +
+                          (ded.sec80E_EEB.limited || 0) +
+                          (ded.sec80G.limited || 0) +
+                          (ded.sec80GG.limited || 0) +
                           (ded.sec80TTA_U.limited || 0);
   const profTax = parseFloat(meta.profTax) || 0;
-  
+
   // Section 24(b) - Home Loan Interest limit 2,000,000
-  const homeLoanInterest = Math.min(parseFloat(houseProperty.interest) || 0, 200000); 
+  const homeLoanInterest = Math.min(parseFloat(houseProperty.interest) || 0, 200000);
 
   // OLD REGIME CALCULATION
   const oldDeductions = OLD_STANDARD_DEDUCTION + totalExemptions + sec80C + otherDeductions + homeLoanInterest + profTax;
   const oldTaxableIncome = Math.max(0, totalIncome - oldDeductions);
   let oldTax = calculateOldRegimeSlabs(oldTaxableIncome, meta.age || 30);
-  
+
   // Rebate 87A (Old Regime)
   if (oldTaxableIncome <= 500000) {
       oldTax = Math.max(0, oldTax - 12500);
   }
-  
+
   const oldTotalTax = oldTax + (oldTax * 0.04); // 4% Cess
 
   // NEW REGIME CALCULATION (115BAC - FY 25-26)
@@ -127,11 +127,11 @@ export const calculateTax = (income, declarations, houseProperty, meta) => {
   // Crypto flat 30% tax simple addition on crypto income (ignoring losses and standard deductions for simplicity in basic calc)
   const cryptoIncome = parseFloat(otherIncome.crypto) || 0;
   const cryptoTax = cryptoIncome * 0.30;
-  
+
   // Rebate 87A (New Regime up to 12L)
   if (newTaxableIncome <= 1200000) {
       // Marginal relief could apply but standard rebate is full tax up to 12L
-      const maxRebate = calculateNewRegimeSlabs(1200000); 
+      const maxRebate = calculateNewRegimeSlabs(1200000);
       newTax = Math.max(0, newTax - maxRebate);
   } else if (newTaxableIncome > 1200000 && newTaxableIncome <= 1227770) {
       // Marginal relief basic approximation
@@ -169,3 +169,4 @@ export const calculateTax = (income, declarations, houseProperty, meta) => {
       savings: Math.abs(oldTotalTaxFinal - newTotalTax),
   };
 };
+

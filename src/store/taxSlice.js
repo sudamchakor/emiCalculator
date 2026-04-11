@@ -1,6 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { createSelector } from 'reselect';
-import { calculateTax } from '../components/taxCalculator/utils/taxEngine';
+import { calculateTax } from '../utils/taxEngine';
 
 const months = ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar'];
 

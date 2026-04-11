@@ -15,3 +15,4 @@ const DataCard = ({ title, children }) => {
 };
 
 export default DataCard;
+

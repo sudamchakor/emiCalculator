@@ -63,14 +63,11 @@ const AppContent = () => {
 
   useEffect(() => {
     try {
-      let currentThemeValue = themeMode || "light";
-      if (currentThemeValue === "light") {
-        currentThemeValue = "dodgerblue";
-      }
+      const currentThemeValue = themeMode || "dodgerblue";
 
-      const selectedTheme = themes.find((t) => t.value === currentThemeValue) || themes[0];
+      const selectedTheme = themes.find((t) => t.value === currentThemeValue);
       if (!selectedTheme) {
-        console.warn("No theme found, using default");
+        console.warn(`Theme not found: ${currentThemeValue}, using default`);
         return;
       }
 
@@ -78,7 +75,7 @@ const AppContent = () => {
 
       document.body.setAttribute("data-theme", String(currentThemeValue));
 
-      // Set variables to ensure any vanilla CSS gets updated immediately
+      // Set CSS variables to ensure any vanilla CSS gets updated immediately
       document.body.style.setProperty("--primary-color", primary);
       document.body.style.setProperty("--secondary-color", secondary);
       document.body.style.setProperty("--background-color", background);
@@ -86,14 +83,15 @@ const AppContent = () => {
       document.body.style.setProperty("--text-primary-color", textPrimary);
       document.body.style.setProperty("--text-secondary-color", textSecondary);
 
+      const isDarkMode = currentThemeValue === "dark";
       const newTheme = createTheme({
         palette: {
-          mode: currentThemeValue === "dark" ? "dark" : "light",
+          mode: isDarkMode ? "dark" : "light",
           primary: { main: primary },
           secondary: { main: secondary },
           background: {
             default: background,
-            paper: currentThemeValue === "dark" ? "#1C1B1F" : "#ffffff",
+            paper: isDarkMode ? "#1C1B1F" : "#ffffff",
           },
           text: {
             primary: textPrimary,
