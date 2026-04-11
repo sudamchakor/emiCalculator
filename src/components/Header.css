@@ -8,12 +8,34 @@
   }
 }
 
+.header-logo {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: white;
+  transition: opacity 0.2s ease;
+}
+
+.header-logo:hover {
+  opacity: 0.8;
+}
+
+.header-brand {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
 .header-icon {
   margin-right: 16px;
 }
 
-.header-title {
-  flex-grow: 1;
+.header-calculator-selector {
+  margin: 0 16px;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 500;
 }
 
 .header-link {
@@ -35,3 +57,5 @@
 .header-select .MuiSelect-icon {
   color: white !important;
 }
+
+

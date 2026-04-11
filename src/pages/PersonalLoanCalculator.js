@@ -9,15 +9,17 @@ import {
   InputAdornment,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
+import { useEmiContext } from "../context/EmiContext";
+import { themes } from "../components/ThemeSelector";
 
-// Custom Styled Slider to match your purple brand color
-const BrandSlider = styled(Slider)({
-  color: "#9c27b0", // Your exact theme purple
+// Custom Styled Slider
+const BrandSlider = styled(Slider)(({ theme: muiTheme }) => ({
+  color: muiTheme.palette.primary.main,
   height: 6,
   "& .MuiSlider-thumb": {
     height: 20,
     width: 20,
-    backgroundColor: "#9c27b0",
+    backgroundColor: muiTheme.palette.primary.main,
     border: "2px solid currentColor",
     "&:focus, &:hover, &.Mui-active, &.Mui-focusVisible": {
       boxShadow: "inherit",
@@ -30,9 +32,18 @@ const BrandSlider = styled(Slider)({
     color: "#d1d1d1",
     height: 6,
   },
-});
+}));
 
 const PersonalLoanCalculator = () => {
+  const { themeMode } = useEmiContext();
+  const getThemeColor = () => {
+    let currentThemeValue = themeMode;
+    if (currentThemeValue === "light") {
+      currentThemeValue = "dodgerblue";
+    }
+    const selectedTheme = themes.find((t) => t.value === currentThemeValue) || themes[0];
+    return selectedTheme.colors[0]; // primary color
+  };
   const [loanAmount, setLoanAmount] = useState(500000);
   const [interestRate, setInterestRate] = useState(10.5);
   const [tenure, setTenure] = useState(5);
@@ -66,7 +77,7 @@ const PersonalLoanCalculator = () => {
         p: 4,
         borderRadius: 4,
         border: "1px solid #eee",
-        bgcolor: "#fffcf7",
+        bgcolor: "background.paper",
       }}
     >
       <Grid container spacing={8}>
@@ -75,7 +86,7 @@ const PersonalLoanCalculator = () => {
           <Typography
             variant="h5"
             fontWeight="600"
-            sx={{ mb: 4, color: "#444" }}
+            sx={{ mb: 4, color: "text.primary" }}
           >
             Personal Loan Details
           </Typography>
@@ -197,7 +208,7 @@ const PersonalLoanCalculator = () => {
           <Typography
             variant="h6"
             fontWeight="600"
-            sx={{ mb: 4, color: "#444" }}
+            sx={{ mb: 4, color: "text.primary" }}
           >
             Loan Summary
           </Typography>

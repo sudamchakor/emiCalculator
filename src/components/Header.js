@@ -87,15 +87,30 @@ const Header = () => {
   return (
     <AppBar position="fixed" className="header-appbar">
       <Toolbar>
-        <CalculateIcon className="header-icon" />
+        {/* Logo and Home Link */}
+        <Box
+          className="header-logo"
+          onClick={() => navigate("/")}
+          style={{ cursor: "pointer", display: "flex", alignItems: "center" }}
+        >
+          <CalculateIcon className="header-icon" />
+          <Typography variant="h6" component="div" className="header-brand">
+            EMI Calculator
+          </Typography>
+        </Box>
+
+        {/* Spacer to push calculator selector to the right */}
+        <Box sx={{ flexGrow: 1 }} />
+
+        {/* Calculator Selector - Moved to Right */}
         <Typography
-          variant="h6"
+          variant="body2"
           component="div"
-          className="header-title"
+          className="header-calculator-selector"
           onClick={handleMenuOpen}
           style={{ cursor: "pointer", display: "flex", alignItems: "center" }}
         >
-          {activeCalculator.label} <ArrowDropDownIcon />
+          {activeCalculator.label} <ArrowDropDownIcon fontSize="small" />
         </Typography>
 
         <Menu

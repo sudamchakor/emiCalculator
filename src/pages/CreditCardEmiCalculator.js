@@ -9,8 +9,19 @@ import {
   TextField,
   InputAdornment,
 } from "@mui/material";
+import { useEmiContext } from "../context/EmiContext";
+import { themes } from "../components/ThemeSelector";
 
 const CreditCardEMICalculator = () => {
+  const { themeMode } = useEmiContext();
+  const getThemeColor = () => {
+    let currentThemeValue = themeMode;
+    if (currentThemeValue === "light") {
+      currentThemeValue = "dodgerblue";
+    }
+    const selectedTheme = themes.find((t) => t.value === currentThemeValue) || themes[0];
+    return selectedTheme.colors[0]; // primary color
+  };
   // State for inputs
   const [amount, setAmount] = useState(500000);
   const [interest, setInterest] = useState(10.5);
@@ -63,11 +74,9 @@ const CreditCardEMICalculator = () => {
     <Card
       sx={{
         p: { xs: 2, md: 4 },
-        maxWidth: 900,
-        mx: "auto",
-        mt: 5,
         borderRadius: 4,
         boxShadow: "0 8px 40px rgba(0,0,0,0.12)",
+        bgcolor: "background.paper",
       }}
     >
       <Grid container spacing={4}>
@@ -76,7 +85,7 @@ const CreditCardEMICalculator = () => {
           <Typography
             variant="h5"
             gutterBottom
-            sx={{ fontWeight: 700, color: "#9c27b0", mb: 3 }}
+            sx={{ fontWeight: 700, color: getThemeColor(), mb: 3 }}
           >
             Credit Card EMI Calculator
           </Typography>
@@ -105,14 +114,14 @@ const CreditCardEMICalculator = () => {
                   sx={{ width: 130 }}
                 />
               </Stack>
-              <Slider
-                value={amount}
-                min={minAmount}
-                max={maxAmount}
-                step={5000}
-                onChange={(e, v) => setAmount(v)}
-                sx={{ color: "#ce93d8" }}
-              />
+               <Slider
+                 value={amount}
+                 min={minAmount}
+                 max={maxAmount}
+                 step={5000}
+                 onChange={(e, v) => setAmount(v)}
+                 sx={{ color: getThemeColor() }}
+               />
             </Box>
 
             {/* Interest Slider */}
@@ -142,14 +151,14 @@ const CreditCardEMICalculator = () => {
                   sx={{ width: 130 }}
                 />
               </Stack>
-              <Slider
-                value={interest}
-                min={minInterest}
-                max={maxInterest}
-                step={0.1}
-                onChange={(e, v) => setInterest(v)}
-                sx={{ color: "#ce93d8" }}
-              />
+               <Slider
+                 value={interest}
+                 min={minInterest}
+                 max={maxInterest}
+                 step={0.1}
+                 onChange={(e, v) => setInterest(v)}
+                 sx={{ color: getThemeColor() }}
+               />
             </Box>
 
             {/* Tenure Slider */}
@@ -170,13 +179,13 @@ const CreditCardEMICalculator = () => {
                   sx={{ width: 130 }}
                 />
               </Stack>
-              <Slider
-                value={tenure}
-                min={minTenure}
-                max={maxTenure}
-                onChange={(e, v) => setTenure(v)}
-                sx={{ color: "#ce93d8" }}
-              />
+               <Slider
+                 value={tenure}
+                 min={minTenure}
+                 max={maxTenure}
+                 onChange={(e, v) => setTenure(v)}
+                 sx={{ color: getThemeColor() }}
+               />
             </Box>
           </Stack>
         </Grid>
@@ -184,17 +193,18 @@ const CreditCardEMICalculator = () => {
         {/* Results Section */}
         <Grid item xs={12} md={5}>
           <Box
-            sx={{
-              bgcolor: "#fdfbff",
-              borderRadius: 3,
-              p: 3,
-              height: "100%",
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "center",
-              border: "1px solid #f3e5f5",
-            }}
-          >
+             sx={{
+               bgcolor: "background.paper",
+               borderRadius: 3,
+               p: 3,
+               height: "100%",
+               display: "flex",
+               flexDirection: "column",
+               justifyContent: "center",
+               border: "1px solid",
+               borderColor: "divider",
+             }}
+           >
             <Typography
               variant="h6"
               align="center"
