@@ -1,19 +1,20 @@
-import { configureStore } from '@reduxjs/toolkit';
+import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import { persistStore, persistReducer } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
-import { combineReducers } from 'redux';
 import emiReducer from './emiSlice';
 import taxReducer from './taxSlice';
+import profileReducer from './profileSlice';
 
 const persistConfig = {
   key: 'app_v1',
   storage,
-  whitelist: ['emi', 'tax'], // Persist both slices
+  whitelist: ['emi', 'tax', 'profile'], // Persist slices
 };
 
 const rootReducer = combineReducers({
   emi: emiReducer,
   tax: taxReducer,
+  profile: profileReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

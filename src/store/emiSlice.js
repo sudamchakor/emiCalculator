@@ -13,6 +13,8 @@ const initialState = {
     loanFees: 10000,
     feesUnit: "Rs", // 'Rs' or '%'
     startDate: new Date().toISOString(), // Store as ISO string
+    yearlyPaymentIncreaseAmount: 0,
+    yearlyPaymentIncreaseUnit: "%", // 'Rs' or '%'
   },
   prepayments: {
     monthly: { amount: 0, startDate: new Date().toISOString() },
@@ -67,6 +69,44 @@ const emiSlice = createSlice({
 
         state.loanDetails[unitField] = newUnit;
         state.loanDetails[amountField] = newTenure;
+      } else if (unitField === "yearlyPaymentIncreaseUnit") {
+        // We need to calculate base EMI first to do the conversion correctly
+        const tenureInMonths =
+          state.loanDetails.tenureUnit === "years"
+            ? state.loanDetails.loanTenure * 12
+            : state.loanDetails.loanTenure;
+
+        const marginInRs =
+          state.loanDetails.marginUnit === "%"
+            ? (state.loanDetails.homeValue * state.loanDetails.marginAmount) / 100
+            : state.loanDetails.marginAmount;
+
+        const loanAmount = state.loanDetails.homeValue + state.loanDetails.loanInsurance - marginInRs;
+
+        const monthlyInterestRate = state.loanDetails.interestRate / 12 / 100;
+        
+        let emi = 0;
+        if (monthlyInterestRate > 0 && tenureInMonths > 0 && loanAmount > 0) {
+          emi =
+            (loanAmount *
+              monthlyInterestRate *
+              Math.pow(1 + monthlyInterestRate, tenureInMonths)) /
+            (Math.pow(1 + monthlyInterestRate, tenureInMonths) - 1);
+        } else if (tenureInMonths > 0) {
+          emi = loanAmount / tenureInMonths;
+        }
+        
+        let currentAmount = state.loanDetails[amountField] || 0;
+        let newAmount = currentAmount;
+        
+        if (newUnit === "%") {
+          newAmount = emi ? (currentAmount / emi) * 100 : 0;
+        } else {
+          newAmount = (currentAmount * emi) / 100;
+        }
+        
+        state.loanDetails[unitField] = newUnit;
+        state.loanDetails[amountField] = Number(newAmount.toFixed(2));
       } else {
         let currentAmount = state.loanDetails[amountField] || 0;
         let baseValue = state.loanDetails.homeValue;
@@ -185,6 +225,13 @@ export const selectCalculatedValues = createSelector(
     } else if (tenureInMonths > 0) {
       emi = loanAmount / tenureInMonths;
     }
+    
+    let yearlyIncreaseAmountRs = 0;
+    if (loanDetails.yearlyPaymentIncreaseUnit === "%") {
+       yearlyIncreaseAmountRs = (emi * (loanDetails.yearlyPaymentIncreaseAmount || 0)) / 100;
+    } else {
+       yearlyIncreaseAmountRs = loanDetails.yearlyPaymentIncreaseAmount || 0;
+    }
 
      let balance = loanAmount;
      let totalInterest = 0;
@@ -240,8 +287,24 @@ export const selectCalculatedValues = createSelector(
        ) {
          prepayForMonth += prepayments.oneTime.amount;
        }
+       
+      let currentTotalPayment = emi;
+      if (yearlyIncreaseAmountRs > 0) {
+        const yearsPassed = Math.floor(currentDate.diff(startDate, 'month') / 12);
+        if (yearsPassed > 0) {
+          if (loanDetails.yearlyPaymentIncreaseUnit === "%") {
+              currentTotalPayment = emi * Math.pow(1 + (loanDetails.yearlyPaymentIncreaseAmount || 0) / 100, yearsPassed);
+          } else {
+              currentTotalPayment = emi + (yearsPassed * yearlyIncreaseAmountRs);
+          }
+        }
+      }
 
       let principalForMonth = emi - interestForMonth;
+      
+      // The user pays the required EMI + the increased amount as a prepayment
+      let stepUpPrepayment = currentTotalPayment - emi;
+      prepayForMonth += stepUpPrepayment;
 
       if (balance < principalForMonth + prepayForMonth) {
         if (balance < principalForMonth) {
@@ -305,6 +368,7 @@ export const selectCalculatedValues = createSelector(
       totalPrepayments,
       schedule,
       totalPayments,
+      yearlyIncreaseAmountRs
     };
   }
 );

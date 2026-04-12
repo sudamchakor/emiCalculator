@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   AppBar,
   Toolbar,
@@ -8,6 +8,7 @@ import {
   MenuItem,
   Select,
   FormControl,
+  IconButton,
 } from "@mui/material";
 import CalculateIcon from "@mui/icons-material/Calculate";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
@@ -15,15 +16,13 @@ import HomeIcon from "@mui/icons-material/Home";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import MoneyIcon from "@mui/icons-material/Money";
-import SavingsIcon from "@mui/icons-material/Savings";
-import ShowChartIcon from "@mui/icons-material/ShowChart";
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import * as XLSX from "xlsx";
 import { useSelector, useDispatch } from 'react-redux';
 import { selectCalculatedValues, selectCurrency, selectThemeMode, setCurrency, setThemeMode } from '../../store/emiSlice';
 import "./Header.css";
-import { SettingsRounded } from "@mui/icons-material";
 
 const calculators = [
   { path: "/", label: "Home Loan EMI Calculator", icon: <HomeIcon fontSize="small" style={{ marginRight: 8 }} /> },
@@ -40,7 +39,9 @@ const Header = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
+  
   const [anchorEl, setAnchorEl] = useState(null);
+  const [profileAnchorEl, setProfileAnchorEl] = useState(null);
 
   const handleExport = (event) => {
     const value = event.target.value;
@@ -72,9 +73,22 @@ const Header = () => {
     setAnchorEl(null);
   };
 
+  const handleProfileMenuOpen = (event) => {
+    setProfileAnchorEl(event.currentTarget);
+  };
+
+  const handleProfileMenuClose = () => {
+    setProfileAnchorEl(null);
+  };
+
   const handleCalculatorSelect = (path) => {
     navigate(path);
-    handleMenuClose();
+    setAnchorEl(null);
+  };
+
+  const handleProfileSelect = (tab) => {
+    navigate(`/profile?tab=${tab}`);
+    setProfileAnchorEl(null);
   };
 
   // Determine current active calculator for display in header
@@ -86,7 +100,6 @@ const Header = () => {
   const activeCalculator = location.pathname === "/"
     ? calculators[0]
     : currentCalculator;
-
 
   return (
     <AppBar position="fixed" className="header-appbar">
@@ -112,7 +125,7 @@ const Header = () => {
           component="div"
           className="header-calculator-selector"
           onClick={handleMenuOpen}
-          style={{ cursor: "pointer", display: "flex", alignItems: "center", marginRight: "32px" }}
+          style={{ cursor: "pointer", display: "flex", alignItems: "center", marginRight: "32px", padding: '8px 0' }}
         >
           {activeCalculator.label} <ArrowDropDownIcon fontSize="small" />
         </Typography>
@@ -138,8 +151,8 @@ const Header = () => {
           ))}
         </Menu>
 
-        <Box className="header-actions">
-          <FormControl variant="standard" sx={{ minWidth: 70 }}>
+        <Box className="header-actions" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <FormControl variant="standard" sx={{ minWidth: 70, mr: 2 }}>
             <Select
               value=""
               onChange={handleExport}
@@ -155,20 +168,27 @@ const Header = () => {
             </Select>
           </FormControl>
 
-          <Typography variant="button">
-            <Link to="/faq" className="header-link">
+          <Typography variant="button" sx={{ mr: 2 }}>
+            <Link to="/faq" className="header-link" style={{ textDecoration: 'none', color: 'inherit' }}>
               FAQ
             </Link>
           </Typography>
 
-          <Typography variant="button">
-            <Link to="/settings" className="header-link">
-              <SettingsRounded
-                className="header-icon"
-                style={{ marginBottom: "-6px" }}
-              />
-            </Link>
-          </Typography>
+          {/* Profile Menu Icon */}
+          <Box>
+            <IconButton color="inherit" sx={{ padding: '8px' }} onClick={handleProfileMenuOpen}>
+              <AccountCircleIcon />
+            </IconButton>
+            <Menu
+              anchorEl={profileAnchorEl}
+              open={Boolean(profileAnchorEl)}
+              onClose={handleProfileMenuClose}
+            >
+              <MenuItem onClick={() => handleProfileSelect('personal')}>Personal Profile</MenuItem>
+              <MenuItem onClick={() => handleProfileSelect('goals')}>Future Goals</MenuItem>
+              <MenuItem onClick={() => handleProfileSelect('settings')}>Settings</MenuItem>
+            </Menu>
+          </Box>
         </Box>
       </Toolbar>
     </AppBar>

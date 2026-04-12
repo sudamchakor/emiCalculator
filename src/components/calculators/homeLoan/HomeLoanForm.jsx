@@ -45,6 +45,7 @@ const HomeLoanForm = () => {
   };
 
   return (
+    <>
     <StyledPaper elevation={3}>
       <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: "text.primary" }}>
         Home Loan Details
@@ -145,11 +146,38 @@ const HomeLoanForm = () => {
           />
         </Grid>
       </Grid>
+    </StyledPaper>
 
-      <Box mt={3} mb={1}>
-        <Divider />
-      </Box>
+    <StyledPaper elevation={3}>
+      <SectionHeader>
+        <Typography variant="h6" sx={{ fontWeight: 600, color: "text.primary" }}>Yearly Payment Increment</Typography>
+      </SectionHeader>
+      <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+        Plan how much you want to increase your payment on a yearly basis. This helps you close your loan earlier and saves on interest.
+      </Typography>
 
+      <Grid container spacing={2}>
+        <Grid item xs={12} sm={6} md={6} lg={4} xl={3}>
+          <AmountWithUnitInput
+            label="Yearly Payment Increase"
+            value={loanDetails.yearlyPaymentIncreaseAmount}
+            onAmountChange={(e) => handleChange("yearlyPaymentIncreaseAmount", e)}
+            unitValue={loanDetails.yearlyPaymentIncreaseUnit}
+            onUnitChange={(e) => handleUnitChange("yearlyPaymentIncreaseUnit", "yearlyPaymentIncreaseAmount", e)}
+            unitOptions={[
+              { value: "Rs", label: currency },
+              { value: "%", label: "%" },
+            ]}
+            placeholder="Enter yearly increase"
+          />
+           <Typography variant="caption" color="textSecondary">
+            Value in {currency}: {calculatedValues.yearlyIncreaseAmountRs.toFixed(2)}
+          </Typography>
+        </Grid>
+      </Grid>
+    </StyledPaper>
+
+    <StyledPaper elevation={3}>
       <SectionHeader>
         <Typography variant="h6" sx={{ fontWeight: 600, color: "text.primary" }}>Homeowner Expenses</Typography>
       </SectionHeader>
@@ -211,6 +239,7 @@ const HomeLoanForm = () => {
         </Grid>
       </Grid>
     </StyledPaper>
+    </>
   );
 };
 

@@ -4,19 +4,19 @@ import { ThemeProvider, createTheme, CssBaseline, Box } from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { HelmetProvider } from "react-helmet-async";
-import { Provider } from 'react-redux';
-import { PersistGate } from 'redux-persist/integration/react';
-import { useSelector } from 'react-redux';
-import store, { persistor } from './store';
-import { selectThemeMode } from './store/emiSlice';
+import { Provider } from "react-redux";
+import { PersistGate } from "redux-persist/integration/react";
+import { useSelector } from "react-redux";
+import store, { persistor } from "./store";
+import { selectThemeMode } from "./store/emiSlice";
 import { EmiProvider } from "./context/EmiContext";
 
 // Components
 import Header from "./components/layout/Header";
 import Calculator from "./pages/Calculator";
 import FAQ from "./pages/FAQ";
-import Settings from "./components/Settings";
 import { themes } from "./components/ThemeSelector";
+import UserProfile from "./pages/UserProfile";
 
 // New Calculator Pages
 import CreditCardEmiCalculator from "./pages/CreditCardEmiCalculator";
@@ -45,7 +45,7 @@ class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <Box sx={{ padding: 4, color: 'red' }}>
+        <Box sx={{ padding: 4, color: "red" }}>
           <h1>Something went wrong</h1>
           <p>{this.state.error?.toString()}</p>
           <button onClick={() => window.location.reload()}>Reload Page</button>
@@ -71,7 +71,8 @@ const AppContent = () => {
         return;
       }
 
-      const [primary, secondary, background, textPrimary, textSecondary] = selectedTheme.colors;
+      const [primary, secondary, background, textPrimary, textSecondary] =
+        selectedTheme.colors;
 
       document.body.setAttribute("data-theme", String(currentThemeValue));
 
@@ -79,7 +80,10 @@ const AppContent = () => {
       document.body.style.setProperty("--primary-color", primary);
       document.body.style.setProperty("--secondary-color", secondary);
       document.body.style.setProperty("--background-color", background);
-      document.body.style.setProperty("--surface-color", currentThemeValue === "dark" ? "#1C1B1F" : "#ffffff");
+      document.body.style.setProperty(
+        "--surface-color",
+        currentThemeValue === "dark" ? "#1C1B1F" : "#ffffff",
+      );
       document.body.style.setProperty("--text-primary-color", textPrimary);
       document.body.style.setProperty("--text-secondary-color", textSecondary);
 
@@ -114,18 +118,27 @@ const AppContent = () => {
         <Box component="main" className="main-content">
           <Routes>
             <Route path="/" element={<Calculator />} />
-            <Route path="/credit-card-emi" element={<CreditCardEmiCalculator />} />
-            
+            <Route path="/profile" element={<UserProfile />} />
+            <Route
+              path="/credit-card-emi"
+              element={<CreditCardEmiCalculator />}
+            />
+
             {/* The single unified InvestmentCalculator page */}
             <Route path="/investment" element={<InvestmentCalculator />} />
             <Route path="/investment/sip" element={<InvestmentCalculator />} />
-            <Route path="/investment/lumpsum" element={<InvestmentCalculator />} />
-            <Route path="/investment/step-up-sip" element={<InvestmentCalculator />} />
+            <Route
+              path="/investment/lumpsum"
+              element={<InvestmentCalculator />}
+            />
+            <Route
+              path="/investment/step-up-sip"
+              element={<InvestmentCalculator />}
+            />
             <Route path="/investment/swp" element={<InvestmentCalculator />} />
-            
+
             <Route path="/personal-loan" element={<PersonalLoanCalculator />} />
             <Route path="/faq" element={<FAQ />} />
-            <Route path="/settings" element={<Settings />} />
             <Route path="/tax-calculator" element={<TaxCalculator />} />
           </Routes>
         </Box>
@@ -137,7 +150,21 @@ const AppContent = () => {
 function App() {
   return (
     <Provider store={store}>
-      <PersistGate loading={<Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>Loading...</Box>} persistor={persistor}>
+      <PersistGate
+        loading={
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              height: "100vh",
+            }}
+          >
+            Loading...
+          </Box>
+        }
+        persistor={persistor}
+      >
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <HelmetProvider>
             <EmiProvider>
