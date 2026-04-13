@@ -85,20 +85,6 @@ export default function UserProfile() {
           <Tab label="Future Goals" />
           <Tab label="Settings" />
         </Tabs>
-        <Button
-          variant="outlined"
-          color="error"
-          size="small"
-          onClick={() => {
-            dispatch(resetProfile());
-            dispatch(setCurrentAge(30));
-            dispatch(setRetirementAge(60));
-            dispatch(setConsiderInflation(false));
-          }}
-          sx={{ mr: 2 }}
-        >
-          Reset to Defaults
-        </Button>
       </Box>
 
       {/* Tab 1: Personal Profile */}
@@ -139,8 +125,7 @@ export default function UserProfile() {
           </strong>
         </Typography>
         <Typography variant="h6">
-          Debt-Free Countdown:{" "}
-          <strong>{debtFreeCountdown}</strong>
+          Debt-Free Countdown: <strong>{debtFreeCountdown}</strong>
         </Typography>
       </Box>
     </Box>

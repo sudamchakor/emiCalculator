@@ -10,13 +10,13 @@ import {
 } from "@mui/material";
 import SaveIcon from "@mui/icons-material/Save";
 import CloseIcon from "@mui/icons-material/Close";
-import SliderInput from "../common/SliderInput"; // Adjusted import path for SliderInput
+import SliderInput from "./SliderInput";
 
 export const GoalForm = ({
-  goal, // Renamed from initialData for clarity when editing
+  goal,
   currentYear,
   onSave,
-  onCancel, // Keep onCancel for consistency, though modal might handle close
+  onCancel,
 }) => {
   const [editedGoal, setEditedGoal] = useState(goal);
 
@@ -24,19 +24,17 @@ export const GoalForm = ({
     setEditedGoal(goal);
   }, [goal]);
 
-  // This useEffect ensures that when the goal prop changes (e.g., when opening modal for a different goal),
-  // the form's internal state is updated.
-  useEffect(() => {
-    setEditedGoal(goal);
-  }, [goal]);
-
-  // This useEffect calls onSave whenever editedGoal changes,
-  // effectively lifting the state up to the parent (FutureGoalsTab)
-  // so the parent can access the latest form data for its modal save button.
-  useEffect(() => {
-    onSave(editedGoal);
-  }, [editedGoal, onSave]);
-
+  const handleSave = () => {
+    if (editedGoal.name && editedGoal.targetAmount > 0) {
+      onSave({
+        ...editedGoal,
+        targetAmount: Number(editedGoal.targetAmount),
+        targetYear: Number(editedGoal.targetYear),
+        investmentType: editedGoal.investmentType,
+        stepUpRate: editedGoal.investmentType === 'step_up_sip' ? Number(editedGoal.stepUpRate) : 0,
+      });
+    }
+  };
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
@@ -97,7 +95,23 @@ export const GoalForm = ({
         />
       )}
 
-      {/* Removed Save and Cancel buttons from here. They will be handled by the modal in FutureGoalsTab. */}
+      <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1 }}>
+        <Button
+          size="small"
+          variant="contained"
+          onClick={handleSave}
+          startIcon={<SaveIcon />}
+        >
+          Save
+        </Button>
+        <Button
+          size="small"
+          onClick={onCancel}
+          startIcon={<CloseIcon />}
+        >
+          Cancel
+        </Button>
+      </Box>
     </Box>
   );
 };

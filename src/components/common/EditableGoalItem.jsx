@@ -15,23 +15,20 @@ import {
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
-import SaveIcon from "@mui/icons-material/Save";
-import CloseIcon from "@mui/icons-material/Close";
 import InfoIcon from "@mui/icons-material/Info";
 import SliderInput from "./SliderInput";
+// GoalForm is no longer rendered directly here, it's handled by the parent component (FutureGoalsTab) via a modal.
 
 export const EditableGoalItem = ({
   goal,
   currency,
   currentYear,
   considerInflation,
-  onUpdate,
+  onEdit, // New prop to trigger modal in parent
   onDelete,
   onInvestmentChange,
   investmentAmount = 0,
 }) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [editedGoal, setEditedGoal] = useState(goal);
   const [investmentMode, setInvestmentMode] = useState(false);
   const [investmentData, setInvestmentData] = useState({
     monthlyInvestment: investmentAmount || 0,
@@ -39,25 +36,6 @@ export const EditableGoalItem = ({
     expectedReturn: 8, // percentage per annum
     stepUpRate: goal.stepUpRate || 0, // Use goal's step-up rate
   });
-
-  const handleSave = () => {
-    if (editedGoal.name && editedGoal.targetAmount > 0) {
-      onUpdate({
-        ...editedGoal,
-        targetAmount: Number(editedGoal.targetAmount),
-        targetYear: Number(editedGoal.targetYear),
-        // Ensure investmentType and stepUpRate are saved with the goal itself
-        investmentType: editedGoal.investmentType,
-        stepUpRate: editedGoal.investmentType === 'step_up_sip' ? Number(editedGoal.stepUpRate) : 0,
-      });
-      setIsEditing(false);
-    }
-  };
-
-  const handleCancel = () => {
-    setEditedGoal(goal);
-    setIsEditing(false);
-  };
 
   const calculateInflatedAmount = () => {
     if (considerInflation && goal.targetYear > currentYear) {
@@ -95,320 +73,239 @@ export const EditableGoalItem = ({
         },
       }}
     >
-      {isEditing ? (
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-          <TextField
-            fullWidth
-            label="Goal Name"
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+          mb: 1.5,
+        }}
+      >
+        <Box sx={{ flex: 1 }}>
+          <Box
+            sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}
+          >
+            <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+              {goal.name}
+            </Typography>
+            <Chip
+              label={`${yearsToGoal} years`}
+              size="small"
+              color={getGoalTypeColor()}
+              variant="filled"
+            />
+          </Box>
+
+          <Typography
+            variant="body2"
+            sx={{ color: "primary.main", fontWeight: 600, mb: 0.5 }}
+          >
+            Target: {formatCurrency(goal.targetAmount)}
+          </Typography>
+
+          {considerInflation && yearsToGoal > 0 && (
+            <Tooltip title={`Adjusted for ${goal.category === 'education' ? '10%' : '6%'} annual inflation`}>
+              <Typography
+                variant="caption"
+                sx={{
+                  color: "warning.main",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 0.5,
+                }}
+              >
+                <InfoIcon fontSize="small" />
+                Inflation-adjusted:{" "}
+                {formatCurrency(Math.round(calculateInflatedAmount()))}
+              </Typography>
+            </Tooltip>
+          )}
+        </Box>
+
+        <Box sx={{ display: "flex", gap: 0.5 }}>
+          <IconButton
             size="small"
-            value={editedGoal.name}
-            onChange={(e) =>
-              setEditedGoal({ ...editedGoal, name: e.target.value })
-            }
-          />
-          <SliderInput
-            label="Target Amount"
-            value={Number(editedGoal.targetAmount)}
-            onChange={(val) =>
-              setEditedGoal({ ...editedGoal, targetAmount: val })
-            }
-            min={0}
-            max={100000000}
-            step={100000}
-            showInput={true}
-          />
-          <SliderInput
-            label="Target Year"
-            value={Number(editedGoal.targetYear)}
-            onChange={(val) =>
-              setEditedGoal({ ...editedGoal, targetYear: val })
-            }
-            min={currentYear}
-            max={currentYear + 50}
-            step={1}
-            showInput={true}
-          />
-          <FormControl size="small" fullWidth>
+            onClick={() => onEdit(goal)} // Call onEdit prop with the goal data
+            color="primary"
+          >
+            <EditIcon fontSize="small" />
+          </IconButton>
+          <IconButton
+            size="small"
+            onClick={() => onDelete(goal.id)}
+            color="error"
+          >
+            <DeleteIcon fontSize="small" />
+          </IconButton>
+        </Box>
+      </Box>
+
+      {investmentMode && (
+        <Paper
+          sx={{
+            p: 2,
+            backgroundColor: "#f5f5f5",
+            borderRadius: 1.5,
+            mb: 1.5,
+          }}
+        >
+          <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+            Investment Plan
+          </Typography>
+
+          <FormControl size="small" fullWidth sx={{ mb: 1.5 }}>
             <InputLabel>Investment Type</InputLabel>
             <Select
-              value={editedGoal.investmentType || 'sip'}
+              value={investmentData.investmentType}
               label="Investment Type"
-              onChange={(e) => setEditedGoal({...editedGoal, investmentType: e.target.value})}
+              onChange={(e) =>
+                setInvestmentData({
+                  ...investmentData,
+                  investmentType: e.target.value,
+                  stepUpRate: e.target.value === 'step_up_sip' ? investmentData.stepUpRate : 0, // Reset stepUpRate if not step-up
+                })
+              }
             >
               <MenuItem value="sip">Standard SIP</MenuItem>
-              <MenuItem value="lumpsum">Lumpsum</MenuItem>
+              <MenuItem value="lumpsum">Lumpsum Investment</MenuItem>
               <MenuItem value="step_up_sip">Step-Up SIP</MenuItem>
             </Select>
           </FormControl>
 
-          {editedGoal.investmentType === 'step_up_sip' && (
-            <SliderInput
-              label="Annual Step-Up Rate (%)"
-              value={Number(editedGoal.stepUpRate) || 0}
-              onChange={(val) => setEditedGoal({...editedGoal, stepUpRate: val})}
-              min={0}
-              max={20}
-              step={0.5}
-              showInput={true}
-              unit="%"
+          {investmentData.investmentType === "sip" && (
+            <TextField
+              fullWidth
+              label="Monthly Investment"
+              type="number"
+              size="small"
+              value={investmentData.monthlyInvestment}
+              onChange={(e) =>
+                setInvestmentData({
+                  ...investmentData,
+                  monthlyInvestment: Number(e.target.value),
+                })
+              }
+              InputProps={{
+                endAdornment: (
+                  <Typography variant="body2">/ month</Typography>
+                ),
+              }}
+              sx={{ mb: 1.5 }}
             />
           )}
 
-          <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1 }}>
-            <Button
+          {investmentData.investmentType === "lumpsum" && (
+            <TextField
+              fullWidth
+              label="Lumpsum Amount"
+              type="number"
               size="small"
-              variant="contained"
-              onClick={handleSave}
-              startIcon={<SaveIcon />}
-            >
-              Save
-            </Button>
-            <Button
-              size="small"
-              onClick={handleCancel}
-              startIcon={<CloseIcon />}
-            >
-              Cancel
-            </Button>
-          </Box>
-        </Box>
-      ) : (
-        <>
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "flex-start",
-              mb: 1.5,
-            }}
-          >
-            <Box sx={{ flex: 1 }}>
-              <Box
-                sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}
-              >
-                <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                  {goal.name}
-                </Typography>
-                <Chip
-                  label={`${yearsToGoal} years`}
-                  size="small"
-                  color={getGoalTypeColor()}
-                  variant="filled"
-                />
-              </Box>
+              value={investmentData.monthlyInvestment} // Reusing monthlyInvestment for lumpsum amount
+              onChange={(e) =>
+                setInvestmentData({
+                  ...investmentData,
+                  monthlyInvestment: Number(e.target.value),
+                })
+              }
+              sx={{ mb: 1.5 }}
+            />
+          )}
 
-              <Typography
-                variant="body2"
-                sx={{ color: "primary.main", fontWeight: 600, mb: 0.5 }}
-              >
-                Target: {formatCurrency(goal.targetAmount)}
-              </Typography>
-
-              {considerInflation && yearsToGoal > 0 && (
-                <Tooltip title={`Adjusted for ${goal.category === 'education' ? '10%' : '6%'} annual inflation`}>
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      color: "warning.main",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 0.5,
-                    }}
-                  >
-                    <InfoIcon fontSize="small" />
-                    Inflation-adjusted:{" "}
-                    {formatCurrency(Math.round(calculateInflatedAmount()))}
-                  </Typography>
-                </Tooltip>
-              )}
-            </Box>
-
-            <Box sx={{ display: "flex", gap: 0.5 }}>
-              <IconButton
-                size="small"
-                onClick={() => setIsEditing(true)}
-                color="primary"
-              >
-                <EditIcon fontSize="small" />
-              </IconButton>
-              <IconButton
-                size="small"
-                onClick={() => onDelete(goal.id)}
-                color="error"
-              >
-                <DeleteIcon fontSize="small" />
-              </IconButton>
-            </Box>
-          </Box>
-
-          {investmentMode && (
-            <Paper
-              sx={{
-                p: 2,
-                backgroundColor: "#f5f5f5",
-                borderRadius: 1.5,
-                mb: 1.5,
-              }}
-            >
-              <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
-                Investment Plan
-              </Typography>
-
-              <FormControl size="small" fullWidth sx={{ mb: 1.5 }}>
-                <InputLabel>Investment Type</InputLabel>
-                <Select
-                  value={investmentData.investmentType}
-                  label="Investment Type"
-                  onChange={(e) =>
-                    setInvestmentData({
-                      ...investmentData,
-                      investmentType: e.target.value,
-                      stepUpRate: e.target.value === 'step_up_sip' ? investmentData.stepUpRate : 0, // Reset stepUpRate if not step-up
-                    })
-                  }
-                >
-                  <MenuItem value="sip">Standard SIP</MenuItem>
-                  <MenuItem value="lumpsum">Lumpsum Investment</MenuItem>
-                  <MenuItem value="step_up_sip">Step-Up SIP</MenuItem>
-                </Select>
-              </FormControl>
-
-              {investmentData.investmentType === "sip" && (
-                <TextField
-                  fullWidth
-                  label="Monthly Investment"
-                  type="number"
-                  size="small"
-                  value={investmentData.monthlyInvestment}
-                  onChange={(e) =>
-                    setInvestmentData({
-                      ...investmentData,
-                      monthlyInvestment: Number(e.target.value),
-                    })
-                  }
-                  InputProps={{
-                    endAdornment: (
-                      <Typography variant="body2">/ month</Typography>
-                    ),
-                  }}
-                  sx={{ mb: 1.5 }}
-                />
-              )}
-
-              {investmentData.investmentType === "lumpsum" && (
-                <TextField
-                  fullWidth
-                  label="Lumpsum Amount"
-                  type="number"
-                  size="small"
-                  value={investmentData.monthlyInvestment} // Reusing monthlyInvestment for lumpsum amount
-                  onChange={(e) =>
-                    setInvestmentData({
-                      ...investmentData,
-                      monthlyInvestment: Number(e.target.value),
-                    })
-                  }
-                  sx={{ mb: 1.5 }}
-                />
-              )}
-
-              {investmentData.investmentType === "step_up_sip" && (
-                <>
-                  <TextField
-                    fullWidth
-                    label="Initial Monthly Investment"
-                    type="number"
-                    size="small"
-                    value={investmentData.monthlyInvestment}
-                    onChange={(e) =>
-                      setInvestmentData({
-                        ...investmentData,
-                        monthlyInvestment: Number(e.target.value),
-                      })
-                    }
-                    InputProps={{
-                      endAdornment: (
-                        <Typography variant="body2">/ month</Typography>
-                      ),
-                    }}
-                    sx={{ mb: 1.5 }}
-                  />
-                  <SliderInput
-                    label="Annual Step-Up Rate (%)"
-                    value={Number(investmentData.stepUpRate) || 0}
-                    onChange={(val) => setInvestmentData({...investmentData, stepUpRate: val})}
-                    min={0}
-                    max={20}
-                    step={0.5}
-                    showInput={true}
-                    unit="%"
-                  />
-                </>
-              )}
-
+          {investmentData.investmentType === "step_up_sip" && (
+            <>
               <TextField
                 fullWidth
-                label="Expected Annual Return (%)"
+                label="Initial Monthly Investment"
                 type="number"
                 size="small"
-                value={investmentData.expectedReturn}
+                value={investmentData.monthlyInvestment}
                 onChange={(e) =>
                   setInvestmentData({
                     ...investmentData,
-                    expectedReturn: Number(e.target.value),
+                    monthlyInvestment: Number(e.target.value),
                   })
                 }
-                inputProps={{ min: 0, max: 100, step: 0.1 }}
-                sx={{ mt: 1.5 }}
-              />
-
-              <Button
-                fullWidth
-                variant="contained"
-                size="small"
-                onClick={() => {
-                  onInvestmentChange(goal.id, investmentData);
-                  setInvestmentMode(false);
+                InputProps={{
+                  endAdornment: (
+                    <Typography variant="body2">/ month</Typography>
+                  ),
                 }}
-                sx={{ mt: 1.5 }}
-              >
-                Save Investment Plan
-              </Button>
-            </Paper>
+                sx={{ mb: 1.5 }}
+              />
+              <SliderInput
+                label="Annual Step-Up Rate (%)"
+                value={Number(investmentData.stepUpRate) || 0}
+                onChange={(val) => setInvestmentData({...investmentData, stepUpRate: val})}
+                min={0}
+                max={20}
+                step={0.5}
+                showInput={true}
+                unit="%"
+              />
+            </>
           )}
 
-          {investmentAmount > 0 && !investmentMode && (
-            <Box
-              sx={{
-                p: 1.5,
-                backgroundColor: "#e8f5e9",
-                borderRadius: 1,
-                borderLeft: "4px solid #4caf50",
-                mb: 1.5,
-              }}
-            >
-              <Typography
-                variant="caption"
-                sx={{ color: "#1b5e20", fontWeight: 600 }}
-              >
-                💰 Active Investment: {formatCurrency(investmentAmount)}/month ({goal.investmentType === 'step_up_sip' ? `Step-Up SIP @ ${goal.stepUpRate}%` : goal.investmentType.toUpperCase()})
-              </Typography>
-            </Box>
-          )}
+          <TextField
+            fullWidth
+            label="Expected Annual Return (%)"
+            type="number"
+            size="small"
+            value={investmentData.expectedReturn}
+            onChange={(e) =>
+              setInvestmentData({
+                ...investmentData,
+                expectedReturn: Number(e.target.value),
+              })
+            }
+            inputProps={{ min: 0, max: 100, step: 0.1 }}
+            sx={{ mt: 1.5 }}
+          />
 
-          {!investmentMode && (
-            <Button
-              fullWidth
-              size="small"
-              variant="outlined"
-              onClick={() => setInvestmentMode(true)}
-            >
-              {investmentAmount > 0
-                ? "Update Investment Plan"
-                : "Create Investment Plan"}
-            </Button>
-          )}
-        </>
+          <Button
+            fullWidth
+            variant="contained"
+            size="small"
+            onClick={() => {
+              onInvestmentChange(goal.id, investmentData);
+              setInvestmentMode(false);
+            }}
+            sx={{ mt: 1.5 }}
+          >
+            Save Investment Plan
+          </Button>
+        </Paper>
+      )}
+
+      {investmentAmount > 0 && !investmentMode && (
+        <Box
+          sx={{
+            p: 1.5,
+            backgroundColor: "#e8f5e9",
+            borderRadius: 1,
+            borderLeft: "4px solid #4caf50",
+            mb: 1.5,
+          }}
+        >
+          <Typography
+            variant="caption"
+            sx={{ color: "#1b5e20", fontWeight: 600 }}
+          >
+            💰 Active Investment: {formatCurrency(investmentAmount)}/month ({goal.investmentType === 'step_up_sip' ? `Step-Up SIP @ ${goal.stepUpRate}%` : goal.investmentType.toUpperCase()})
+          </Typography>
+        </Box>
+      )}
+
+      {!investmentMode && (
+        <Button
+          fullWidth
+          size="small"
+          variant="outlined"
+          onClick={() => setInvestmentMode(true)}
+        >
+          {investmentAmount > 0
+            ? "Update Investment Plan"
+            : "Create Investment Plan"}
+        </Button>
       )}
     </Paper>
   );
