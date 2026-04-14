@@ -255,9 +255,7 @@ const Header = () => {
                 Settings
               </MenuItem>
               <Divider />
-              <MenuItem onClick={handleResetLocalData}>
-                Reset Local Data
-              </MenuItem>
+              <MenuItem onClick={handleResetLocalData}>Reset Data</MenuItem>
             </Menu>
           </Box>
         </Box>

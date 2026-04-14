@@ -134,13 +134,10 @@ export default function FutureGoalsTab() {
     [],
   );
 
-  const handleGoalFormChange = useCallback(
-    (goalData) => {
-      // This function is called by GoalForm whenever its internal state changes
-      setCurrentGoalFormData(goalData);
-    },
-    [],
-  );
+  const handleGoalFormChange = useCallback((goalData) => {
+    // This function is called by GoalForm whenever its internal state changes
+    setCurrentGoalFormData(goalData);
+  }, []);
 
   const handleModalSave = useCallback(() => {
     if (!currentGoalFormData) return;
@@ -173,8 +170,13 @@ export default function FutureGoalsTab() {
       dispatch(addGoal({ ...goalToSave, id: Date.now() }));
     }
     handleCloseModal();
-  }, [dispatch, editingGoal, currentYear, calculateRequiredInvestment, currentGoalFormData]);
-
+  }, [
+    dispatch,
+    editingGoal,
+    currentYear,
+    calculateRequiredInvestment,
+    currentGoalFormData,
+  ]);
 
   const handleOpenModalForEdit = useCallback((goal) => {
     setEditingGoal(goal);
@@ -185,7 +187,8 @@ export default function FutureGoalsTab() {
 
   const handleOpenModalForNew = useCallback(() => {
     setEditingGoal(null);
-    setCurrentGoalFormData({ // Default values for a new goal
+    setCurrentGoalFormData({
+      // Default values for a new goal
       name: "",
       targetAmount: 0,
       targetYear: currentYear + 5, // Default to 5 years from now
@@ -204,7 +207,6 @@ export default function FutureGoalsTab() {
     setCurrentGoalFormData(null);
     setModalTitle("Add New Goal");
   }, []);
-
 
   const applyRetirementGoal = useCallback(() => {
     const yearsToRetirement = retirementAge - currentAge;
@@ -483,7 +485,9 @@ export default function FutureGoalsTab() {
     <Grid container spacing={4}>
       <Grid item xs={12}>
         <Paper sx={{ p: 3, mb: 3 }}>
-          <Grid container spacing={2} sx={{ mb: 2 }}> {/* Removed alignItems="center" */}
+          <Grid container spacing={2} sx={{ mb: 2 }}>
+            {" "}
+            {/* Removed alignItems="center" */}
             <Grid item xs={12}>
               <Typography
                 variant="h6"
@@ -497,31 +501,42 @@ export default function FutureGoalsTab() {
                 <TrendingUpIcon /> Smart Goal Templates
               </Typography>
             </Grid>
-            <Grid item xs={12} sm={3} sx={{ display: 'flex', justifyContent: 'center' }}>
-              <Button
-                variant="outlined"
-                onClick={applyRetirementGoal}
-              >
+            <Grid
+              item
+              xs={12}
+              sm={3}
+              sx={{ display: "flex", justifyContent: "center" }}
+            >
+              <Button variant="outlined" onClick={applyRetirementGoal}>
                 🎯 Retirement
               </Button>
             </Grid>
-            <Grid item xs={12} sm={3} sx={{ display: 'flex', justifyContent: 'center' }}>
-              <Button
-                variant="outlined"
-                onClick={applyEducationGoal}
-              >
+            <Grid
+              item
+              xs={12}
+              sm={3}
+              sx={{ display: "flex", justifyContent: "center" }}
+            >
+              <Button variant="outlined" onClick={applyEducationGoal}>
                 🎓 Child's Education
               </Button>
             </Grid>
-            <Grid item xs={12} sm={3} sx={{ display: 'flex', justifyContent: 'center' }}>
-              <Button
-                variant="outlined"
-                onClick={applyEmergencyFundGoal}
-              >
+            <Grid
+              item
+              xs={12}
+              sm={3}
+              sx={{ display: "flex", justifyContent: "center" }}
+            >
+              <Button variant="outlined" onClick={applyEmergencyFundGoal}>
                 🛟 Emergency Fund (6M)
               </Button>
             </Grid>
-            <Grid item xs={12} sm={3} sx={{ display: 'flex', justifyContent: 'center' }}>
+            <Grid
+              item
+              xs={12}
+              sm={3}
+              sx={{ display: "flex", justifyContent: "center" }}
+            >
               <Button
                 variant="contained"
                 onClick={handleOpenModalForNew}
@@ -786,7 +801,8 @@ export default function FutureGoalsTab() {
         fullWidth
       >
         <DialogTitle>{modalTitle}</DialogTitle>
-        <DialogContent>
+
+        <DialogContent dividers>
           {currentGoalFormData && ( // Only render GoalForm if there's data
             <GoalForm
               goal={currentGoalFormData} // Pass the current form data
