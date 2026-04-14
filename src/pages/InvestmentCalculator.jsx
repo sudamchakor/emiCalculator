@@ -4,6 +4,7 @@ import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import ShowChartIcon from "@mui/icons-material/ShowChart";
 import SavingsIcon from "@mui/icons-material/Savings";
+import AccountBalanceIcon from "@mui/icons-material/AccountBalance"; // Import for FD icon
 import { useLocation, useNavigate } from "react-router-dom";
 
 // Import the individual components
@@ -11,6 +12,7 @@ import SipCalculatorForm from "../components/calculators/investment/SipCalculato
 import LumpsumCalculatorForm from "../components/calculators/investment/LumpsumCalculatorForm";
 import StepUpSipCalculatorForm from "../components/calculators/investment/StepUpSipCalculatorForm";
 import SwpCalculatorForm from "../components/calculators/investment/SwpCalculatorForm";
+import FdCalculatorForm from "../components/calculators/investment/FdCalculatorForm"; // Import for FD Calculator
 import InvestmentChart from "../components/calculators/investment/InvestmentChart";
 
 const TAB_ROUTES = [
@@ -18,6 +20,7 @@ const TAB_ROUTES = [
   "/investment/lumpsum",
   "/investment/step-up-sip",
   "/investment/swp",
+  "/investment/fd", // New route for FD Calculator
 ];
 
 const InvestmentCalculator = () => {
@@ -46,6 +49,9 @@ const InvestmentCalculator = () => {
     timePeriod: 10,
     stepUpPercentage: 10,
     withdrawalPerMonth: 10000,
+    principalAmount: 100000, // New state for FD principal
+    interestRate: 7, // New state for FD interest rate
+    compoundingFrequency: "annually", // New state for FD compounding frequency
   });
 
   const handleSharedStateChange = (field, value) => {
@@ -97,6 +103,7 @@ const InvestmentCalculator = () => {
             iconPosition="start"
           />
           <Tab icon={<SavingsIcon />} label="SWP" iconPosition="start" />
+          <Tab icon={<AccountBalanceIcon />} label="FD" iconPosition="start" /> {/* New Tab for FD */}
         </Tabs>
       
 
@@ -132,6 +139,13 @@ const InvestmentCalculator = () => {
                   onSharedStateChange={handleSharedStateChange}
                 />
               )}
+              {tabIndex === 4 && ( // New condition for FD Calculator
+                <FdCalculatorForm 
+                  onCalculate={setInvestmentData} 
+                  sharedState={sharedState}
+                  onSharedStateChange={handleSharedStateChange}
+                />
+              )}
             </Box>
           </Grid>
 
@@ -148,7 +162,7 @@ const InvestmentCalculator = () => {
                 Investment Summary
               </Typography>
 
-              {investmentData.totalValue > 0 || tabIndex === 3 ? (
+              {investmentData.totalValue > 0 || tabIndex === 3 || tabIndex === 4 ? ( // Added tabIndex 4 for FD
                 <Box sx={{ flexGrow: 1 }}>
                   <Grid container spacing={2} sx={{ mb: 4 }}>
                     <Grid item xs={12} sm={4}>
