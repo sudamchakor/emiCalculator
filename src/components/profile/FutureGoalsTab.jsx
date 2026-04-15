@@ -790,6 +790,9 @@ export default function FutureGoalsTab() {
           transition: Transition,
         }}
         fullScreen
+        sx={{
+          marginTop: 10,
+        }}
       >
         <DialogTitle>
           {modalTitle}{" "}

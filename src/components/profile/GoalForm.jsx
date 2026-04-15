@@ -13,6 +13,7 @@ import {
   Typography,
   Divider,
   Grid,
+  Paper,
 } from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import DeleteIcon from "@mui/icons-material/Delete"; // Import DeleteIcon
@@ -30,26 +31,56 @@ import GeneratedInvestmentPlans from "./GeneratedInvestmentPlans";
 // Import calculator forms
 import SipCalculatorForm from "../calculators/investment/SipCalculatorForm";
 import LumpsumCalculatorForm from "../calculators/investment/LumpsumCalculatorForm";
-import StepUpSipCalculatorForm from "../calculators/investment/StepUpSipCalculatorForm";
+import StepUpSipCalculatorForm from "../calculators/investment/LumpsumCalculatorForm";
 import SwpCalculatorForm from "../calculators/investment/SwpCalculatorForm";
 import FdCalculatorForm from "../calculators/investment/FdCalculatorForm";
+
+// Helper function to generate plan summary
+const generatePlanSummary = (plan) => {
+  const formatAmount = (amount) =>
+    (amount || 0).toLocaleString("en-IN", { maximumFractionDigits: 0 });
+  const formatRate = (rate) => rate || 0;
+  const formatTime = (time) => time || 0;
+
+  switch (plan.type) {
+    case "sip":
+      return `Monthly ₹${formatAmount(plan.monthlyInvestment)} for ${formatTime(plan.timePeriod)} years @ ${formatRate(plan.expectedReturnRate)}% p.a.`;
+    case "lumpsum":
+      return `One-time ₹${formatAmount(plan.totalInvestment)} for ${formatTime(plan.timePeriod)} years @ ${formatRate(plan.expectedReturnRate)}% p.a.`;
+    case "stepUpSip":
+      return `Monthly ₹${formatAmount(plan.monthlyInvestment)} with ${formatRate(plan.stepUpPercentage)}% annual step-up for ${formatTime(plan.timePeriod)} years @ ${formatRate(plan.expectedReturnRate)}% p.a.`;
+    case "swp":
+      return `Start with ₹${formatAmount(plan.totalInvestment)}, withdraw ₹${formatAmount(plan.withdrawalPerMonth)}/month for ${formatTime(plan.timePeriod)} years @ ${formatRate(plan.expectedReturnRate)}% p.a.`;
+    case "fd":
+      return `One-time ₹${formatAmount(plan.principalAmount)} for ${formatTime(plan.timePeriod)} years @ ${formatRate(plan.interestRate)}% p.a. (${plan.compoundingFrequency} Compounded)`;
+    default:
+      return "Unknown Plan Type";
+  }
+};
 
 export const GoalForm = ({ goal, currentYear, onSave }) => {
   const getDefaultPlanState = (type, targetAmount = 0, timePeriod = 10) => {
     const defaultTimePeriodFromGoal = goal?.targetYear
       ? goal.targetYear - currentYear
       : 10;
-    const effectiveTimePeriod = Math.max(1, timePeriod > 0 ? timePeriod : defaultTimePeriodFromGoal);
+    const effectiveTimePeriod = Math.max(
+      1,
+      timePeriod > 0 ? timePeriod : defaultTimePeriodFromGoal,
+    );
 
     // Calculate a base amount for initial suggestions, ensuring a minimum of 500
     // These are heuristics to provide a reasonable starting point for the user
-    const baseAmountForSip = Math.max(500, Math.round(targetAmount / (effectiveTimePeriod * 12 * 2))); // Aim for SIP to cover half of target over time
+    const baseAmountForSip = Math.max(
+      500,
+      Math.round(targetAmount / (effectiveTimePeriod * 12 * 2)),
+    ); // Aim for SIP to cover half of target over time
     const baseAmountForLumpsum = Math.max(500, Math.round(targetAmount / 2)); // Aim for lumpsum to cover half of target
     const baseAmountForFd = Math.max(500, Math.round(targetAmount / 2)); // Aim for FD to cover half of target
 
+    let plan = {};
     switch (type) {
       case "sip":
-        return {
+        plan = {
           id: Date.now().toString(),
           type: "sip",
           monthlyInvestment: baseAmountForSip,
@@ -57,8 +88,9 @@ export const GoalForm = ({ goal, currentYear, onSave }) => {
           timePeriod: effectiveTimePeriod,
           isSafe: false,
         };
+        break;
       case "lumpsum":
-        return {
+        plan = {
           id: Date.now().toString(),
           type: "lumpsum",
           totalInvestment: baseAmountForLumpsum,
@@ -66,8 +98,9 @@ export const GoalForm = ({ goal, currentYear, onSave }) => {
           timePeriod: effectiveTimePeriod,
           isSafe: false,
         };
+        break;
       case "stepUpSip":
-        return {
+        plan = {
           id: Date.now().toString(),
           type: "stepUpSip",
           monthlyInvestment: baseAmountForSip, // Using SIP base for step-up
@@ -76,18 +109,23 @@ export const GoalForm = ({ goal, currentYear, onSave }) => {
           timePeriod: effectiveTimePeriod,
           isSafe: false,
         };
+        break;
       case "swp":
-        return {
+        plan = {
           id: Date.now().toString(),
           type: "swp",
           totalInvestment: baseAmountForLumpsum, // Using lumpsum base for SWP
-          withdrawalPerMonth: Math.max(500, Math.round(baseAmountForLumpsum / (effectiveTimePeriod * 12))),
+          withdrawalPerMonth: Math.max(
+            500,
+            Math.round(baseAmountForLumpsum / (effectiveTimePeriod * 12)),
+          ),
           expectedReturnRate: 8,
           timePeriod: effectiveTimePeriod,
           isSafe: false,
         };
+        break;
       case "fd":
-        return {
+        plan = {
           id: Date.now().toString(),
           type: "fd",
           principalAmount: baseAmountForFd,
@@ -96,8 +134,9 @@ export const GoalForm = ({ goal, currentYear, onSave }) => {
           compoundingFrequency: "annually",
           isSafe: true, // FD is generally considered safe
         };
+        break;
       default:
-        return {
+        plan = {
           id: Date.now().toString(),
           type: "sip",
           monthlyInvestment: baseAmountForSip,
@@ -105,25 +144,43 @@ export const GoalForm = ({ goal, currentYear, onSave }) => {
           timePeriod: effectiveTimePeriod,
           isSafe: false,
         };
+        break;
     }
+    return { ...plan, details: generatePlanSummary(plan) };
   };
 
   const [editedGoal, setEditedGoal] = useState(() => {
     const initialTargetAmount = goal?.targetAmount || 0;
-    const initialTimePeriod = goal?.targetYear ? goal.targetYear - currentYear : 10;
+    const initialTimePeriod = goal?.targetYear
+      ? goal.targetYear - currentYear
+      : 10;
 
     if (goal && goal.investmentPlans && goal.investmentPlans.length > 0) {
-      return goal;
+      return {
+        ...goal,
+        investmentPlans: goal.investmentPlans.map((plan) => ({
+          ...plan,
+          details: generatePlanSummary(plan), // Ensure details are generated for existing plans
+        })),
+      };
     } else if (goal && goal.investmentType) {
       // If an old goal has investmentType, convert it to a plan
       return {
         ...goal,
-        investmentPlans: [getDefaultPlanState(goal.investmentType, initialTargetAmount, initialTimePeriod)],
+        investmentPlans: [
+          getDefaultPlanState(
+            goal.investmentType,
+            initialTargetAmount,
+            initialTimePeriod,
+          ),
+        ],
       };
     }
     return {
       ...goal,
-      investmentPlans: [getDefaultPlanState("sip", initialTargetAmount, initialTimePeriod)],
+      investmentPlans: [
+        getDefaultPlanState("sip", initialTargetAmount, initialTimePeriod),
+      ],
     };
   });
 
@@ -138,21 +195,41 @@ export const GoalForm = ({ goal, currentYear, onSave }) => {
     // It also handles the conversion of old 'investmentType' to new 'investmentPlans' structure.
     setEditedGoal((prevGoal) => {
       const currentTargetAmount = goal?.targetAmount || 0;
-      const currentTimePeriod = goal?.targetYear ? goal.targetYear - currentYear : 10;
+      const currentTimePeriod = goal?.targetYear
+        ? goal.targetYear - currentYear
+        : 10;
 
+      let newEditedGoal;
       if (goal && goal.investmentPlans && goal.investmentPlans.length > 0) {
-        return goal;
-      } else if (goal && goal.investmentType) {
-        return {
+        newEditedGoal = {
           ...goal,
-          investmentPlans: [getDefaultPlanState(goal.investmentType, currentTargetAmount, currentTimePeriod)],
+          investmentPlans: goal.investmentPlans.map((plan) => ({
+            ...plan,
+            details: generatePlanSummary(plan), // Ensure details are generated for existing plans
+          })),
+        };
+      } else if (goal && goal.investmentType) {
+        const defaultPlan = getDefaultPlanState(
+          goal.investmentType,
+          currentTargetAmount,
+          currentTimePeriod,
+        );
+        newEditedGoal = {
+          ...goal,
+          investmentPlans: [defaultPlan],
+        };
+      } else {
+        const defaultPlan = getDefaultPlanState(
+          "sip",
+          currentTargetAmount,
+          currentTimePeriod,
+        );
+        newEditedGoal = {
+          ...goal,
+          investmentPlans: [defaultPlan],
         };
       }
-      // If goal is null or has no plans/type, initialize with a default SIP plan
-      return {
-        ...goal,
-        investmentPlans: [getDefaultPlanState("sip", currentTargetAmount, currentTimePeriod)],
-      };
+      return newEditedGoal;
     });
   }, [goal, currentYear]); // Added currentYear to dependency array
 
@@ -162,10 +239,15 @@ export const GoalForm = ({ goal, currentYear, onSave }) => {
 
   const handleAddPlan = () => {
     const currentTargetAmount = editedGoal.targetAmount || 0;
-    const currentTimePeriod = editedGoal.targetYear ? editedGoal.targetYear - currentYear : 10;
+    const currentTimePeriod = editedGoal.targetYear
+      ? editedGoal.targetYear - currentYear
+      : 10;
     setEditedGoal((prev) => ({
       ...prev,
-      investmentPlans: [...prev.investmentPlans, getDefaultPlanState("sip", currentTargetAmount, currentTimePeriod)], // Add a default SIP plan
+      investmentPlans: [
+        ...prev.investmentPlans,
+        getDefaultPlanState("sip", currentTargetAmount, currentTimePeriod),
+      ], // Add a default SIP plan
     }));
   };
 
@@ -179,12 +261,17 @@ export const GoalForm = ({ goal, currentYear, onSave }) => {
   };
 
   const handlePlanChange = (id, field, value) => {
-    setEditedGoal((prev) => ({
-      ...prev,
-      investmentPlans: prev.investmentPlans.map((plan) =>
-        plan.id === id ? { ...plan, [field]: value } : plan,
-      ),
-    }));
+    setEditedGoal((prev) => {
+      const updatedPlans = prev.investmentPlans.map((plan) => {
+        if (plan.id === id) {
+          const updatedPlan = { ...plan, [field]: value };
+          // Recalculate details string after updating the plan
+          return { ...updatedPlan, details: generatePlanSummary(updatedPlan) };
+        }
+        return plan;
+      });
+      return { ...prev, investmentPlans: updatedPlans };
+    });
   };
 
   const handleGenerateInvestmentPlans = () => {
@@ -212,14 +299,15 @@ export const GoalForm = ({ goal, currentYear, onSave }) => {
       plansToCalculate = newPlans; // Use the newly generated plans for calculation
     }
 
-    const generatedPlans = [];
-    let calculatedTotalInvestedAmount = 0;
-    let calculatedTotalEstimatedReturns = 0;
-    let calculatedTotalCurrentValue = 0;
-
-    plansToCalculate.forEach((plan) => {
+    const updatedInvestmentPlans = plansToCalculate.map((plan) => {
       let result = {};
-      let details = "";
+      let investedAmount = 0;
+      let estimatedReturns = 0;
+      let totalValue = 0;
+      let fullSummary = "";
+
+      const formatAmount = (amount) =>
+        (amount || 0).toLocaleString("en-IN", { maximumFractionDigits: 0 });
 
       switch (plan.type) {
         case "sip":
@@ -228,7 +316,9 @@ export const GoalForm = ({ goal, currentYear, onSave }) => {
             plan.expectedReturnRate,
             plan.timePeriod,
           );
-          details = `Monthly ₹${plan.monthlyInvestment.toLocaleString()} for ${plan.timePeriod} years @ ${plan.expectedReturnRate}% p.a.`;
+          investedAmount = result.investedAmount;
+          estimatedReturns = result.estimatedReturns;
+          totalValue = result.totalValue;
           break;
         case "lumpsum":
           result = calculateLumpsum(
@@ -236,7 +326,9 @@ export const GoalForm = ({ goal, currentYear, onSave }) => {
             plan.expectedReturnRate,
             plan.timePeriod,
           );
-          details = `One-time ₹${plan.totalInvestment.toLocaleString()} for ${plan.timePeriod} years @ ${plan.expectedReturnRate}% p.a.`;
+          investedAmount = result.investedAmount;
+          estimatedReturns = result.estimatedReturns;
+          totalValue = result.totalValue;
           break;
         case "stepUpSip":
           result = calculateStepUpSip(
@@ -245,7 +337,9 @@ export const GoalForm = ({ goal, currentYear, onSave }) => {
             plan.timePeriod,
             plan.stepUpPercentage,
           );
-          details = `Monthly ₹${plan.monthlyInvestment.toLocaleString()} with ${plan.stepUpPercentage}% annual step-up for ${plan.timePeriod} years @ ${plan.expectedReturnRate}% p.a.`;
+          investedAmount = result.investedAmount;
+          estimatedReturns = result.estimatedReturns;
+          totalValue = result.totalValue;
           break;
         case "swp":
           result = calculateSwp(
@@ -254,7 +348,9 @@ export const GoalForm = ({ goal, currentYear, onSave }) => {
             plan.timePeriod,
             plan.withdrawalPerMonth,
           );
-          details = `Start with ₹${plan.totalInvestment.toLocaleString()}, withdraw ₹${plan.withdrawalPerMonth.toLocaleString()}/month for ${plan.timePeriod} years @ ${plan.expectedReturnRate}% p.a.`;
+          investedAmount = result.principal; // For SWP, principal is the invested amount
+          estimatedReturns = result.totalWithdrawn - result.principal; // Returns are total withdrawn minus principal
+          totalValue = result.totalValue; // Remaining balance
           break;
         case "fd":
           result = calculateFd(
@@ -263,50 +359,85 @@ export const GoalForm = ({ goal, currentYear, onSave }) => {
             plan.timePeriod,
             plan.compoundingFrequency,
           );
-          details = `One-time ₹${plan.principalAmount.toLocaleString()} for ${plan.timePeriod} years @ ${plan.interestRate}% p.a. (${plan.compoundingFrequency} Compounded)`;
+          investedAmount = result.investedAmount;
+          estimatedReturns = result.estimatedReturns;
+          totalValue = result.totalValue;
           break;
         default:
           break;
       }
 
       if (Object.keys(result).length > 0) {
+        fullSummary = `${plan.details}\n\nInvested Amount: ₹${formatAmount(investedAmount)}\n\nEst. Returns: ₹${formatAmount(estimatedReturns)}\n\nTotal Value: ₹${formatAmount(totalValue)}`;
+        return {
+          ...plan,
+          ...result, // Spread result to include calculated values like investedAmount, estimatedReturns, totalValue
+          fullSummary: fullSummary,
+        };
+      }
+      return plan; // Return original plan if no calculation was made
+    });
+
+    // Update editedGoal with the new plans containing fullSummary and calculated values
+    setEditedGoal((prev) => ({
+      ...prev,
+      investmentPlans: updatedInvestmentPlans,
+    }));
+
+    // Now, aggregate totals and prepare data for GeneratedInvestmentPlans component
+    const generatedPlansForSummary = [];
+    let calculatedTotalInvestedAmount = 0;
+    let calculatedTotalEstimatedReturns = 0;
+    let calculatedTotalCurrentValue = 0;
+
+    updatedInvestmentPlans.forEach((plan) => {
+      // Only aggregate if calculation was successful (plan.fullSummary exists)
+      if (plan.fullSummary) {
         const planResult = {
           id: plan.id,
           type: plan.type,
-          name: plan.type.toUpperCase(), // Display type as name for now
-          ...result,
-          details: details,
+          name: plan.type.toUpperCase(),
+          investedAmount: plan.investedAmount,
+          estimatedReturns: plan.estimatedReturns,
+          totalValue: plan.totalValue,
+          details: plan.details,
+          fullSummary: plan.fullSummary,
           isSafe: plan.isSafe,
+          principal: plan.principal, // For SWP
+          totalWithdrawn: plan.totalWithdrawn, // For SWP
         };
-        generatedPlans.push(planResult);
+        generatedPlansForSummary.push(planResult);
 
-        // Aggregate totals
-        if (planResult.type === "swp") {
-          calculatedTotalInvestedAmount += planResult.principal || 0;
-          // SWP doesn't add to estimated returns in the same way
-          calculatedTotalCurrentValue += planResult.totalValue || 0;
+        if (plan.type === "swp") {
+          calculatedTotalInvestedAmount += plan.principal || 0;
+          calculatedTotalCurrentValue += plan.totalValue || 0;
         } else {
-          calculatedTotalInvestedAmount += planResult.investedAmount || 0;
-          calculatedTotalEstimatedReturns += planResult.estimatedReturns || 0;
-          calculatedTotalCurrentValue += planResult.totalValue || 0;
+          calculatedTotalInvestedAmount += plan.investedAmount || 0;
+          calculatedTotalEstimatedReturns += plan.estimatedReturns || 0;
+          calculatedTotalCurrentValue += plan.totalValue || 0;
         }
       }
     });
 
-    setGeneratedInvestmentPlans(generatedPlans);
+    setGeneratedInvestmentPlans(generatedPlansForSummary); // Update the state for the summary component
     setTotalInvestedAmount(calculatedTotalInvestedAmount);
     setTotalEstimatedReturns(calculatedTotalEstimatedReturns);
     setTotalCurrentValue(calculatedTotalCurrentValue);
 
     if (calculatedTotalInvestedAmount > 0) {
-      const roi = ((calculatedTotalCurrentValue - calculatedTotalInvestedAmount) / calculatedTotalInvestedAmount) * 100;
+      const roi =
+        ((calculatedTotalCurrentValue - calculatedTotalInvestedAmount) /
+          calculatedTotalInvestedAmount) *
+        100;
       setOverallROI(roi);
     } else {
       setOverallROI(null);
     }
   };
 
-  const totalTimePeriod = editedGoal.targetYear ? editedGoal.targetYear - currentYear : 0;
+  const totalTimePeriod = editedGoal.targetYear
+    ? editedGoal.targetYear - currentYear
+    : 0;
 
   return (
     <Box
@@ -379,105 +510,126 @@ export const GoalForm = ({ goal, currentYear, onSave }) => {
       <Typography variant="h6" gutterBottom>
         Investment Plans
       </Typography>
-      {editedGoal.investmentPlans.map((plan, index) => (
-        <Box
-          key={plan.id}
-          sx={{ border: "1px solid #ddd", p: 2, mb: 2, borderRadius: 2 }}
-        >
-          <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth size="small">
-                <InputLabel>Plan Type</InputLabel>
-                <Select
-                  value={plan.type}
-                  label="Plan Type"
-                  onChange={(e) =>
-                    handlePlanChange(plan.id, "type", e.target.value)
-                  }
-                >
-                  <MenuItem value="sip">SIP</MenuItem>
-                  <MenuItem value="lumpsum">Lumpsum</MenuItem>
-                  <MenuItem value="stepUpSip">Step-Up SIP</MenuItem>
-                  <MenuItem value="swp">SWP</MenuItem>
-                  <MenuItem value="fd">Fixed Deposit</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={plan.isSafe}
-                    onChange={(e) =>
-                      handlePlanChange(plan.id, "isSafe", e.target.checked)
-                    }
-                    name="isSafe"
-                    color="primary"
-                  />
-                }
-                label="Consider Safe"
-              />
-            </Grid>
-            <Grid item xs={12} sm={2} sx={{ textAlign: "right" }}>
-              <IconButton
-                aria-label="delete"
-                onClick={() => handleRemovePlan(plan.id)}
-                color="error"
-              >
-                <DeleteIcon />
-              </IconButton>
-            </Grid>
-          </Grid>
+      <Grid container spacing={2}>
+        {" "}
+        {/* Added Grid container here */}
+        {editedGoal.investmentPlans.map((plan, index) => (
+          <Grid item xs={12} sm={6} key={plan.id}>
+            {" "}
+            {/* Added Grid item here */}
+            <Box
+              sx={{ border: "1px solid #ddd", p: 2, mb: 2, borderRadius: 2 }}
+            >
+              <Grid container spacing={2} alignItems="center">
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth size="small">
+                    <InputLabel>Plan Type</InputLabel>
+                    <Select
+                      value={plan.type}
+                      label="Plan Type"
+                      onChange={(e) =>
+                        handlePlanChange(plan.id, "type", e.target.value)
+                      }
+                    >
+                      <MenuItem value="sip">SIP</MenuItem>
+                      <MenuItem value="lumpsum">Lumpsum</MenuItem>
+                      <MenuItem value="stepUpSip">Step-Up SIP</MenuItem>
+                      <MenuItem value="swp">SWP</MenuItem>
+                      <MenuItem value="fd">Fixed Deposit</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
 
-          <Box sx={{ mt: 2 }}>
-            {plan.type === "sip" && (
-              <SipCalculatorForm
-                sharedState={plan}
-                onSharedStateChange={(field, value) =>
-                  handlePlanChange(plan.id, field, value)
-                }
-                onCalculate={() => {}} // Placeholder, actual calculation happens on button click
-              />
-            )}
-            {plan.type === "lumpsum" && (
-              <LumpsumCalculatorForm
-                sharedState={plan}
-                onSharedStateChange={(field, value) =>
-                  handlePlanChange(plan.id, field, value)
-                }
-                onCalculate={() => {}}
-              />
-            )}
-            {plan.type === "stepUpSip" && (
-              <StepUpSipCalculatorForm
-                sharedState={plan}
-                onSharedStateChange={(field, value) =>
-                  handlePlanChange(plan.id, field, value)
-                }
-                onCalculate={() => {}}
-              />
-            )}
-            {plan.type === "swp" && (
-              <SwpCalculatorForm
-                sharedState={plan}
-                onSharedStateChange={(field, value) =>
-                  handlePlanChange(plan.id, field, value)
-                }
-                onCalculate={() => {}}
-              />
-            )}
-            {plan.type === "fd" && (
-              <FdCalculatorForm
-                sharedState={plan}
-                onSharedStateChange={(field, value) =>
-                  handlePlanChange(plan.id, field, value)
-                }
-                onCalculate={() => {}}
-              />
-            )}
-          </Box>
-        </Box>
-      ))}
+                <Grid item xs={12} sm={2} sx={{ textAlign: "right" }}>
+                  <IconButton
+                    aria-label="delete"
+                    onClick={() => handleRemovePlan(plan.id)}
+                    color="error"
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </Grid>
+              </Grid>
+              <Box sx={{ mt: 2 }}>
+                <Grid item xs={12}>
+                  <Paper elevation={3} sx={{ p: 2 }}>
+                    {plan.details && ( // Display the summary if it exists
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{ mt: 1, display: "block" }}
+                      >
+                        {plan.fullSummary ? (
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              mt: 1,
+                              whiteSpace: "pre-line",
+                              fontWeight: 500,
+                            }}
+                          >
+                            {plan.fullSummary}
+                          </Typography>
+                        ) : (
+                          plan.details
+                        )}
+                      </Typography>
+                    )}
+                  </Paper>
+                </Grid>
+              </Box>
+
+              <Box sx={{ mt: 2 }}>
+                {plan.type === "sip" && (
+                  <SipCalculatorForm
+                    sharedState={plan}
+                    onSharedStateChange={(field, value) =>
+                      handlePlanChange(plan.id, field, value)
+                    }
+                    onCalculate={() => {}} // Placeholder, actual calculation happens on button click
+                  />
+                )}
+                {plan.type === "lumpsum" && (
+                  <LumpsumCalculatorForm
+                    sharedState={plan}
+                    onSharedStateChange={(field, value) =>
+                      handlePlanChange(plan.id, field, value)
+                    }
+                    onCalculate={() => {}}
+                  />
+                )}
+                {plan.type === "stepUpSip" && (
+                  <StepUpSipCalculatorForm
+                    sharedState={plan}
+                    onSharedStateChange={(field, value) =>
+                      handlePlanChange(plan.id, field, value)
+                    }
+                    onCalculate={() => {}}
+                  />
+                )}
+                {plan.type === "swp" && (
+                  <SwpCalculatorForm
+                    sharedState={plan}
+                    onSharedStateChange={(field, value) =>
+                      handlePlanChange(plan.id, field, value)
+                    }
+                    onCalculate={() => {}}
+                  />
+                )}
+                {plan.type === "fd" && (
+                  <FdCalculatorForm
+                    sharedState={plan}
+                    onSharedStateChange={(field, value) =>
+                      handlePlanChange(plan.id, field, value)
+                    }
+                    onCalculate={() => {}}
+                  />
+                )}
+              </Box>
+            </Box>
+          </Grid>
+        ))}
+      </Grid>
       <Button
         startIcon={<AddCircleOutlineIcon />}
         onClick={handleAddPlan}
@@ -486,15 +638,6 @@ export const GoalForm = ({ goal, currentYear, onSave }) => {
       >
         Add Investment Plan
       </Button>
-
-      <GeneratedInvestmentPlans
-        generatedInvestmentPlans={generatedInvestmentPlans}
-        totalInvestedAmount={totalInvestedAmount}
-        totalEstimatedReturns={totalEstimatedReturns}
-        totalCurrentValue={totalCurrentValue}
-        totalTimePeriod={totalTimePeriod}
-        overallROI={overallROI}
-      />
     </Box>
   );
 };

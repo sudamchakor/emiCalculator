@@ -85,61 +85,11 @@ const GeneratedInvestmentPlans = ({
                 <Typography variant="h6" component="div">
                   {plan.name}
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {plan.details}
-                </Typography>
-                <Divider sx={{ my: 1 }} />
-                <Typography variant="body2">
-                  Invested Amount:{" "}
-                  <strong>
-                    ₹
-                    {plan.investedAmount.toLocaleString("en-IN", {
-                      maximumFractionDigits: 0,
-                    })}
-                  </strong>
-                </Typography>
-                {plan.type === "swp" ? (
-                  <>
-                    <Typography variant="body2">
-                      Total Withdrawn:{" "}
-                      <strong>
-                        ₹
-                        {plan.totalWithdrawn.toLocaleString("en-IN", {
-                          maximumFractionDigits: 0,
-                        })}
-                      </strong>
-                    </Typography>
-                    <Typography variant="body2">
-                      Remaining Balance:{" "}
-                      <strong>
-                        ₹
-                        {plan.totalValue.toLocaleString("en-IN", {
-                          maximumFractionDigits: 0,
-                        })}
-                      </strong>
-                    </Typography>
-                  </>
-                ) : (
-                  <>
-                    <Typography variant="body2">
-                      Est. Returns:{" "}
-                      <strong>
-                        ₹
-                        {plan.estimatedReturns.toLocaleString("en-IN", {
-                          maximumFractionDigits: 0,
-                        })}
-                      </strong>
-                    </Typography>
-                    <Typography variant="body1" color="primary">
-                      Total Value:{" "}
-                      <strong>
-                        ₹
-                        {plan.totalValue.toLocaleString("en-IN", {
-                          maximumFractionDigits: 0,
-                        })}
-                      </strong>
-                    </Typography>
-                  </>
+                {/* Display the full summary string */}
+                {plan.fullSummary && (
+                  <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'pre-line' }}>
+                    {plan.fullSummary}
+                  </Typography>
                 )}
                 {plan.isSafe && (
                   <Typography variant="caption" color="success.main" sx={{ mt: 1 }}>
