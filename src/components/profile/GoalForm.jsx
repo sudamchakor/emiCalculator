@@ -59,6 +59,9 @@ const generatePlanSummary = (plan) => {
 };
 
 export const GoalForm = ({ goal, currentYear, onSave }) => {
+  const formatAmount = (amount) =>
+    (amount || 0).toLocaleString("en-IN", { maximumFractionDigits: 0 });
+
   const getDefaultPlanState = (type, targetAmount = 0, timePeriod = 10) => {
     const defaultTimePeriodFromGoal = goal?.targetYear
       ? goal.targetYear - currentYear
@@ -149,15 +152,12 @@ export const GoalForm = ({ goal, currentYear, onSave }) => {
     return { ...plan, details: generatePlanSummary(plan) };
   };
 
-  // Helper function to calculate results and generate full summary for a single plan
+  // Helper function to calculate results for a single plan
   const calculatePlanResults = (plan) => {
     let result = {};
     let investedAmount = 0;
     let estimatedReturns = 0;
     let totalValue = 0;
-
-    const formatAmount = (amount) =>
-      (amount || 0).toLocaleString("en-IN", { maximumFractionDigits: 0 });
 
     switch (plan.type) {
       case "sip":
@@ -217,19 +217,12 @@ export const GoalForm = ({ goal, currentYear, onSave }) => {
         break;
     }
 
-    let fullSummary = "";
-    if (Object.keys(result).length > 0) {
-      const details = generatePlanSummary(plan); // Ensure details are up-to-date
-      fullSummary = `${details}\n\nInvested Amount: ₹${formatAmount(investedAmount)}\n\nEst. Returns: ₹${formatAmount(estimatedReturns)}\n\nTotal Value: ₹${formatAmount(totalValue)}`;
-    }
-
     return {
       ...plan,
       ...result, // Spread result to include calculated values
       investedAmount,
       estimatedReturns,
       totalValue,
-      fullSummary,
     };
   };
 
@@ -247,7 +240,7 @@ export const GoalForm = ({ goal, currentYear, onSave }) => {
             ...plan,
             details: generatePlanSummary(plan),
           };
-          return calculatePlanResults(planWithDetails); // Ensure fullSummary is generated
+          return calculatePlanResults(planWithDetails);
         }),
       };
     } else if (goal && goal.investmentType) {
@@ -259,7 +252,7 @@ export const GoalForm = ({ goal, currentYear, onSave }) => {
       );
       return {
         ...goal,
-        investmentPlans: [calculatePlanResults(defaultPlan)], // Ensure fullSummary is generated
+        investmentPlans: [calculatePlanResults(defaultPlan)],
       };
     }
     const defaultPlan = getDefaultPlanState(
@@ -269,7 +262,7 @@ export const GoalForm = ({ goal, currentYear, onSave }) => {
     );
     return {
       ...goal,
-      investmentPlans: [calculatePlanResults(defaultPlan)], // Ensure fullSummary is generated
+      investmentPlans: [calculatePlanResults(defaultPlan)],
     };
   });
 
@@ -297,7 +290,7 @@ export const GoalForm = ({ goal, currentYear, onSave }) => {
               ...plan,
               details: generatePlanSummary(plan),
             };
-            return calculatePlanResults(planWithDetails); // Ensure fullSummary is generated
+            return calculatePlanResults(planWithDetails);
           }),
         };
       } else if (goal && goal.investmentType) {
@@ -308,7 +301,7 @@ export const GoalForm = ({ goal, currentYear, onSave }) => {
         );
         newEditedGoal = {
           ...goal,
-          investmentPlans: [calculatePlanResults(defaultPlan)], // Ensure fullSummary is generated
+          investmentPlans: [calculatePlanResults(defaultPlan)],
         };
       } else {
         const defaultPlan = getDefaultPlanState(
@@ -318,7 +311,7 @@ export const GoalForm = ({ goal, currentYear, onSave }) => {
         );
         newEditedGoal = {
           ...goal,
-          investmentPlans: [calculatePlanResults(defaultPlan)], // Ensure fullSummary is generated
+          investmentPlans: [calculatePlanResults(defaultPlan)],
         };
       }
       return newEditedGoal;
@@ -340,7 +333,7 @@ export const GoalForm = ({ goal, currentYear, onSave }) => {
         ...prev.investmentPlans,
         calculatePlanResults(
           getDefaultPlanState("sip", currentTargetAmount, currentTimePeriod),
-        ), // Add a default SIP plan with full summary
+        ),
       ],
     }));
   };
@@ -406,7 +399,7 @@ export const GoalForm = ({ goal, currentYear, onSave }) => {
       getDefaultPlanState("fd", targetAmount, totalTimePeriod),
     ];
 
-    // Calculate results and full summary for each new plan
+    // Calculate results for each new plan
     const updatedInvestmentPlans = newPlans.map((plan) =>
       calculatePlanResults(plan),
     );
@@ -424,8 +417,8 @@ export const GoalForm = ({ goal, currentYear, onSave }) => {
     let calculatedTotalCurrentValue = 0;
 
     updatedInvestmentPlans.forEach((plan) => {
-      // Only aggregate if calculation was successful (plan.fullSummary exists)
-      if (plan.fullSummary) {
+      // Only aggregate if calculation was successful (plan.investedAmount exists)
+      if (plan.investedAmount !== undefined) {
         const planResult = {
           id: plan.id,
           type: plan.type,
@@ -434,7 +427,6 @@ export const GoalForm = ({ goal, currentYear, onSave }) => {
           estimatedReturns: plan.estimatedReturns,
           totalValue: plan.totalValue,
           details: plan.details,
-          fullSummary: plan.fullSummary,
           isSafe: plan.isSafe,
           principal: plan.principal, // For SWP
           totalWithdrawn: plan.totalWithdrawn, // For SWP
@@ -583,32 +575,39 @@ export const GoalForm = ({ goal, currentYear, onSave }) => {
                 </Grid>
               </Grid>
               <Box sx={{ mt: 2 }}>
-                <Grid item xs={12}>
-                  <Paper elevation={3} sx={{ p: 2 }}>
-                    {plan.details && ( // Display the summary if it exists
-                      <Typography
-                        variant="caption"
-                        color="text.secondary"
-                        sx={{ mt: 1, display: "block" }}
-                      >
-                        {plan.fullSummary ? (
-                          <Typography
-                            variant="body2"
-                            sx={{
-                              mt: 1,
-                              whiteSpace: "pre-line",
-                              fontWeight: 500,
-                            }}
-                          >
-                            {plan.fullSummary}
-                          </Typography>
-                        ) : (
-                          plan.details
-                        )}
+                <Paper elevation={3} sx={{ p: 2 }}>
+                  <Grid container spacing={1} alignItems="center">
+                    <Grid item xs={12}>
+                      <Typography variant="body2" fontWeight="bold">
+                        {plan.details}
                       </Typography>
-                    )}
-                  </Paper>
-                </Grid>
+                    </Grid>
+                    <Grid item xs={12} sm={4}>
+                      <Typography variant="body2" color="text.secondary">
+                        Invested:{" "}
+                        <Typography component="span" fontWeight="bold" color="primary">
+                          ₹{formatAmount(plan.investedAmount)}
+                        </Typography>
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={12} sm={4}>
+                      <Typography variant="body2" color="text.secondary">
+                        Returns:{" "}
+                        <Typography component="span" fontWeight="bold" color="success.main">
+                          ₹{formatAmount(plan.estimatedReturns)}
+                        </Typography>
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={12} sm={4}>
+                      <Typography variant="body2" color="text.secondary">
+                        Total Value:{" "}
+                        <Typography component="span" fontWeight="bold" color="text.primary">
+                          ₹{formatAmount(plan.totalValue)}
+                        </Typography>
+                      </Typography>
+                    </Grid>
+                  </Grid>
+                </Paper>
               </Box>
 
               <Box sx={{ mt: 2 }}>
