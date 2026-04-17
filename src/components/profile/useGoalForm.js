@@ -32,6 +32,13 @@ const useGoalForm = (initialGoal, currentYear, onSave) => {
     };
   });
 
+  // Automatically call onSave when editedGoal changes to keep parent in sync
+  useEffect(() => {
+    if (onSave) {
+      onSave(editedGoal);
+    }
+  }, [editedGoal, onSave]);
+
   // Update editedGoal when initialGoal prop changes (e.g., when editing a different goal)
   useEffect(() => {
     // Only update if the initialGoal ID is different, to prevent unnecessary re-renders

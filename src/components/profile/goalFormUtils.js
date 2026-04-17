@@ -20,7 +20,7 @@ export const calculatePlanResults = (plan) => {
   const updatedPlanDetails = { ...plan };
 
   // Ensure numeric values for calculations
-  const monthlyInvestment = Number(updatedPlanDetails.monthlyInvestment) || 0;
+  const monthlyContribution = Number(updatedPlanDetails.monthlyContribution) || 0;
   const totalInvestment = Number(updatedPlanDetails.totalInvestment) || 0;
   const expectedReturnRate = Number(updatedPlanDetails.expectedReturnRate) || 0;
   const timePeriod = Number(updatedPlanDetails.timePeriod) || 0;
@@ -33,11 +33,12 @@ export const calculatePlanResults = (plan) => {
   switch (updatedPlanDetails.type) {
     case "sip":
       calculatedResult = calculateSip(
-        monthlyInvestment,
+        monthlyContribution,
         expectedReturnRate,
         timePeriod
       );
-      updatedPlanDetails.details = `SIP: ₹${monthlyInvestment.toLocaleString()} for ${timePeriod} years @ ${expectedReturnRate}%`;
+      updatedPlanDetails.details = `SIP: ₹${monthlyContribution.toLocaleString()} for ${timePeriod} years @ ${expectedReturnRate}%`;
+      updatedPlanDetails.frequency = "monthly";
       break;
     case "lumpsum":
       calculatedResult = calculateLumpsum(
@@ -46,15 +47,17 @@ export const calculatePlanResults = (plan) => {
         timePeriod
       );
       updatedPlanDetails.details = `Lumpsum: ₹${totalInvestment.toLocaleString()} for ${timePeriod} years @ ${expectedReturnRate}%`;
+      updatedPlanDetails.frequency = "one-time";
       break;
     case "stepUpSip":
       calculatedResult = calculateStepUpSip(
-        monthlyInvestment,
+        monthlyContribution,
         expectedReturnRate,
         timePeriod,
         stepUpPercentage
       );
-      updatedPlanDetails.details = `Step-Up SIP: ₹${monthlyInvestment.toLocaleString()} with ${stepUpPercentage}% step-up for ${timePeriod} years @ ${expectedReturnRate}%`;
+      updatedPlanDetails.details = `Step-Up SIP: ₹${monthlyContribution.toLocaleString()} with ${stepUpPercentage}% step-up for ${timePeriod} years @ ${expectedReturnRate}%`;
+      updatedPlanDetails.frequency = "monthly";
       break;
     case "swp":
       calculatedResult = calculateSwp(
@@ -64,6 +67,7 @@ export const calculatePlanResults = (plan) => {
         timePeriod
       );
       updatedPlanDetails.details = `SWP: Withdraw ₹${withdrawalPerMonth.toLocaleString()} from ₹${totalInvestment.toLocaleString()} for ${timePeriod} years @ ${expectedReturnRate}%`;
+      updatedPlanDetails.frequency = "monthly"; // This is a withdrawal, not a contribution.
       break;
     case "fd":
       calculatedResult = calculateFd(
@@ -73,6 +77,7 @@ export const calculatePlanResults = (plan) => {
         compoundingFrequency
       );
       updatedPlanDetails.details = `FD: ₹${principalAmount.toLocaleString()} for ${timePeriod} years @ ${interestRate}% (${compoundingFrequency})`;
+      updatedPlanDetails.frequency = "one-time";
       break;
     default:
       break;
@@ -109,7 +114,7 @@ export const getDefaultPlanState = (
     details: "",
     isSafe: false,
     // Default values for all types
-    monthlyInvestment: 5000, // Default for SIP/Step-Up SIP
+    monthlyContribution: 5000, // Default for SIP/Step-Up SIP
     totalInvestment: 100000, // Default for Lumpsum/SWP
     expectedReturnRate: expectedReturnRate,
     stepUpPercentage: 5,
@@ -130,7 +135,7 @@ export const getDefaultPlanState = (
       case "sip":
         if (monthlyRate > 0) {
           const factor = ((Math.pow(1 + monthlyRate, nMonths) - 1) / monthlyRate) * (1 + monthlyRate);
-          newPlan.monthlyInvestment = Math.round(targetAmountForPlan / factor);
+          newPlan.monthlyContribution = Math.round(targetAmountForPlan / factor);
         }
         break;
       case "lumpsum":
@@ -145,7 +150,7 @@ export const getDefaultPlanState = (
   }
 
   // Ensure investment amounts are non-negative
-  newPlan.monthlyInvestment = Math.max(0, newPlan.monthlyInvestment);
+  newPlan.monthlyContribution = Math.max(0, newPlan.monthlyContribution);
   newPlan.totalInvestment = Math.max(0, newPlan.totalInvestment);
   newPlan.principalAmount = Math.max(0, newPlan.principalAmount);
 

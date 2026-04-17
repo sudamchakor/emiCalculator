@@ -1,16 +1,16 @@
-export const calculateSip = (monthlyInvestment, annualRate, timePeriod) => {
+export const calculateSip = (monthlyContribution, annualRate, timePeriod) => {
   const monthlyRate = annualRate / 12 / 100;
   const numberOfMonths = timePeriod * 12;
   let futureValue = 0;
   if (monthlyRate === 0) {
-    futureValue = monthlyInvestment * numberOfMonths;
+    futureValue = monthlyContribution * numberOfMonths;
   } else {
     // Formula for Future Value of an ordinary annuity
     futureValue =
-      monthlyInvestment *
+      monthlyContribution *
       ((Math.pow(1 + monthlyRate, numberOfMonths) - 1) / monthlyRate);
   }
-  const investedAmount = monthlyInvestment * numberOfMonths;
+  const investedAmount = monthlyContribution * numberOfMonths;
   const estimatedReturns = futureValue - investedAmount;
   return { investedAmount, estimatedReturns, totalValue: futureValue };
 };
@@ -23,24 +23,24 @@ export const calculateLumpsum = (principal, annualRate, timePeriod) => {
 };
 
 export const calculateStepUpSip = (
-  monthlyInvestment,
+  monthlyContribution,
   annualRate,
   timePeriod,
   stepUpPercentage,
 ) => {
   let totalInvested = 0;
   let totalValue = 0;
-  let currentMonthlyInvestment = monthlyInvestment;
+  let currentMonthlyContribution = monthlyContribution;
   const monthlyRate = annualRate / 12 / 100;
 
   for (let year = 1; year <= timePeriod; year++) {
     for (let month = 1; month <= 12; month++) {
       // Calculation for ordinary annuity (payment at the end of the period)
-      totalValue = totalValue * (1 + monthlyRate) + currentMonthlyInvestment;
-      totalInvested += currentMonthlyInvestment;
+      totalValue = totalValue * (1 + monthlyRate) + currentMonthlyContribution;
+      totalInvested += currentMonthlyContribution;
     }
     if (year < timePeriod) {
-      currentMonthlyInvestment *= 1 + stepUpPercentage / 100;
+      currentMonthlyContribution *= 1 + stepUpPercentage / 100;
     }
   }
   const estimatedReturns = totalValue - totalInvested;
