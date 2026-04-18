@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 import {
   Box,
   Grid,
@@ -24,7 +24,60 @@ const InvestmentPlanCard = ({
   formatAmount,
   targetAmount, // Add targetAmount to props
 }) => {
-  // The onCalculate prop is no longer needed as handlePlanChange already triggers recalculations.
+  const handleCalculate = useCallback(
+    (results) => {
+      if (!results) return;
+
+      const investedAmount =
+        results.totalInvestment ??
+        results.principal ??
+        results.investedAmount ??
+        0;
+      const estimatedReturns =
+        results.totalReturns ??
+        results.totalInterest ??
+        results.estimatedReturns ??
+        0;
+      const totalValue =
+        results.futureValue ??
+        results.maturityAmount ??
+        results.totalValue ??
+        0;
+
+      let monthlyContribution = 0;
+      if (plan.type === "sip" || plan.type === "stepUpSip") {
+        monthlyContribution =
+          plan.monthlyInvestment ??
+          plan.amount ??
+          results.monthlyInvestment ??
+          0;
+      }
+
+      if (plan.investedAmount !== investedAmount) {
+        handlePlanChange(plan.id, "investedAmount", investedAmount);
+      }
+      if (plan.estimatedReturns !== estimatedReturns) {
+        handlePlanChange(plan.id, "estimatedReturns", estimatedReturns);
+      }
+      if (plan.totalValue !== totalValue) {
+        handlePlanChange(plan.id, "totalValue", totalValue);
+      }
+      if (plan.monthlyContribution !== monthlyContribution) {
+        handlePlanChange(plan.id, "monthlyContribution", monthlyContribution);
+      }
+    },
+    [
+      plan.id,
+      plan.type,
+      plan.monthlyInvestment,
+      plan.amount,
+      plan.investedAmount,
+      plan.estimatedReturns,
+      plan.totalValue,
+      plan.monthlyContribution,
+      handlePlanChange,
+    ]
+  );
 
   return (
     <Box sx={{ border: "1px solid #ddd", p: 2, mb: 2, borderRadius: 2 }}>
@@ -121,7 +174,7 @@ const InvestmentPlanCard = ({
             onSharedStateChange={(field, value) =>
               handlePlanChange(plan.id, field, value)
             }
-            onCalculate={() => {}}
+            onCalculate={handleCalculate}
           />
         )}
         {plan.type === "lumpsum" && (
@@ -130,7 +183,7 @@ const InvestmentPlanCard = ({
             onSharedStateChange={(field, value) =>
               handlePlanChange(plan.id, field, value)
             }
-            onCalculate={() => {}}
+            onCalculate={handleCalculate}
           />
         )}
         {plan.type === "stepUpSip" && (
@@ -139,7 +192,7 @@ const InvestmentPlanCard = ({
             onSharedStateChange={(field, value) =>
               handlePlanChange(plan.id, field, value)
             }
-            onCalculate={() => {}}
+            onCalculate={handleCalculate}
           />
         )}
         {plan.type === "swp" && (
@@ -148,7 +201,7 @@ const InvestmentPlanCard = ({
             onSharedStateChange={(field, value) =>
               handlePlanChange(plan.id, field, value)
             }
-            onCalculate={() => {}}
+            onCalculate={handleCalculate}
           />
         )}
         {plan.type === "fd" && (
@@ -157,7 +210,7 @@ const InvestmentPlanCard = ({
             onSharedStateChange={(field, value) =>
               handlePlanChange(plan.id, field, value)
             }
-            onCalculate={() => {}}
+            onCalculate={handleCalculate}
           />
         )}
       </Box>

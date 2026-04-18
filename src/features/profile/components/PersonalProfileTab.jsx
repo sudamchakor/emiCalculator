@@ -12,9 +12,13 @@ import {
   MenuItem,
   Divider,
   Tooltip,
+  Collapse,
+  IconButton,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles"; // Import useTheme
 import InfoIcon from "@mui/icons-material/Info";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import dayjs from 'dayjs';
 import EditableIncomeExpenseItem from "../../../components/common/EditableIncomeExpenseItem";
@@ -43,6 +47,7 @@ import {
   setCareerGrowthRate,
   selectTotalMonthlyGoalContributions,
   selectIndividualGoalInvestmentContributions, // Import the new selector
+  selectGoals,
 } from "../../../store/profileSlice";
 import { selectCurrency } from "../../../store/emiSlice";
 import { selectCalculatedValues } from "../../emiCalculator/utils/emiCalculator";
@@ -85,6 +90,7 @@ export default function PersonalProfileTab({ onEditGoal }) {
   const totalMonthlyGoalContributions = useSelector(selectTotalMonthlyGoalContributions);
   const individualGoalInvestments = useSelector(selectIndividualGoalInvestmentContributions);
   const investableSurplus = useSelector(selectCurrentSurplus);
+  const goals = useSelector(selectGoals) || [];
 
   const totalMonthlyPayment = monthlyEmi;
 
@@ -118,6 +124,11 @@ export default function PersonalProfileTab({ onEditGoal }) {
   const [incomeEndYearOpen, setIncomeEndYearOpen] = useState(false);
   const [expenseStartYearOpen, setExpenseStartYearOpen] = useState(false);
   const [expenseEndYearOpen, setExpenseEndYearOpen] = useState(false);
+  const [expandedGoals, setExpandedGoals] = useState({});
+
+  const toggleGoalExpanded = (goalId) => {
+    setExpandedGoals((prev) => ({ ...prev, [goalId]: !prev[goalId] }));
+  };
 
   const handleEditIncome = (income) => {
     setEditingIncomeId(income.id);
@@ -361,6 +372,20 @@ export default function PersonalProfileTab({ onEditGoal }) {
       });
     }
   }
+
+  const groupedGoalInvestments = individualGoalInvestments.reduce((acc, inv) => {
+    const goal = goals.find((g) => g.id === inv.goalId);
+    const goalName = goal ? goal.name : "Other Goal";
+    if (!acc[inv.goalId]) {
+      acc[inv.goalId] = {
+        goalId: inv.goalId,
+        goalName: goalName,
+        investments: [],
+      };
+    }
+    acc[inv.goalId].investments.push(inv);
+    return acc;
+  }, {});
 
   return (
     <Grid container spacing={2}>
@@ -643,36 +668,77 @@ export default function PersonalProfileTab({ onEditGoal }) {
             {individualGoalInvestments.length > 0 && (
               <Box>
                 <Divider sx={{ my: 2 }} />
-                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>Goal Investments</Typography>
-                {individualGoalInvestments.map((investment) => {
-                  const expenseRatio =
-                    investment.frequency === "yearly" && totalIncome > 0
-                      ? (investment.amount / (totalIncome * 12)) * 100
-                      : totalIncome > 0
-                      ? (investment.amount / totalIncome) * 100
-                      : 0;
-                  return (
-                    <ExpenseReadOnlyItem
-                      key={investment.id}
-                      item={investment}
-                      currency={currency}
-                      isExpense={true}
-                      totalIncome={totalIncome}
-                      expenseRatio={expenseRatio}
-                      getExpenseColor={() => {
-                        const ratio = expenseRatio;
-                        if (ratio > 40) return "error.main";
-                        if (ratio > 30) return "warning.main";
-                        return "success.main";
-                      }}
-                      formatCurrency={formatCurrency}
-                      onConfirmDelete={handleReadOnlyDelete} // Investments are not directly deletable from here
-                      deletionImpactMessage={`To stop this investment, please edit or delete the associated goal in the Future Goals tab.`}
-                      isReadOnly={true}
-                      onClick={() => onEditGoal(investment.goalId)} // Pass goal ID to parent for editing
-                    />
-                  );
-                })}
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
+                  Goal Investments
+                </Typography>
+                <Box sx={{ mt: 1 }}>
+                  {Object.values(groupedGoalInvestments).map((group) => {
+                      const groupMonthlyTotal = group.investments.reduce((sum, inv) => {
+                        let monthly = inv.amount || 0;
+                        if (inv.frequency === 'yearly') monthly /= 12;
+                        else if (inv.frequency === 'quarterly') monthly /= 3;
+                        return sum + monthly;
+                      }, 0);
+                      const isExpanded = expandedGoals[group.goalId];
+
+                      return (
+                        <Box key={group.goalId} sx={{ mb: 2, p: 1.5, bgcolor: "rgba(0,0,0,0.02)", borderRadius: 2 }}>
+                          <Box
+                            onClick={() => toggleGoalExpanded(group.goalId)}
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              cursor: "pointer",
+                              "&:hover": { opacity: 0.8 },
+                            }}
+                          >
+                            <Typography variant="subtitle2" sx={{ fontWeight: 600, color: "text.secondary", flexGrow: 1 }}>
+                              {group.goalName} ({group.investments.length} {group.investments.length === 1 ? 'plan' : 'plans'})
+                            </Typography>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 600, mr: 1, color: "text.secondary" }}>
+                              {formatCurrency(groupMonthlyTotal)} / mo
+                            </Typography>
+                            <IconButton size="small" disableRipple sx={{ p: 0 }}>
+                              {isExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                            </IconButton>
+                          </Box>
+                          <Collapse in={isExpanded}>
+                            <Box sx={{ mt: 1.5 }}>
+                              {group.investments.map((investment) => {
+                          const expenseRatio =
+                            investment.frequency === "yearly" && totalIncome > 0
+                              ? (investment.amount / (totalIncome * 12)) * 100
+                              : totalIncome > 0
+                              ? (investment.amount / totalIncome) * 100
+                              : 0;
+                          return (
+                            <ExpenseReadOnlyItem
+                              key={investment.id}
+                              item={investment}
+                              currency={currency}
+                              isExpense={true}
+                              totalIncome={totalIncome}
+                              expenseRatio={expenseRatio}
+                              getExpenseColor={() => {
+                                const ratio = expenseRatio;
+                                if (ratio > 40) return "error.main";
+                                if (ratio > 30) return "warning.main";
+                                return "success.main";
+                              }}
+                              formatCurrency={formatCurrency}
+                              onConfirmDelete={handleReadOnlyDelete}
+                              deletionImpactMessage={`To stop this investment, please edit or delete the associated goal in the Future Goals tab.`}
+                              isReadOnly={true}
+                              onClick={() => onEditGoal(investment.goalId)}
+                            />
+                          );
+                        })}
+                            </Box>
+                          </Collapse>
+                      </Box>
+                      );
+                    })}
+                  </Box>
               </Box>
             )}
 
