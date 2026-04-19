@@ -12,7 +12,9 @@ import {
   Box,
   Skeleton,
 } from "@mui/material";
-import { useEmiContext } from "../../../context/EmiContext";
+import { useSelector } from "react-redux"; // Import useSelector
+import { selectCalculatedValues } from "../utils/emiCalculator"; // Import selectCalculatedValues
+import { selectCurrency } from "../../../store/emiSlice"; // Import selectCurrency
 import { useTheme } from "@mui/material/styles";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
@@ -21,7 +23,7 @@ import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
 // Reduced padding to decrease row height.
 const cellBorderStyle = {
   border: "1px solid rgba(224, 224, 224, 1)",
-  padding: "6px 8px", 
+  padding: "6px 8px",
 };
 
 const Row = ({ yearData, currency }) => {
@@ -122,7 +124,9 @@ const Row = ({ yearData, currency }) => {
 };
 
 const PaymentScheduleTable = () => {
-  const { calculatedValues, currency, isCalculating } = useEmiContext();
+  const calculatedValues = useSelector(selectCalculatedValues); // Use useSelector
+  const currency = useSelector(selectCurrency); // Use useSelector
+  // isCalculating was removed as it's not part of the Redux state
   const schedule = calculatedValues.schedule;
   const theme = useTheme();
 
@@ -157,7 +161,9 @@ const PaymentScheduleTable = () => {
     ...cellBorderStyle,
   };
 
-  if (isCalculating) {
+  // The isCalculating state was removed, so this block will be removed or adapted if a similar state is added to Redux.
+  // For now, assuming calculation is always "done" when schedule is available.
+  if (!schedule || schedule.length === 0) { // Check if schedule is empty to show skeleton
     return (
       <TableContainer component={Paper} variant="outlined">
         <Table size="small" sx={{ minWidth: 650, tableLayout: "fixed" }} aria-label="collapsible table">

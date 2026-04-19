@@ -1,7 +1,17 @@
 import React from "react";
 import styled from "styled-components";
-import { Box, Paper, Typography, Grid, Divider } from "@mui/material";
-import { useEmiContext } from "../../../context/EmiContext";
+import { Box, Paper, Typography, Grid } from "@mui/material"; // Removed Divider
+import { useDispatch, useSelector } from "react-redux"; // Import useDispatch and useSelector
+import {
+  updateLoanDetails,
+  updateExpenses,
+  changeLoanUnit,
+  changeExpenseUnit,
+  selectLoanDetails,
+  selectExpenses,
+  selectCurrency,
+} from "../../../store/emiSlice"; // Import Redux actions and selectors
+import { selectCalculatedValues } from "../utils/emiCalculator"; // Import selectCalculatedValues from emiCalculator
 import { AmountInput, AmountWithUnitInput, DatePickerInput } from "../../../components/common/CommonComponents";
 import {
   convertAmount,
@@ -22,22 +32,17 @@ const SectionHeader = styled(Box)`
 `;
 
 const HomeLoanForm = () => {
-  const {
-    loanDetails,
-    expenses,
-    calculatedValues,
-    currency,
-    updateLoanDetails,
-    updateExpenses,
-    changeLoanUnit,
-    changeExpenseUnit,
-  } = useEmiContext();
+  const dispatch = useDispatch(); // Initialize useDispatch
+  const loanDetails = useSelector(selectLoanDetails); // Use useSelector for loanDetails
+  const expenses = useSelector(selectExpenses); // Use useSelector for expenses
+  const calculatedValues = useSelector(selectCalculatedValues); // Use useSelector for calculatedValues
+  const currency = useSelector(selectCurrency); // Use useSelector for currency
 
   const handleUnitChange = (unitField, amountField, event) => {
     const newUnit = event.target.value;
     const oldUnit = loanDetails[unitField];
     const currentAmount = loanDetails[amountField];
-    let convertedAmount = currentAmount;
+    let convertedAmount; // Removed redundant initialization
 
     if (unitField === "tenureUnit") {
       convertedAmount = convertTenure(currentAmount, oldUnit, newUnit);
@@ -56,13 +61,13 @@ const HomeLoanForm = () => {
       convertedAmount = convertAmount(currentAmount, oldUnit, newUnit, baseValue);
     }
 
-    changeLoanUnit(unitField, amountField, newUnit, convertedAmount);
+    dispatch(changeLoanUnit({ unitField, amountField, newUnit, convertedAmount })); // Dispatch Redux action
   };
 
   const handleChange = (field, event) => {
     let value = parseFloat(event.target.value);
     if (isNaN(value)) value = 0;
-    updateLoanDetails(field, value);
+    dispatch(updateLoanDetails({ key: field, value })); // Dispatch Redux action
   };
 
   const handleExpenseUnitChange = (unitField, amountField, event) => {
@@ -73,13 +78,13 @@ const HomeLoanForm = () => {
 
     const convertedAmount = convertAmount(currentAmount, oldUnit, newUnit, baseValue);
 
-    changeExpenseUnit(unitField, amountField, newUnit, convertedAmount);
+    dispatch(changeExpenseUnit({ unitField, amountField, newUnit, convertedAmount })); // Dispatch Redux action
   };
 
   const handleExpenseChange = (field, event) => {
     let value = parseFloat(event.target.value);
     if (isNaN(value)) value = 0;
-    updateExpenses(field, value);
+    dispatch(updateExpenses({ key: field, value })); // Dispatch Redux action
   };
 
   return (
@@ -180,7 +185,7 @@ const HomeLoanForm = () => {
           <DatePickerInput
             label="Start Month & Year"
             value={loanDetails.startDate}
-            onChange={(newValue) => updateLoanDetails("startDate", newValue)}
+            onChange={(newValue) => dispatch(updateLoanDetails({ key: "startDate", value: newValue }))} // Dispatch Redux action
           />
         </Grid>
       </Grid>

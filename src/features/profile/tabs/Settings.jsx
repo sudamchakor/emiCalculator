@@ -18,8 +18,8 @@ import {
   Alert,
 } from "@mui/material";
 import { useDispatch, useSelector } from 'react-redux';
-import { setThemeMode, setCurrency, setAutoSave, selectThemeMode, selectCurrency, selectAutoSave } from '../../store/emiSlice';
-import ThemeSelector from "../../components/common/ThemeSelector";
+import { setThemeMode, setCurrency, setAutoSave, selectThemeMode, selectCurrency, selectAutoSave } from '../../../store/emiSlice';
+import ThemeSelector from "../../../components/common/ThemeSelector";
 
 const Settings = () => {
   const dispatch = useDispatch();

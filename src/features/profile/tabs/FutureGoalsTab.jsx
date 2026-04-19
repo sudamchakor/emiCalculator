@@ -16,7 +16,7 @@ import {
 } from "@mui/material";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import EditableGoalItem from "../../../components/common/EditableGoalItem";
-import GoalForm from "./GoalForm";
+import GoalForm from "../components/GoalForm";
 import {
   selectGoals,
   selectConsiderInflation,
@@ -51,10 +51,6 @@ import {
   AreaChart,
   Area,
 } from "recharts";
-import {
-  calculateSIP,
-  calculateStepUpSIP,
-} from "../../../utils/financialCalculations";
 import CloseIcon from "@mui/icons-material/Close";
 
 const COLORS = [

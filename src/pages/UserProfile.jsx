@@ -3,18 +3,14 @@ import { Box, Tabs, Tab, Typography, Alert, Link } from "@mui/material";
 import { useSelector, useDispatch } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
-  setCurrentAge,
-  setRetirementAge,
-  setConsiderInflation,
-  resetProfile,
   selectCurrentSurplus, // Import new selector
   selectDebtFreeCountdown, // Import new selector
-} from "../../store/profileSlice";
-import { selectCurrency } from "../../store/emiSlice"; // Only need currency now
-import PersonalProfileTab from "./components/PersonalProfileTab";
-import FutureGoalsTab from "./components/FutureGoalsTab";
-import Settings from "./Settings";
-import OnboardingModal from "./OnboardingModal";
+} from "../store/profileSlice";
+import { selectCurrency } from "../store/emiSlice"; // Only need currency now
+import PersonalProfileTab from "../features/profile/tabs/PersonalProfileTab";
+import FutureGoalsTab from "../features/profile/tabs/FutureGoalsTab";
+import Settings from "../features/profile/tabs/Settings";
+import OnboardingModal from "../features/profile/tabs/OnboardingModal";
 
 function CustomTabPanel(props) {
   const { children, value, index, ...other } = props;

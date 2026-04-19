@@ -22,8 +22,8 @@ import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import dayjs from 'dayjs';
 import EditableIncomeExpenseItem from "../../../components/common/EditableIncomeExpenseItem";
-import BasicInfoDisplay from "./BasicInfoDisplay";
-import BasicInfoEdit from "./BasicInfoEdit";
+import BasicInfoDisplay from "../components/BasicInfoDisplay";
+import BasicInfoEdit from "../components/BasicInfoEdit";
 import SliderInput from "../../../components/common/SliderInput";
 import { AmountWithUnitInput } from "../../../components/common/CommonComponents";
 import { useDispatch, useSelector } from "react-redux";
@@ -215,31 +215,6 @@ export default function PersonalProfileTab({ onEditGoal }) {
 
   const theme = useTheme(); // Initialize useTheme hook
 
-  // Define color mapping functions using theme palette
-  const getPieCategoryColor = (categoryName) => {
-    switch (categoryName) {
-      case "Needs":
-        return theme.palette.error.main;
-      case "Wants":
-        return theme.palette.warning.main;
-      case "Loan EMIs":
-        return theme.palette.info.main;
-      case "Future Wealth (Goals)":
-        return theme.palette.success.main;
-      case "Surplus":
-        return theme.palette.primary.light; // A lighter version of the primary color for surplus
-      default:
-        return theme.palette.grey[500]; // Fallback color
-    }
-  };
-
-  const INCOME_BAR_COLOR = theme.palette.success.main; // Green for income
-  const STACKED_EXPENSE_BAR_COLORS_MAP = {
-    "Needs": theme.palette.error.main,
-    "Wants": theme.palette.warning.main,
-    "Loan EMIs": theme.palette.info.main,
-    "Future Wealth (Goals)": theme.palette.success.light, // Slightly different green for goals
-  };
   const needsValue = expenses
     .filter((e) => e.category === "basic")
     .reduce((acc, curr) => acc + curr.amount, 0);

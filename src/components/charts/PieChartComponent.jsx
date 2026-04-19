@@ -1,12 +1,17 @@
 import React from "react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
-import { useEmiContext } from "../../context/EmiContext";
+import { useSelector } from "react-redux"; // Import useSelector
+import { selectCalculatedValues } from "../../features/emiCalculator/utils/emiCalculator"; // Import selectCalculatedValues
+import { selectExpenses, selectCurrency } from "../../store/emiSlice"; // Import selectExpenses and selectCurrency
 import { Box, Typography, Grid, Divider, Skeleton } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import "./PieChartComponent.scss";
 
 const PieChartComponent = () => {
-  const { calculatedValues, expenses, currency, isCalculating } = useEmiContext();
+  const calculatedValues = useSelector(selectCalculatedValues); // Use useSelector
+  const expenses = useSelector(selectExpenses); // Use useSelector
+  const currency = useSelector(selectCurrency); // Use useSelector
+  // isCalculating was removed as it's not part of the Redux state
   const theme = useTheme();
 
   // Ensuring high contrast for Principal and Interest
@@ -20,44 +25,8 @@ const PieChartComponent = () => {
     "#9d8d8f", // Insurance & Maint.
   ];
 
-  const data = [
-    { name: "Down Payment", value: calculatedValues.marginInRs },
-    {
-      name: "Fees & One-time",
-      value: calculatedValues.feesInRs + calculatedValues.oneTimeInRs,
-    },
-    { name: "Principal", value: calculatedValues.totalPrincipal },
-    { name: "Prepayments", value: calculatedValues.totalPrepayments },
-    { name: "Interest", value: calculatedValues.totalInterest },
-    {
-      name: "Taxes",
-      value:
-        calculatedValues.taxesYearlyInRs *
-        (calculatedValues.schedule.length / 12),
-    },
-    {
-      name: "Insurance & Maint.",
-      value:
-        calculatedValues.homeInsYearlyInRs *
-          (calculatedValues.schedule.length / 12) +
-        expenses.maintenance * calculatedValues.schedule.length,
-    },
-  ].filter((item) => item.value > 0);
-
-  const downPaymentFees =
-    calculatedValues.marginInRs +
-    calculatedValues.feesInRs +
-    calculatedValues.oneTimeInRs;
-  const principal = calculatedValues.totalPrincipal;
-  const prepayments = calculatedValues.totalPrepayments;
-  const interest = calculatedValues.totalInterest;
-  const taxesInsMaint =
-    calculatedValues.taxesYearlyInRs * (calculatedValues.schedule.length / 12) +
-    calculatedValues.homeInsYearlyInRs *
-      (calculatedValues.schedule.length / 12) +
-    expenses.maintenance * calculatedValues.schedule.length;
-
-  if (isCalculating) {
+  // Only render if calculatedValues and schedule are available
+  if (!calculatedValues || !calculatedValues.schedule || calculatedValues.schedule.length === 0) {
     return (
       <Box>
         <Typography variant="h6" gutterBottom>
@@ -103,6 +72,44 @@ const PieChartComponent = () => {
       </Box>
     );
   }
+
+  const data = [
+    { name: "Down Payment", value: calculatedValues.marginInRs },
+    {
+      name: "Fees & One-time",
+      value: calculatedValues.feesInRs + calculatedValues.oneTimeInRs,
+    },
+    { name: "Principal", value: calculatedValues.totalPrincipal },
+    { name: "Prepayments", value: calculatedValues.totalPrepayments },
+    { name: "Interest", value: calculatedValues.totalInterest },
+    {
+      name: "Taxes",
+      value:
+        calculatedValues.taxesYearlyInRs *
+        (calculatedValues.schedule.length / 12),
+    },
+    {
+      name: "Insurance & Maint.",
+      value:
+        calculatedValues.homeInsYearlyInRs *
+          (calculatedValues.schedule.length / 12) +
+        expenses.maintenance * calculatedValues.schedule.length,
+    },
+  ].filter((item) => item.value > 0);
+
+  const downPaymentFees =
+    calculatedValues.marginInRs +
+    calculatedValues.feesInRs +
+    calculatedValues.oneTimeInRs;
+  const principal = calculatedValues.totalPrincipal;
+  const prepayments = calculatedValues.totalPrepayments;
+  const interest = calculatedValues.totalInterest;
+  const taxesInsMaint =
+    calculatedValues.taxesYearlyInRs * (calculatedValues.schedule.length / 12) +
+    calculatedValues.homeInsYearlyInRs *
+      (calculatedValues.schedule.length / 12) +
+    expenses.maintenance * calculatedValues.schedule.length;
+
 
   return (
     <Box>

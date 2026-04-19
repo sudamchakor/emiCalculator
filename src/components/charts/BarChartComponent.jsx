@@ -10,12 +10,16 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { useEmiContext } from "../../context/EmiContext";
+import { useSelector } from "react-redux"; // Import useSelector
+import { selectCalculatedValues } from "../../features/emiCalculator/utils/emiCalculator"; // Import selectCalculatedValues
+import { selectCurrency } from "../../store/emiSlice"; // Import selectCurrency
 import { Box, Typography, Skeleton, useMediaQuery } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 
 const BarChartComponent = () => {
-  const { calculatedValues, currency, isCalculating } = useEmiContext();
+  const calculatedValues = useSelector(selectCalculatedValues); // Use useSelector
+  const currency = useSelector(selectCurrency); // Use useSelector
+  // isCalculating was removed as it's not part of the Redux state
   const theme = useTheme();
   
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -71,7 +75,9 @@ const BarChartComponent = () => {
     return groupedData;
   }, [calculatedValues.schedule, isMobile, isTablet]);
 
-  if (isCalculating) {
+  // The isCalculating state was removed, so this block will be removed or adapted if a similar state is added to Redux.
+  // For now, assuming calculation is always "done" when schedule is available.
+  if (!calculatedValues || !calculatedValues.schedule || calculatedValues.schedule.length === 0) {
     return (
       <Box>
         <Typography variant="h6" gutterBottom>

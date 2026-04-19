@@ -7,7 +7,7 @@ import CreditCardIcon from "@mui/icons-material/CreditCard";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 import ReceiptIcon from "@mui/icons-material/Receipt";
-import OnboardingModal from "../profile/OnboardingModal";
+import OnboardingModal from "../features/profile/tabs/OnboardingModal";
 
 const features = [
   { title: "User Profile", description: "Manage your incomes, expenses, and financial goals.", icon: <AccountCircleIcon color="secondary" sx={{ fontSize: 56 }} />, path: "/profile" },

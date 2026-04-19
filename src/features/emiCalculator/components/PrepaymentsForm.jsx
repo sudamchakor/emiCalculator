@@ -1,10 +1,13 @@
 import React from "react";
 import styled from "styled-components";
 import { Box, Typography, Grid, Paper, CircularProgress } from "@mui/material";
-import { useEmiContext } from "../../../context/EmiContext";
+import { useDispatch, useSelector } from "react-redux"; // Import useDispatch and useSelector
+import {
+  updatePrepayments,
+  selectPrepayments,
+  selectCurrency,
+} from "../../../store/emiSlice"; // Import Redux actions and selectors
 import { AmountInput, DatePickerInput } from "../../../components/common/CommonComponents";
-// import { useDispatch } from "react-redux"; // Remove useDispatch
-// import { updatePrepayments as reduxUpdatePrepayments } from "../store/emiSlice"; // Remove reduxUpdatePrepayments
 
 const StyledPaper = styled(Paper)`
   padding: 24px;
@@ -80,21 +83,24 @@ const PrepaymentSection = ({
 );
 
 const PrepaymentsForm = () => {
-  const { prepayments, currency, updatePrepayments } = useEmiContext(); // Removed isCalculating
-  // const dispatch = useDispatch(); // Remove useDispatch
+  const dispatch = useDispatch(); // Initialize useDispatch
+  const prepayments = useSelector(selectPrepayments); // Use useSelector for prepayments
+  const currency = useSelector(selectCurrency); // Use useSelector for currency
 
   const handleAmountChange = (type, event) => {
     let value = parseFloat(event.target.value);
     if (isNaN(value)) value = 0;
-    updatePrepayments(type, "amount", value); // Use context's updatePrepayments
+    dispatch(updatePrepayments({ type, key: "amount", value })); // Dispatch Redux action
   };
 
   const handleDateChange = (type, newValue) => {
-    updatePrepayments(
-      type,
-      type === "oneTime" ? "date" : "startDate",
-      newValue,
-    ); // Use context's updatePrepayments
+    dispatch(
+      updatePrepayments({
+        type,
+        key: type === "oneTime" ? "date" : "startDate",
+        value: newValue,
+      })
+    ); // Dispatch Redux action
   };
 
   return (
@@ -114,12 +120,6 @@ const PrepaymentsForm = () => {
         role="region"
         aria-label="Prepayments section"
       >
-        {/* Removed conditional rendering based on isCalculating */}
-        {/* {isCalculating && (
-          <LoadingOverlay>
-            <CircularProgress size={40} aria-label="Loading prepayments" />
-          </LoadingOverlay>
-        )} */}
         <PrepaymentSection
           title="Monthly Payment"
           amountValue={prepayments.monthly.amount}

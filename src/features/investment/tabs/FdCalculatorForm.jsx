@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { Box } from "@mui/material";
 import { calculateFD } from "../../../utils/investmentCalculations";
-import FdCalculatorInputs from "./FdCalculatorInputs"; // Import the new input component
+import FdCalculatorInputs from "../components/FdCalculatorInputs"; // Import the new input component
 
 const FdCalculator = ({ onCalculate, sharedState, onSharedStateChange }) => {
   const { principalAmount, interestRate, timePeriod, compoundingFrequency } = sharedState || {};

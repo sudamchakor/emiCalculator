@@ -9,11 +9,12 @@ import {
   TextField,
   InputAdornment,
 } from "@mui/material";
-import { useEmiContext } from "../../context/EmiContext";
-import { themes } from "../../components/common/ThemeSelector";
+import { useSelector } from "react-redux";
+import { selectThemeMode } from "../store/emiSlice";
+import { themes } from "../components/common/ThemeSelector";
 
 const CreditCardEMICalculator = () => {
-  const { themeMode } = useEmiContext();
+  const themeMode = useSelector(selectThemeMode);
   const getThemeColor = () => {
     let currentThemeValue = themeMode;
     if (currentThemeValue === "light") {

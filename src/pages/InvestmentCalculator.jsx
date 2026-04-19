@@ -8,12 +8,12 @@ import AccountBalanceIcon from "@mui/icons-material/AccountBalance"; // Import f
 import { useLocation, useNavigate } from "react-router-dom";
 
 // Import the individual components
-import SipCalculatorForm from "./components/SipCalculatorForm";
-import LumpsumCalculatorForm from "./components/LumpsumCalculatorForm";
-import StepUpSipCalculatorForm from "./components/StepUpSipCalculatorForm";
-import SwpCalculatorForm from "./components/SwpCalculatorForm";
-import FdCalculatorForm from "./components/FdCalculatorForm"; // Import for FD Calculator
-import InvestmentChart from "./components/InvestmentChart";
+import SipCalculatorForm from "../features/investment/tabs/SipCalculatorForm";
+import LumpsumCalculatorForm from "../features/investment/tabs/LumpsumCalculatorForm";
+import StepUpSipCalculatorForm from "../features/investment/tabs/StepUpSipCalculatorForm";
+import SwpCalculatorForm from "../features/investment/tabs/SwpCalculatorForm";
+import FdCalculatorForm from "../features/investment/tabs/FdCalculatorForm"; // Import for FD Calculator
+import InvestmentChart from "../features/investment/components/InvestmentChart";
 
 const TAB_ROUTES = [
   "/investment",

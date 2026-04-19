@@ -24,9 +24,7 @@ import * as XLSX from "xlsx";
 import { useSelector, useDispatch } from "react-redux";
 import {
   selectCurrency,
-  selectThemeMode,
-  setCurrency,
-  setThemeMode,
+  selectThemeMode,  
   resetEmiState,
 } from "../../store/emiSlice";
 import { selectCalculatedValues } from "../../features/emiCalculator/utils/emiCalculator"; // Corrected import path
@@ -35,11 +33,6 @@ import storage from "redux-persist/lib/storage"; // Import storage
 import "./Header.css";
 
 const calculators = [
-  {
-    path: "/",
-    label: "Home",
-    icon: <HomeIcon fontSize="small" style={{ marginRight: 8 }} />,
-  },
   {
     path: "/calculator",
     label: "Home Loan EMI Calculator",

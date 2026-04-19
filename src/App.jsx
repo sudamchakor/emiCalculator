@@ -4,26 +4,24 @@ import { ThemeProvider, createTheme, CssBaseline, Box } from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { HelmetProvider } from "react-helmet-async";
-import { Provider } from "react-redux";
+import { Provider, useSelector } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
-import { useSelector } from "react-redux";
 import store, { persistor } from "./store";
 import { selectThemeMode } from "./store/emiSlice";
-import { EmiProvider } from "./context/EmiContext";
 
 // Layout & Common
 import Header from "./components/layout/Header";
 import { themes } from "./components/common/ThemeSelector";
 
 // Feature Pages
-import Home from "./features/home/Home";
-import Calculator from "./features/emiCalculator/Calculator";
-import UserProfile from "./features/profile/UserProfile";
-import CreditCardEmiCalculator from "./features/creditCard/CreditCardEmiCalculator";
-import InvestmentCalculator from "./features/investment/InvestmentCalculator";
-import PersonalLoanCalculator from "./features/personalLoan/PersonalLoanCalculator";
-import TaxCalculator from "./features/tax/TaxCalculator";
-import FAQ from "./features/faq/FAQ";
+import Home from "./pages/Home";
+import Calculator from "./pages/Calculator";
+import UserProfile from "./pages/UserProfile";
+import CreditCardEmiCalculator from "./pages/CreditCardEmiCalculator";
+import PersonalLoanCalculator from "./pages/PersonalLoanCalculator";
+import TaxCalculator from "./pages/TaxCalculator";
+import FAQ from "./pages/FAQ";
+import InvestmentCalculator from "./pages/InvestmentCalculator";
 
 // Styles
 import "./App.css";
@@ -170,11 +168,9 @@ function App() {
       >
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <HelmetProvider>
-            <EmiProvider>
-              <ErrorBoundary>
-                <AppContent />
-              </ErrorBoundary>
-            </EmiProvider>
+            <ErrorBoundary>
+              <AppContent />
+            </ErrorBoundary>
           </HelmetProvider>
         </LocalizationProvider>
       </PersistGate>

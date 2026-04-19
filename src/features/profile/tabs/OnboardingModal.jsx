@@ -5,9 +5,9 @@ import {
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useDispatch } from "react-redux";
-import { addIncome, addExpense, addTemplateGoal, addGoal } from "../../store/profileSlice";
-import SliderInput from "../../components/common/SliderInput";
-import GoalForm from "./components/GoalForm";
+import { addIncome, addExpense, addTemplateGoal, addGoal } from "../../../store/profileSlice";
+import SliderInput from "../../../components/common/SliderInput";
+import GoalForm from "../components/GoalForm";
 
 const steps = ["Add Income", "Add Expenses", "Set Goals"];
 

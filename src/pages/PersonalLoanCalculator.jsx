@@ -10,8 +10,6 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import { useEmiContext } from "../../context/EmiContext";
-import { themes } from "../../components/common/ThemeSelector";
 
 // Custom Styled Slider
 const BrandSlider = styled(Slider)(({ theme: muiTheme }) => ({
@@ -36,15 +34,6 @@ const BrandSlider = styled(Slider)(({ theme: muiTheme }) => ({
 }));
 
 const PersonalLoanCalculator = () => {
-  const { themeMode } = useEmiContext();
-  const getThemeColor = () => {
-    let currentThemeValue = themeMode;
-    if (currentThemeValue === "light") {
-      currentThemeValue = "dodgerblue";
-    }
-    const selectedTheme = themes.find((t) => t.value === currentThemeValue) || themes[0];
-    return selectedTheme.colors[0]; // primary color
-  };
   const [loanAmount, setLoanAmount] = useState(500000);
   const [interestRate, setInterestRate] = useState(10.5);
   const [tenure, setTenure] = useState(5);
