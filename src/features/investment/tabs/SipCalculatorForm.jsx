@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useCallback } from "react"; // Added useCallback
 import {
   Box,
   Typography,
@@ -7,17 +7,14 @@ import {
   Grid,
   InputAdornment,
 } from "@mui/material";
-import { calculateSIP } from "../../../utils/financialCalculations"; // Import the utility function
+// Removed: import { calculateSIP } from "../../../utils/financialCalculations"; // Import the utility function
 
 const SipCalculatorForm = ({ onCalculate, sharedState, onSharedStateChange }) => {
-  const { monthlyContribution, expectedReturnRate, timePeriod } = sharedState; // Changed to monthlyContribution
+  const { monthlyContribution, expectedReturnRate, timePeriod } = sharedState;
 
-  useEffect(() => {
-    calculateSip();
-  }, [monthlyContribution, expectedReturnRate, timePeriod]); // Changed to monthlyContribution
-
-  const calculateSip = () => {
-    const P = monthlyContribution; // Changed to monthlyContribution
+  // Wrapped calculateSip in useCallback to stabilize its reference
+  const calculateSip = useCallback(() => {
+    const P = monthlyContribution;
     const years = timePeriod;
     const annualRate = expectedReturnRate / 100;
 
@@ -37,7 +34,7 @@ const SipCalculatorForm = ({ onCalculate, sharedState, onSharedStateChange }) =>
     // Generate data for chart
     let chartData = [];
     let currentInvested = 0;
-    let currentTotalValue = 0;
+    // Removed: let currentTotalValue = 0; // This variable was assigned but never used
 
     for (let year = 1; year <= years; year++) {
       currentInvested = P * year * 12; // Total invested up to this year
@@ -61,10 +58,14 @@ const SipCalculatorForm = ({ onCalculate, sharedState, onSharedStateChange }) =>
       investedAmount: Math.round(investedAmount),
       estimatedReturns: Math.round(estimatedReturns),
       totalValue: Math.round(totalValue),
-      monthlyContribution: monthlyContribution, // Changed to monthlyContribution
+      monthlyContribution: monthlyContribution,
       chartData: chartData
     });
-  };
+  }, [monthlyContribution, expectedReturnRate, timePeriod, onCalculate]); // Added onCalculate to dependencies
+
+  useEffect(() => {
+    calculateSip();
+  }, [calculateSip]); // Added calculateSip to dependencies
 
   return (
     <Box>
@@ -77,8 +78,8 @@ const SipCalculatorForm = ({ onCalculate, sharedState, onSharedStateChange }) =>
           <Typography gutterBottom>Monthly Investment</Typography>
           <TextField
             size="small"
-            value={monthlyContribution} // Changed to monthlyContribution
-            onChange={(e) => onSharedStateChange("monthlyContribution", Number(e.target.value))} // Changed to monthlyContribution
+            value={monthlyContribution}
+            onChange={(e) => onSharedStateChange("monthlyContribution", Number(e.target.value))}
             InputProps={{
               startAdornment: <InputAdornment position="start">₹</InputAdornment>,
             }}
@@ -87,11 +88,11 @@ const SipCalculatorForm = ({ onCalculate, sharedState, onSharedStateChange }) =>
           />
         </Grid>
         <Slider
-          value={monthlyContribution} // Changed to monthlyContribution
+          value={monthlyContribution}
           min={500}
           max={100000}
           step={500}
-          onChange={(e, val) => onSharedStateChange("monthlyContribution", val)} // Changed to monthlyContribution
+          onChange={(e, val) => onSharedStateChange("monthlyContribution", val)}
           valueLabelDisplay="auto"
         />
       </Box>

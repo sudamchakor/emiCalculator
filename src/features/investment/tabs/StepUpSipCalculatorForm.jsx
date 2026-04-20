@@ -18,10 +18,10 @@ const StepUpSipCalculatorForm = ({
     stepUpPercentage,
     expectedReturnRate,
     timePeriod,
-  } = sharedState; // Changed to monthlyContribution
+  } = sharedState;
 
   const calculateStepUpSip = useCallback(() => {
-    let currentMonthlySIP = monthlyContribution; // Changed to monthlyContribution
+    let currentMonthlySIP = monthlyContribution;
     const i = expectedReturnRate / 100 / 12; // Monthly rate of return
 
     let totalInvestedAmount = 0;
@@ -58,7 +58,7 @@ const StepUpSipCalculatorForm = ({
       investedAmount: Math.round(totalInvestedAmount),
       estimatedReturns: Math.round(estimatedReturns),
       totalValue: Math.round(finalCorpus),
-      monthlyContribution: monthlyContribution, // Changed to monthlyContribution
+      monthlyContribution: monthlyContribution,
       chartData: chartData,
       totalWithdrawn: 0,
     });
@@ -68,7 +68,7 @@ const StepUpSipCalculatorForm = ({
     expectedReturnRate,
     timePeriod,
     onCalculate,
-  ]); // Changed to monthlyContribution
+  ]);
 
   useEffect(() => {
     calculateStepUpSip();
@@ -85,10 +85,10 @@ const StepUpSipCalculatorForm = ({
           <Typography gutterBottom>Monthly Investment</Typography>
           <TextField
             size="small"
-            value={monthlyContribution} // Changed to monthlyContribution
+            value={monthlyContribution}
             onChange={(e) =>
               onSharedStateChange("monthlyContribution", Number(e.target.value))
-            } // Changed to monthlyContribution
+            }
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">₹</InputAdornment>
@@ -98,11 +98,11 @@ const StepUpSipCalculatorForm = ({
           />
         </Grid>
         <Slider
-          value={monthlyContribution} // Changed to monthlyContribution
+          value={monthlyContribution}
           min={500}
           max={100000}
           step={500}
-          onChange={(e, val) => onSharedStateChange("monthlyContribution", val)} // Changed to monthlyContribution
+          onChange={(e, val) => onSharedStateChange("monthlyContribution", val)}
           valueLabelDisplay="auto"
         />
       </Box>

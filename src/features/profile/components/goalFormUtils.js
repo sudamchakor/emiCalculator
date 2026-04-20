@@ -80,6 +80,9 @@ export const calculatePlanResults = (plan) => {
       updatedPlanDetails.frequency = "one-time";
       break;
     default:
+      console.error(`Unknown plan type encountered: ${updatedPlanDetails.type}`);
+      // Optionally, you might want to throw an error here depending on desired strictness:
+      // throw new Error(`Unknown plan type: ${updatedPlanDetails.type}`);
       break;
   }
 
@@ -157,6 +160,9 @@ export const getDefaultPlanState = (
         newPlan.monthlyContribution = Math.max(500, newPlan.monthlyContribution);
         break;
       // SWP inverse calculations are not directly implemented here as it's a withdrawal plan.
+      default:
+        console.warn(`No inverse calculation implemented for plan type: ${type}`);
+        break;
     }
   }
 
