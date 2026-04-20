@@ -2,7 +2,7 @@ import React from "react";
 import { Paper, Typography } from "@mui/material";
 import {
   ComposedChart,
-  Bar,
+  Area, // Import Area
   Line,
   XAxis,
   YAxis,
@@ -119,25 +119,32 @@ export default function ProjectedCashFlowChart({
       annualExpense += (monthlyEmi || 0) * activeEmiMonths;
 
       individualGoalInvestments.forEach((inv) => {
-        const start = inv.startYear || currentYear;
-        const planDuration = inv.timePeriod || (inv.targetYear ? inv.targetYear - start : 10);
-        const end = inv.endYear || (start + Math.max(planDuration, 0));
-
-        if (year >= start && year <= end) {
-          let yearlyAmount = Number(inv.amount) || 0;
-
-          if (inv.frequency === 'monthly') yearlyAmount *= 12;
-          else if (inv.frequency === 'quarterly') yearlyAmount *= 4;
-
-          if (inv.type === 'step_up_sip' || inv.investmentType === 'step_up_sip') {
-             const stepUpRate = inv.stepUpRate ? (inv.stepUpRate / 100) : 0;
-             const activeYears = year - start;
-             if (activeYears > 0) {
-                 yearlyAmount *= Math.pow(1 + stepUpRate, activeYears);
-             }
+        if (inv.type === 'one-time-yearly') {
+          // For one-time yearly investments, only add if the current projection year matches the investment's target year
+          if (year === inv.year) { // inv.year is the goal.targetYear
+            annualExpense += Number(inv.amount) || 0;
           }
+        } else {
+          // For recurring investments (SIPs, etc.)
+          const start = inv.startYear || currentYear;
+          // Use goalTargetYear for end if available, otherwise default
+          const end = inv.endYear || (inv.goalTargetYear ? inv.goalTargetYear : currentYear + 10);
 
-          annualExpense += yearlyAmount;
+          if (year >= start && year <= end) {
+            let yearlyAmount = Number(inv.amount) || 0;
+
+            if (inv.frequency === 'monthly') yearlyAmount *= 12;
+            else if (inv.frequency === 'quarterly') yearlyAmount *= 4;
+
+            if (inv.type === 'step_up_sip' || inv.investmentType === 'step_up_sip') {
+              const stepUpRate = inv.stepUpRate ? (inv.stepUpRate / 100) : 0;
+              const activeYears = year - start;
+              if (activeYears > 0) {
+                yearlyAmount *= Math.pow(1 + stepUpRate, activeYears);
+              }
+            }
+            annualExpense += yearlyAmount;
+          }
         }
       });
 
@@ -165,8 +172,8 @@ export default function ProjectedCashFlowChart({
           <YAxis tickFormatter={(val) => formatCurrency(val)} />
           <RechartsTooltip formatter={(value, name) => [formatCurrency(value), name]} />
           <Legend />
-          <Bar dataKey="Income" name="Annual Income" fill={theme.palette.success.main} radius={[4, 4, 0, 0]} />
-          <Bar dataKey="Expenses" name="Annual Expenses" fill={theme.palette.error.main} radius={[4, 4, 0, 0]} />
+          <Area type="monotone" dataKey="Income" name="Annual Income" fill={theme.palette.success.light} stroke={theme.palette.success.main} />
+          <Area type="monotone" dataKey="Expenses" name="Annual Expenses" fill={theme.palette.error.light} stroke={theme.palette.error.main} />
           <Line type="monotone" dataKey="Surplus" name="Surplus" stroke={theme.palette.primary.main} strokeWidth={2} />
         </ComposedChart>
       </ResponsiveContainer>

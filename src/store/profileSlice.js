@@ -144,7 +144,15 @@ export const selectTotalMonthlyIncome = createSelector(
 
 export const selectTotalMonthlyExpenses = createSelector(
     [selectProfileExpenses],
-    (expenses) => expenses.reduce((total, expense) => total + (expense.amount || 0), 0)
+    (expenses) => expenses.reduce((total, expense) => {
+      let monthlyAmount = expense.amount || 0;
+      if (expense.frequency === 'quarterly') {
+        monthlyAmount /= 3;
+      } else if (expense.frequency === 'yearly') {
+        monthlyAmount /= 12;
+      }
+      return total + monthlyAmount;
+    }, 0)
 );
 
 export const selectTotalMonthlyGoalContributions = createSelector(
@@ -180,6 +188,9 @@ export const selectIndividualGoalInvestmentContributions = createSelector(
             category: "investment",
             frequency: "monthly",
             goalId: goal.id,
+            goalTargetYear: goal.targetYear,
+            startYear: plan.startYear || currentYear, // Ensure startYear is present
+            endYear: plan.endYear || goal.targetYear, // Ensure endYear is present
           });
         } else if (
           (plan.type === "lumpsum" || plan.type === "fd") &&
@@ -191,10 +202,14 @@ export const selectIndividualGoalInvestmentContributions = createSelector(
             id: `goal-${goal.id}-plan-${uniqueKey}`,
             name: `${goal.name} (${planTypeName})`,
             amount: plan.investedAmount,
-            type: "yearly", // Representing as yearly for display purposes
+            type: "one-time-yearly", // Changed type to indicate one-time
             category: "investment",
-            frequency: "yearly",
+            frequency: "yearly", 
             goalId: goal.id,
+            year: plan.startYear || currentYear, // Use plan.startYear for one-time expenses
+            goalTargetYear: goal.targetYear,
+            startYear: plan.startYear || currentYear, // Ensure startYear is present
+            endYear: plan.endYear || goal.targetYear, // Ensure endYear is present
           });
         }
       });
@@ -285,12 +300,28 @@ export const selectInflationAdjustedValue = createSelector(
 // Selectors for Cash Flow Doughnut Chart: 'Needs vs. Wants vs. Future Wealth'
 export const selectNeedsExpenses = createSelector(
   [selectProfileExpenses],
-  (expenses) => expenses.filter(e => e.category === 'basic').reduce((total, expense) => total + (expense.amount || 0), 0)
+  (expenses) => expenses.filter(e => e.category === 'basic').reduce((total, expense) => {
+    let monthlyAmount = expense.amount || 0;
+    if (expense.frequency === 'quarterly') {
+      monthlyAmount /= 3;
+    } else if (expense.frequency === 'yearly') {
+      monthlyAmount /= 12;
+    }
+    return total + monthlyAmount;
+  }, 0)
 );
 
 export const selectWantsExpenses = createSelector(
   [selectProfileExpenses],
-  (expenses) => expenses.filter(e => e.category === 'discretionary').reduce((total, expense) => total + (expense.amount || 0), 0)
+  (expenses) => expenses.filter(e => e.category === 'discretionary').reduce((total, expense) => {
+    let monthlyAmount = expense.amount || 0;
+    if (expense.frequency === 'quarterly') {
+      monthlyAmount /= 3;
+    } else if (expense.frequency === 'yearly') {
+      monthlyAmount /= 12;
+    }
+    return total + monthlyAmount;
+  }, 0)
 );
 
 export const selectFutureWealthContributions = selectTotalMonthlyGoalContributions;
