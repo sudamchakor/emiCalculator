@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Typography, MenuItem, TextField } from "@mui/material";
+import { Box, Typography, MenuItem, TextField, Grid } from "@mui/material";
 import SliderInput from "../../../components/common/SliderInput";
 
 const FdCalculatorInputs = ({
@@ -46,20 +46,26 @@ const FdCalculatorInputs = ({
       />
 
       <Box sx={{ px: 2 }}>
-        <TextField
-          select
-          label="Compounding Frequency"
-          name="compoundingFrequency"
-          fullWidth
-          size="small"
-          value={compoundingFrequency}
-          onChange={(e) => onSharedStateChange("compoundingFrequency", e.target.value)}
-        >
-          <MenuItem value="annually">Annually</MenuItem>
-          <MenuItem value="half-annually">Half-Annually</MenuItem>
-          <MenuItem value="quarterly">Quarterly</MenuItem>
-          <MenuItem value="monthly">Monthly</MenuItem>
-        </TextField>
+        <Grid container spacing={1} alignItems="center">
+          <Grid item xs={6}>
+            <Typography gutterBottom>Compounding Frequency</Typography>
+          </Grid>
+          <Grid item xs={6}>
+            <TextField
+              select
+              name="compoundingFrequency"
+              fullWidth
+              size="small"
+              value={compoundingFrequency}
+              onChange={(e) => onSharedStateChange("compoundingFrequency", e.target.value)}
+            >
+              <MenuItem value="annually">Annually</MenuItem>
+              <MenuItem value="half-annually">Half-Annually</MenuItem>
+              <MenuItem value="quarterly">Quarterly</MenuItem>
+              <MenuItem value="monthly">Monthly</MenuItem>
+            </TextField>
+          </Grid>
+        </Grid>
       </Box>
     </Box>
   );

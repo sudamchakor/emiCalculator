@@ -81,21 +81,25 @@ const StepUpSipCalculatorForm = ({
       </Typography>
 
       <Box sx={{ my: 3 }}>
-        <Grid container alignItems="center" justifyContent="space-between">
-          <Typography gutterBottom>Monthly Investment</Typography>
-          <TextField
-            size="small"
-            value={monthlyContribution}
-            onChange={(e) =>
-              onSharedStateChange("monthlyContribution", Number(e.target.value))
-            }
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">₹</InputAdornment>
-              ),
-            }}
-            sx={{ width: 120 }}
-          />
+        <Grid container spacing={1} alignItems="center">
+          <Grid item xs={6}>
+            <Typography gutterBottom>Monthly Investment</Typography>
+          </Grid>
+          <Grid item xs={6}>
+            <TextField
+              size="small"
+              value={monthlyContribution}
+              onChange={(e) =>
+                onSharedStateChange("monthlyContribution", Number(e.target.value))
+              }
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">₹</InputAdornment>
+                ),
+              }}
+              fullWidth
+            />
+          </Grid>
         </Grid>
         <Slider
           value={monthlyContribution}
@@ -108,19 +112,23 @@ const StepUpSipCalculatorForm = ({
       </Box>
 
       <Box sx={{ my: 3 }}>
-        <Grid container alignItems="center" justifyContent="space-between">
-          <Typography gutterBottom>Annual Step-Up</Typography>
-          <TextField
-            size="small"
-            value={stepUpPercentage}
-            onChange={(e) =>
-              onSharedStateChange("stepUpPercentage", Number(e.target.value))
-            }
-            InputProps={{
-              endAdornment: <InputAdornment position="end">%</InputAdornment>,
-            }}
-            sx={{ width: 100 }}
-          />
+        <Grid container spacing={1} alignItems="center">
+          <Grid item xs={6}>
+            <Typography gutterBottom>Annual Step-Up</Typography>
+          </Grid>
+          <Grid item xs={6}>
+            <TextField
+              size="small"
+              value={stepUpPercentage}
+              onChange={(e) =>
+                onSharedStateChange("stepUpPercentage", Number(e.target.value))
+              }
+              InputProps={{
+                endAdornment: <InputAdornment position="end">%</InputAdornment>,
+              }}
+              fullWidth
+            />
+          </Grid>
         </Grid>
         <Slider
           value={stepUpPercentage}
@@ -133,19 +141,23 @@ const StepUpSipCalculatorForm = ({
       </Box>
 
       <Box sx={{ my: 3 }}>
-        <Grid container alignItems="center" justifyContent="space-between">
-          <Typography gutterBottom>Expected Return Rate (p.a)</Typography>
-          <TextField
-            size="small"
-            value={expectedReturnRate}
-            onChange={(e) =>
-              onSharedStateChange("expectedReturnRate", Number(e.target.value))
-            }
-            InputProps={{
-              endAdornment: <InputAdornment position="end">%</InputAdornment>,
-            }}
-            sx={{ width: 100 }}
-          />
+        <Grid container spacing={1} alignItems="center">
+          <Grid item xs={6}>
+            <Typography gutterBottom>Expected Return Rate (p.a)</Typography>
+          </Grid>
+          <Grid item xs={6}>
+            <TextField
+              size="small"
+              value={expectedReturnRate}
+              onChange={(e) =>
+                onSharedStateChange("expectedReturnRate", Number(e.target.value))
+              }
+              InputProps={{
+                endAdornment: <InputAdornment position="end">%</InputAdornment>,
+              }}
+              fullWidth
+            />
+          </Grid>
         </Grid>
         <Slider
           value={expectedReturnRate}
@@ -158,19 +170,23 @@ const StepUpSipCalculatorForm = ({
       </Box>
 
       <Box sx={{ my: 3 }}>
-        <Grid container alignItems="center" justifyContent="space-between">
-          <Typography gutterBottom>Time Period (Years)</Typography>
-          <TextField
-            size="small"
-            value={timePeriod}
-            onChange={(e) =>
-              onSharedStateChange("timePeriod", Number(e.target.value))
-            }
-            InputProps={{
-              endAdornment: <InputAdornment position="end">Yr</InputAdornment>,
-            }}
-            sx={{ width: 100 }}
-          />
+        <Grid container spacing={1} alignItems="center">
+          <Grid item xs={6}>
+            <Typography gutterBottom>Time Period (Years)</Typography>
+          </Grid>
+          <Grid item xs={6}>
+            <TextField
+              size="small"
+              value={timePeriod}
+              onChange={(e) =>
+                onSharedStateChange("timePeriod", Number(e.target.value))
+              }
+              InputProps={{
+                endAdornment: <InputAdornment position="end">Yr</InputAdornment>,
+              }}
+              fullWidth
+            />
+          </Grid>
         </Grid>
         <Slider
           value={timePeriod}

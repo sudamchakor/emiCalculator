@@ -76,19 +76,21 @@ const InvestmentPlanCard = ({
       plan.estimatedReturns,
       plan.totalValue,
       handlePlanChange,
-    ]
+    ],
   );
 
   return (
     <Box sx={{ border: "1px solid #ddd", p: 2, mb: 2, borderRadius: 2 }}>
-      <Grid container spacing={2} alignItems="center" justifyContent="space-between">
-        <Grid item xs={10} sm={6}>
+      <Grid container spacing={2} alignItems="center">
+        <Grid item xs={6} sm={6}>
           <FormControl fullWidth size="small">
             <InputLabel>Plan Type</InputLabel>
             <Select
               value={plan.type}
               label="Plan Type"
-              onChange={(e) => handlePlanChange(plan.id, "type", e.target.value)}
+              onChange={(e) =>
+                handlePlanChange(plan.id, "type", e.target.value)
+              }
             >
               <MenuItem value="sip">SIP</MenuItem>
               <MenuItem value="lumpsum">Lumpsum</MenuItem>
@@ -99,7 +101,15 @@ const InvestmentPlanCard = ({
           </FormControl>
         </Grid>
 
-        <Grid item>
+        <Grid
+          item
+          xs={6}
+          sm={6}
+          sx={{
+            display: "flex",
+            justifyContent: { xs: "flex-end", sm: "flex-end" },
+          }}
+        >
           <IconButton
             aria-label="delete"
             onClick={() => handleRemovePlan(plan.id)}
@@ -117,7 +127,7 @@ const InvestmentPlanCard = ({
                 {plan.details}
               </Typography>
             </Grid>
-            <Grid item xs={12} sm={4}>
+            <Grid item xs={4}>
               <Typography variant="body2" color="text.secondary">
                 Invested:{" "}
                 <Typography component="span" fontWeight="bold" color="primary">
@@ -125,7 +135,7 @@ const InvestmentPlanCard = ({
                 </Typography>
               </Typography>
             </Grid>
-            <Grid item xs={12} sm={4}>
+            <Grid item xs={4}>
               <Typography variant="body2" color="text.secondary">
                 Returns:{" "}
                 <Typography
@@ -137,7 +147,7 @@ const InvestmentPlanCard = ({
                 </Typography>
               </Typography>
             </Grid>
-            <Grid item xs={12} sm={4}>
+            <Grid item xs={4}>
               <Typography variant="body2" color="text.secondary">
                 Total Value:{" "}
                 <Typography
@@ -149,20 +159,6 @@ const InvestmentPlanCard = ({
                 </Typography>
               </Typography>
             </Grid>
-            {targetAmount && ( // Display target amount if available
-              <Grid item xs={12} sm={4}>
-                <Typography variant="body2" color="text.secondary">
-                  Target Amount:{" "}
-                  <Typography
-                    component="span"
-                    fontWeight="bold"
-                    color="info.main"
-                  >
-                    ₹{formatAmount(targetAmount)}
-                  </Typography>
-                </Typography>
-              </Grid>
-            )}
           </Grid>
         </Paper>
       </Box>

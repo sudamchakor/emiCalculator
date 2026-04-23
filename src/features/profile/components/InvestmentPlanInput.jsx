@@ -22,9 +22,12 @@ const InvestmentPlanInput = ({ plan, index, handlePlanChange, handleRemovePlan, 
         p: 2,
         mb: 2,
         position: "relative",
+        display: "flex", // Added for responsiveness
+        flexDirection: "column", // Added for responsiveness
+        gap: 1.5, // Added for consistent spacing between elements
       }}
     >
-      <Typography variant="subtitle1" sx={{ mb: 1 }}>
+      <Typography variant="subtitle1">
         Plan {index + 1}
       </Typography>
       {isRemovable && (
@@ -37,7 +40,7 @@ const InvestmentPlanInput = ({ plan, index, handlePlanChange, handleRemovePlan, 
           <RemoveCircleOutlineIcon color="error" />
         </IconButton>
       )}
-      <FormControl size="small" fullWidth sx={{ mb: 1.5 }}>
+      <FormControl size="small" fullWidth>
         <InputLabel>Investment Type</InputLabel>
         <Select
           value={plan.type}
@@ -180,7 +183,7 @@ const InvestmentPlanInput = ({ plan, index, handlePlanChange, handleRemovePlan, 
             showInput={true}
             unit="%"
           />
-          <FormControl size="small" fullWidth sx={{ mt: 1.5 }}>
+          <FormControl size="small" fullWidth>
             <InputLabel>Compounding Frequency</InputLabel>
             <Select
               value={plan.compoundingFrequency}
@@ -210,7 +213,6 @@ const InvestmentPlanInput = ({ plan, index, handlePlanChange, handleRemovePlan, 
           />
         }
         label="Safe Investment Option"
-        sx={{ mt: 1 }}
       />
     </Box>
   );

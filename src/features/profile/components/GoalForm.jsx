@@ -51,7 +51,7 @@ export const GoalForm = ({ goal, currentYear, onSave }) => {
       </Typography>
       <Grid container spacing={2}>
         {editedGoal.investmentPlans.map((plan) => (
-          <Grid item xs={6} key={plan.id}>
+          <Grid item xs={12} sm={12} md={12} lg={6} key={plan.id}>
             <InvestmentPlanCard
               plan={plan}
               targetAmount={editedGoal.targetAmount}

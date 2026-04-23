@@ -74,18 +74,22 @@ const SipCalculatorForm = ({ onCalculate, sharedState, onSharedStateChange }) =>
       </Typography>
 
       <Box sx={{ my: 3 }}>
-        <Grid container alignItems="center" justifyContent="space-between">
-          <Typography gutterBottom>Monthly Investment</Typography>
-          <TextField
-            size="small"
-            value={monthlyContribution}
-            onChange={(e) => onSharedStateChange("monthlyContribution", Number(e.target.value))}
-            InputProps={{
-              startAdornment: <InputAdornment position="start">₹</InputAdornment>,
-            }}
-            placeholder="Enter monthly investment"
-            sx={{ width: 120 }}
-          />
+        <Grid container spacing={1} alignItems="center">
+          <Grid item xs={6}>
+            <Typography gutterBottom>Monthly Investment</Typography>
+          </Grid>
+          <Grid item xs={6}>
+            <TextField
+              size="small"
+              value={monthlyContribution}
+              onChange={(e) => onSharedStateChange("monthlyContribution", Number(e.target.value))}
+              InputProps={{
+                startAdornment: <InputAdornment position="start">₹</InputAdornment>,
+              }}
+              placeholder="Enter monthly investment"
+              fullWidth
+            />
+          </Grid>
         </Grid>
         <Slider
           value={monthlyContribution}
@@ -98,18 +102,22 @@ const SipCalculatorForm = ({ onCalculate, sharedState, onSharedStateChange }) =>
       </Box>
 
       <Box sx={{ my: 3 }}>
-        <Grid container alignItems="center" justifyContent="space-between">
-          <Typography gutterBottom>Expected Return Rate (p.a)</Typography>
-          <TextField
-            size="small"
-            value={expectedReturnRate}
-            onChange={(e) => onSharedStateChange("expectedReturnRate", Number(e.target.value))}
-            InputProps={{
-              endAdornment: <InputAdornment position="end">%</InputAdornment>,
-            }}
-            placeholder="Enter return rate"
-            sx={{ width: 100 }}
-          />
+        <Grid container spacing={1} alignItems="center">
+          <Grid item xs={6}>
+            <Typography gutterBottom>Expected Return Rate (p.a)</Typography>
+          </Grid>
+          <Grid item xs={6}>
+            <TextField
+              size="small"
+              value={expectedReturnRate}
+              onChange={(e) => onSharedStateChange("expectedReturnRate", Number(e.target.value))}
+              InputProps={{
+                endAdornment: <InputAdornment position="end">%</InputAdornment>,
+              }}
+              placeholder="Enter return rate"
+              fullWidth
+            />
+          </Grid>
         </Grid>
         <Slider
           value={expectedReturnRate}
@@ -122,18 +130,22 @@ const SipCalculatorForm = ({ onCalculate, sharedState, onSharedStateChange }) =>
       </Box>
 
       <Box sx={{ my: 3 }}>
-        <Grid container alignItems="center" justifyContent="space-between">
-          <Typography gutterBottom>Time Period (Years)</Typography>
-          <TextField
-            size="small"
-            value={timePeriod}
-            onChange={(e) => onSharedStateChange("timePeriod", Number(e.target.value))}
-            InputProps={{
-              endAdornment: <InputAdornment position="end">Yr</InputAdornment>,
-            }}
-            placeholder="Enter time period"
-            sx={{ width: 100 }}
-          />
+        <Grid container spacing={1} alignItems="center">
+          <Grid item xs={6}>
+            <Typography gutterBottom>Time Period (Years)</Typography>
+          </Grid>
+          <Grid item xs={6}>
+            <TextField
+              size="small"
+              value={timePeriod}
+              onChange={(e) => onSharedStateChange("timePeriod", Number(e.target.value))}
+              InputProps={{
+                endAdornment: <InputAdornment position="end">Yr</InputAdornment>,
+              }}
+              placeholder="Enter time period"
+              fullWidth
+            />
+          </Grid>
         </Grid>
         <Slider
           value={timePeriod}

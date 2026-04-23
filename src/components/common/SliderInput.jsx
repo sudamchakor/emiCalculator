@@ -65,7 +65,7 @@ export const SliderInput = ({
 
   // --- Reusable Components for Conditional Rendering ---
 
-  const labelComponent = (
+  const renderLabelComponent = () => (
     <Box
       sx={{
         display: "flex",
@@ -95,7 +95,7 @@ export const SliderInput = ({
     </Box>
   );
 
-  const sliderComponent = (
+  const renderSliderComponent = () => (
     <Slider
       value={internalValue}
       onChange={handleSliderChange}
@@ -107,7 +107,7 @@ export const SliderInput = ({
       valueLabelDisplay="auto"
       color={sliderColor}
       sx={{
-        flexGrow: isInline ? 1 : undefined, // Only grow when inline
+        flexGrow: 1, // Allow slider to grow
         "& .MuiSlider-track": {
           backgroundColor: isWarning ? "error.main" : undefined,
         },
@@ -118,7 +118,7 @@ export const SliderInput = ({
     />
   );
 
-  const inputComponent = showInput && (
+  const renderInputComponent = () => showInput && (
     <TextField
       type="number"
       value={internalValue}
@@ -149,7 +149,7 @@ export const SliderInput = ({
     />
   );
 
-  const warningComponent = isWarning && warningText && (
+  const renderWarningComponent = () => isWarning && warningText && (
     <Paper
       sx={{
         mt: 1.5,
@@ -178,47 +178,35 @@ export const SliderInput = ({
         width: "100%",
         paddingX: 2,
         position: "relative", // Needed for absolute positioning of warning
-        ...(isInline
-          ? {
-              display: "flex",
-              flexDirection: { xs: 'column', sm: 'row' }, // Stack vertically on xs, row on sm and up
-              alignItems: { xs: 'flex-start', sm: 'center' }, // Align items for stacked layout
-              gap: { xs: 1, sm: 2 }, // Adjust gap for stacked layout
-            }
-          : {
-              display: "block",
-            }),
       }}
     >
       {isInline ? (
-        // Inline layout: Label, Slider, Input
-        <>
-          <Box sx={{ display: 'flex', alignItems: 'center', width: { xs: '100%', sm: 'auto' }, justifyContent: { xs: 'space-between', sm: 'flex-start' } }}>
-            {labelComponent}
-            {inputComponent && (
-              <Box sx={{ display: { xs: 'block', sm: 'none' } }}>{inputComponent}</Box> // Show input next to label on xs, hide on sm+
-            )}
-          </Box>
-          <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', gap: 2, width: { xs: '100%', sm: 'auto' } }}>
-            {sliderComponent}
-            {inputComponent && (
-              <Box sx={{ display: { xs: 'none', sm: 'block' } }}>{inputComponent}</Box> // Show input next to slider on sm+, hide on xs
-            )}
-          </Box>
-        </>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column", sm: "column", md: "row" }, // Stack on xs/sm, row on md+
+            alignItems: { xs: "flex-start", md: "center" }, // Align items
+            gap: { xs: 1, md: 2 }, // Adjust gap
+            width: "100%",
+          }}
+        >
+          {renderLabelComponent()}
+          {renderSliderComponent()}
+          {renderInputComponent()}
+        </Box>
       ) : (
         // Block layout: Label & Input (flex row), then Slider below
         <>
           <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 1 }}>
-            {labelComponent}
-            {inputComponent && (
-              <Box sx={{ marginLeft: "auto" }}>{inputComponent}</Box>
+            {renderLabelComponent()}
+            {renderInputComponent() && (
+              <Box sx={{ marginLeft: "auto" }}>{renderInputComponent()}</Box>
             )}
           </Box>
-          {sliderComponent}
+          {renderSliderComponent()}
         </>
       )}
-      {warningComponent}
+      {renderWarningComponent()}
     </Box>
   );
 };

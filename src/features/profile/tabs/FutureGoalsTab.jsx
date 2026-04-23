@@ -13,8 +13,14 @@ import {
   DialogTitle,
   DialogActions,
   Slide,
+  useMediaQuery,
+  useTheme,
+  Menu,
+  MenuItem,
+  Fab,
 } from "@mui/material";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
+import AddIcon from "@mui/icons-material/Add";
 import EditableGoalItem from "../../../components/common/EditableGoalItem";
 import GoalForm from "../components/GoalForm";
 import {
@@ -67,12 +73,7 @@ const COLORS = [
 const Transition = React.forwardRef(function Transition(props, ref) {
   const { children, ...other } = props;
   return (
-    <Slide
-      direction="up"
-      ref={ref}
-      {...other}
-      timeout={500}
-    >
+    <Slide direction="up" ref={ref} {...other} timeout={500}>
       {children}
     </Slide>
   );
@@ -80,6 +81,8 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 
 export default function FutureGoalsTab({ goalToEditId }) {
   const dispatch = useDispatch();
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
   const goals = useSelector(selectGoals) || [];
   const considerInflation = useSelector(selectConsiderInflation) || false;
@@ -89,13 +92,19 @@ export default function FutureGoalsTab({ goalToEditId }) {
   const generalInflationRate = useSelector(selectGeneralInflationRate) || 0;
   const educationInflationRate = useSelector(selectEducationInflationRate) || 0;
   const careerGrowthRaw = useSelector(selectCareerGrowthRate);
-  const careerGrowthRate = typeof careerGrowthRaw === 'object' ? careerGrowthRaw.value : (careerGrowthRaw || 0);
-  const careerGrowthType = typeof careerGrowthRaw === 'object' ? careerGrowthRaw.type : 'percentage';
+  const careerGrowthRate =
+    typeof careerGrowthRaw === "object"
+      ? careerGrowthRaw.value
+      : careerGrowthRaw || 0;
+  const careerGrowthType =
+    typeof careerGrowthRaw === "object" ? careerGrowthRaw.type : "percentage";
   const totalMonthlyIncome = useSelector(selectTotalMonthlyIncome) || 0;
   const totalMonthlyGoalContributions =
     useSelector(selectTotalMonthlyGoalContributions) || 0;
   const { emi: monthlyEmi } = useSelector(selectCalculatedValues);
-  const emiState = useSelector((state) => state.emi || state.emiCalculator || {});
+  const emiState = useSelector(
+    (state) => state.emi || state.emiCalculator || {},
+  );
   const currency = useSelector(selectCurrency);
 
   const currentSurplus = useSelector(selectCurrentSurplus) || 0;
@@ -104,6 +113,8 @@ export default function FutureGoalsTab({ goalToEditId }) {
   const [openModal, setOpenModal] = useState(false);
   const [editingGoal, setEditingGoal] = useState(null);
   const [modalTitle, setModalTitle] = useState("Add New Goal");
+  const [fabAnchorEl, setFabAnchorEl] = useState(null); // State for FAB menu anchor
+  const openFabMenu = Boolean(fabAnchorEl); // State for FAB menu open/close
 
   const [currentGoalFormData, setCurrentGoalFormData] = useState(null);
 
@@ -123,8 +134,6 @@ export default function FutureGoalsTab({ goalToEditId }) {
   const handleModalSave = useCallback(() => {
     if (!currentGoalFormData) return;
 
-    // THE FIX: Trust the data from GoalForm.jsx completely. No more recalculations here.
-    // The `currentGoalFormData` already has the correctly calculated `monthlyContribution` for each plan.
     const finalGoal = {
       ...currentGoalFormData,
       category: currentGoalFormData.category || "general",
@@ -133,7 +142,6 @@ export default function FutureGoalsTab({ goalToEditId }) {
     if (editingGoal && editingGoal.id) {
       dispatch(updateGoal({ ...finalGoal, id: editingGoal.id }));
     } else {
-      // For new goals, ensure a unique ID is set.
       dispatch(addGoal({ ...finalGoal, id: Date.now() }));
     }
     handleCloseModal();
@@ -157,6 +165,7 @@ export default function FutureGoalsTab({ goalToEditId }) {
     });
     setModalTitle("Add New Goal");
     setOpenModal(true);
+    handleCloseFabMenu(); // Close the FAB menu after selecting "New Goal"
   }, [currentYear]);
 
   const handleCloseModal = useCallback(() => {
@@ -166,10 +175,25 @@ export default function FutureGoalsTab({ goalToEditId }) {
     setModalTitle("Add New Goal");
   }, []);
 
+  const handleOpenFabMenu = (event) => {
+    setFabAnchorEl(event.currentTarget);
+  };
+
+  const handleCloseFabMenu = () => {
+    setFabAnchorEl(null);
+  };
+
+  const handleSelectTemplate = (templateFunction) => {
+    templateFunction();
+    handleCloseFabMenu(); // Close the FAB menu after selecting a template
+  };
+
   const applyRetirementGoal = useCallback(() => {
     const yearsToRetirement = retirementAge - currentAge;
     if (yearsToRetirement < 0) {
-      alert("Retirement age is in the past. Please adjust your retirement age.");
+      alert(
+        "Retirement age is in the past. Please adjust your retirement age.",
+      );
       return;
     }
 
@@ -244,12 +268,7 @@ export default function FutureGoalsTab({ goalToEditId }) {
     });
     setModalTitle("Add Emergency Fund Goal");
     setOpenModal(true);
-  }, [
-    profileExpenses,
-    monthlyEmi,
-    totalMonthlyGoalContributions,
-    currentYear,
-  ]);
+  }, [profileExpenses, monthlyEmi, totalMonthlyGoalContributions, currentYear]);
 
   const wealthData = useMemo(() => {
     const maxGoalYear = goals.reduce(
@@ -287,7 +306,10 @@ export default function FutureGoalsTab({ goalToEditId }) {
 
     let loanTenureMonths = 0;
     if (emiState && emiState.tenure) {
-      loanTenureMonths = emiState.tenureType === 'years' ? Number(emiState.tenure) * 12 : Number(emiState.tenure);
+      loanTenureMonths =
+        emiState.tenureType === "years"
+          ? Number(emiState.tenure) * 12
+          : Number(emiState.tenure);
     }
 
     for (let year = currentYear; year <= endYear; year++) {
@@ -298,10 +320,10 @@ export default function FutureGoalsTab({ goalToEditId }) {
       let previousYearMonthlyIncome = currentMonthlyIncome;
 
       if (yearsFromNow > 0 && yearsFromNow % 1 === 0) {
-        if (careerGrowthType === 'percentage') {
-            currentMonthlyIncome *= 1 + careerGrowthRate;
+        if (careerGrowthType === "percentage") {
+          currentMonthlyIncome *= 1 + careerGrowthRate;
         } else {
-            currentMonthlyIncome += (careerGrowthRate / 12);
+          currentMonthlyIncome += careerGrowthRate / 12;
         }
       }
 
@@ -349,7 +371,8 @@ export default function FutureGoalsTab({ goalToEditId }) {
           currentBonusGains / Math.pow(1 + generalInflationRate, yearsFromNow);
       }
 
-      const cumulativeLoanCost = monthlyEmi * Math.min(yearsFromNow * 12, loanTenureMonths);
+      const cumulativeLoanCost =
+        monthlyEmi * Math.min(yearsFromNow * 12, loanTenureMonths);
 
       const totalGoalsThisYear = goals.reduce((sum, g) => {
         if (g.targetYear === year) {
@@ -403,74 +426,79 @@ export default function FutureGoalsTab({ goalToEditId }) {
   return (
     <Grid container spacing={4}>
       <Grid item xs={12}>
-        <Paper sx={{ p: 3, mb: 3 }}>
-          <Grid container spacing={2} sx={{ mb: 2 }}>
-            <Grid item xs={12}>
-              <Typography
-                variant="h6"
-                sx={{
-                  fontWeight: 600,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
-                }}
-              >
-                <TrendingUpIcon /> Smart Goal Templates
-              </Typography>
-            </Grid>
-            <Grid
-              item
-              xs={12}
-              sm={3}
-              sx={{ display: "flex", justifyContent: "center" }}
-            >
-              <Button variant="outlined" onClick={applyRetirementGoal}>
-                🎯 Retirement
-              </Button>
-            </Grid>
-            <Grid
-              item
-              xs={12}
-              sm={3}
-              sx={{ display: "flex", justifyContent: "center" }}
-            >
-              <Button variant="outlined" onClick={applyEducationGoal}>
-                🎓 Child's Education
-              </Button>
-            </Grid>
-            <Grid
-              item
-              xs={12}
-              sm={3}
-              sx={{ display: "flex", justifyContent: "center" }}
-            >
-              <Button variant="outlined" onClick={applyEmergencyFundGoal}>
-                🛟 Emergency Fund (6M)
-              </Button>
-            </Grid>
-            <Grid
-              item
-              xs={12}
-              sm={3}
-              sx={{ display: "flex", justifyContent: "center" }}
-            >
-              <Button
-                variant="contained"
-                onClick={handleOpenModalForNew}
-                disabled={currentSurplus < 0}
-              >
-                New Goal
-              </Button>
-            </Grid>
-          </Grid>
-
-          {currentSurplus < 0 && (
-            <Alert severity="warning" sx={{ mt: 2 }}>
-              Cannot add new goals. Your current surplus is negative.
-            </Alert>
-          )}
-        </Paper>
+        {currentSurplus < 0 && (
+          <Alert severity="warning" sx={{ mt: 2 }}>
+            Cannot add new goals. Your current surplus is negative.
+          </Alert>
+        )}
       </Grid>
+
+      {!isSmallScreen && (
+        <Grid item xs={12}>
+          <Paper sx={{ p: 3, mb: 3 }}>
+            <Grid container spacing={2} sx={{ mb: 2 }}>
+              <Grid item xs={12}>
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontWeight: 600,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                  }}
+                >
+                  <TrendingUpIcon /> Smart Goal Templates
+                </Typography>
+              </Grid>
+              <Grid
+                item
+                xs={12}
+                sm={3}
+                sx={{ display: "flex", justifyContent: "center" }}
+              >
+                <Button variant="outlined" onClick={applyRetirementGoal}>
+                  🎯 Retirement
+                </Button>
+              </Grid>
+              <Grid
+                item
+                xs={12}
+                sm={3}
+                sx={{ display: "flex", justifyContent: "center" }}
+              >
+                <Button variant="outlined" onClick={applyEducationGoal}>
+                  🎓 Child's Education
+                </Button>
+              </Grid>
+              <Grid
+                item
+                xs={12}
+                sm={3}
+                sx={{ display: "flex", justifyContent: "center" }}
+              >
+                <Button variant="outlined" onClick={applyEmergencyFundGoal}>
+                  🛟 Emergency Fund (6M)
+                </Button>
+              </Grid>
+              <Grid
+                item
+                xs={12}
+                sm={3}
+                sx={{ display: "flex", justifyContent: "center" }}
+              >
+                <Button
+                  variant="contained"
+                  onClick={handleOpenModalForNew}
+                  disabled={currentSurplus < 0}
+                >
+                  New Goal
+                </Button>
+              </Grid>
+            </Grid>
+          </Paper>
+        </Grid>
+      )}
+
       <Grid item xs={12} md={4}>
         <Grid item xs={12}>
           <Paper sx={{ p: 3 }}>
@@ -716,17 +744,57 @@ export default function FutureGoalsTab({ goalToEditId }) {
         </Grid>
       </Grid>
 
+      {isSmallScreen && (
+        <>
+          <Fab
+            color="primary"
+            aria-label="add"
+            sx={{
+              position: "fixed",
+              bottom: 16,
+              right: 16,
+            }}
+            onClick={handleOpenFabMenu}
+            disabled={currentSurplus < 0}
+          >
+            <AddIcon />
+          </Fab>
+          <Menu
+            anchorEl={fabAnchorEl}
+            open={openFabMenu}
+            onClose={handleCloseFabMenu}
+            MenuListProps={{
+              "aria-labelledby": "fab-add-button",
+            }}
+          >
+            <MenuItem onClick={handleOpenModalForNew}>
+              <AddIcon sx={{ mr: 1 }} /> New Goal
+            </MenuItem>
+            <MenuItem onClick={() => handleSelectTemplate(applyRetirementGoal)}>
+              🎯 Retirement
+            </MenuItem>
+            <MenuItem onClick={() => handleSelectTemplate(applyEducationGoal)}>
+              🎓 Child's Education
+            </MenuItem>
+            <MenuItem
+              onClick={() => handleSelectTemplate(applyEmergencyFundGoal)}
+            >
+              🛟 Emergency Fund (6M)
+            </MenuItem>
+          </Menu>
+        </>
+      )}
+
       <Dialog
         open={openModal}
         onClose={handleCloseModal}
-        maxWidth="sm"
         fullWidth
         slots={{
           transition: Transition,
         }}
         fullScreen
         sx={{
-          marginTop: 10,
+          ...(isSmallScreen ? {} : { marginTop: 10 }),
         }}
       >
         <DialogTitle>
