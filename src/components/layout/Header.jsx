@@ -288,7 +288,7 @@ const Header = () => {
         >
           <CalculateIcon className="header-icon" />
           <Typography variant="h6" component="div" className="header-brand">
-            EMI Calculator
+            SmartFund Manager
           </Typography>
         </Box>
 

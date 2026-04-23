@@ -46,7 +46,7 @@ const Footer = () => {
       <Typography variant="body2" color="text.secondary">
         {"Copyright © "}
         <Link color="inherit" href="https://yourwebsite.com/">
-          Your Website
+          SmartFund Manager
         </Link>{" "}
         {new Date().getFullYear()}
         {"."}

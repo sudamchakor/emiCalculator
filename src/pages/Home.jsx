@@ -37,7 +37,7 @@ export default function Home() {
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 8 }}>
       <Typography variant="h4" gutterBottom sx={{ fontWeight: 600, textAlign: "center", mb: 5 }}>
-        Welcome to the Financial Planner
+        Welcome to SmartFund Manager
       </Typography>
       <Grid container spacing={3}>
         {features.map((feature, index) => (
