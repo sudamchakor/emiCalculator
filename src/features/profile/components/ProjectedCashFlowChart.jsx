@@ -1,8 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { Paper, Typography } from "@mui/material";
 import {
   ComposedChart,
-  Area, // Import Area
+  Area,
   Line,
   XAxis,
   YAxis,
@@ -10,6 +10,7 @@ import {
   ResponsiveContainer,
   Tooltip as RechartsTooltip,
   Legend,
+  ReferenceLine,
 } from "recharts";
 import { useTheme } from "@mui/material/styles";
 import { useSelector } from "react-redux";
@@ -39,6 +40,45 @@ const roundToNiceNumber = (val, roundUp) => {
   return sign * scaled * magnitude;
 };
 
+// Custom Legend to show struck-through or faded text for disabled items
+const renderLegend = (props, hiddenLines) => {
+  const { payload, onClick } = props;
+  return (
+    <ul style={{ listStyle: 'none', padding: 0, display: 'flex', justifyContent: 'center', margin: 0 }}>
+      {payload.map((entry, index) => {
+        const isHidden = hiddenLines[entry.dataKey];
+        return (
+          <li
+            key={`item-${index}`}
+            onClick={() => onClick(entry)}
+            style={{
+              cursor: 'pointer',
+              marginRight: 20,
+              display: 'flex',
+              alignItems: 'center',
+              color: isHidden ? '#999' : '#000',
+              textDecoration: isHidden ? 'line-through' : 'none',
+              opacity: isHidden ? 0.5 : 1,
+            }}
+          >
+            <span
+              style={{
+                display: 'inline-block',
+                width: 14,
+                height: 14,
+                backgroundColor: entry.color,
+                marginRight: 8,
+                opacity: isHidden ? 0.5 : 1,
+              }}
+            />
+            {entry.value}
+          </li>
+        );
+      })}
+    </ul>
+  );
+};
+
 export default function ProjectedCashFlowChart({
   currentAge,
   retirementAge,
@@ -48,15 +88,26 @@ export default function ProjectedCashFlowChart({
   emiState,
   individualGoalInvestments,
   goals,
-  expenses, // Pass expenses for projection calculation
-  incomes, // Accept incomes as a prop
+  expenses,
+  incomes,
   inflationRate,
 }) {
   const theme = useTheme();
   const currency = useSelector(selectCurrency);
+  const [hiddenLines, setHiddenLines] = useState({});
 
   const formatCurrency = (val) =>
     `${currency}${Number(val || 0).toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
+
+  const handleLegendClick = (e) => {
+    const { dataKey } = e;
+    if (dataKey) {
+      setHiddenLines((prev) => ({
+        ...prev,
+        [dataKey]: !prev[dataKey],
+      }));
+    }
+  };
 
   // --- Income & Expense Projection Calculation ---
   const projectionYears = retirementAge > currentAge ? retirementAge - currentAge : 0;
@@ -85,20 +136,20 @@ export default function ProjectedCashFlowChart({
     for (let year = currentYear; year <= endProjectionYear; year++) {
       const yearsFromNow = year - currentYear;
 
-      // Use the incomes prop directly
       let annualIncome = 0;
       let hasActiveIncome = false;
 
-      incomes.forEach((inc) => { // Use incomes prop directly
+      incomes.forEach((inc) => {
         const start = inc.startYear || currentYear;
         const end = inc.endYear || currentYear + 10;
         if (year >= start && year <= end) {
           hasActiveIncome = true;
-          let yearlyAmount = Number(inc.amount) || 0;
+          let rawAmount = Number(inc.amount) || 0;
 
-          if (inc.frequency === 'monthly') yearlyAmount *= 12;
-          else if (inc.frequency === 'quarterly') yearlyAmount *= 4;
+          if (inc.frequency === 'monthly') rawAmount *= 12;
+          else if (inc.frequency === 'quarterly') rawAmount *= 4;
 
+          let yearlyAmount = rawAmount;
           const activeYears = year - Math.max(start, currentYear);
           if (activeYears > 0) {
             if (careerGrowthType === 'percentage') {
@@ -116,16 +167,20 @@ export default function ProjectedCashFlowChart({
          }
       }
 
+      let baseAnnualExpense = 0;
       let annualExpense = 0;
 
       expenses.forEach((exp) => {
         const start = exp.startYear || currentYear;
         const end = exp.endYear || currentYear + 10;
         if (year >= start && year <= end) {
-          let yearlyAmount = Number(exp.amount) || 0;
-          if (exp.frequency === 'monthly') yearlyAmount *= 12;
-          else if (exp.frequency === 'quarterly') yearlyAmount *= 4;
+          let rawAmount = Number(exp.amount) || 0;
+          if (exp.frequency === 'monthly') rawAmount *= 12;
+          else if (exp.frequency === 'quarterly') rawAmount *= 4;
 
+          baseAnnualExpense += rawAmount;
+
+          let yearlyAmount = rawAmount;
           const activeYears = year - Math.max(start, currentYear);
           if (activeYears > 0) {
             yearlyAmount *= Math.pow(1 + inflationRate, activeYears);
@@ -143,26 +198,31 @@ export default function ProjectedCashFlowChart({
           }
         }
       }
-      annualExpense += (monthlyEmi || 0) * activeEmiMonths;
+      
+      const emiAnnual = (monthlyEmi || 0) * activeEmiMonths;
+      annualExpense += emiAnnual;
+      baseAnnualExpense += emiAnnual;
 
       individualGoalInvestments.forEach((inv) => {
         if (inv.type === 'one-time-yearly') {
-          // For one-time yearly investments, only add if the current projection year matches the investment's target year
-          if (year === inv.year) { // inv.year is the goal.targetYear
-            annualExpense += Number(inv.amount) || 0;
+          if (year === inv.year) {
+            const amt = Number(inv.amount) || 0;
+            annualExpense += amt;
+            baseAnnualExpense += amt;
           }
         } else {
-          // For recurring investments (SIPs, etc.)
           const start = inv.startYear || currentYear;
-          // Use goalTargetYear for end if available, otherwise default
           const end = inv.endYear || (inv.goalTargetYear ? inv.goalTargetYear : currentYear + 10);
 
           if (year >= start && year <= end) {
-            let yearlyAmount = Number(inv.amount) || 0;
+            let rawAmount = Number(inv.amount) || 0;
 
-            if (inv.frequency === 'monthly') yearlyAmount *= 12;
-            else if (inv.frequency === 'quarterly') yearlyAmount *= 4;
+            if (inv.frequency === 'monthly') rawAmount *= 12;
+            else if (inv.frequency === 'quarterly') rawAmount *= 4;
 
+            baseAnnualExpense += rawAmount;
+
+            let yearlyAmount = rawAmount;
             if (inv.type === 'step_up_sip' || inv.investmentType === 'step_up_sip') {
               const stepUpRate = inv.stepUpRate ? (inv.stepUpRate / 100) : 0;
               const activeYears = year - start;
@@ -178,6 +238,7 @@ export default function ProjectedCashFlowChart({
       projectionData.push({
         year: year,
         Income: Math.round(annualIncome),
+        BaseExpenses: Math.round(baseAnnualExpense),
         Expenses: Math.round(annualExpense),
         Surplus: Math.round(annualIncome - annualExpense),
       });
@@ -186,18 +247,16 @@ export default function ProjectedCashFlowChart({
 
   // --- Dynamic Y-Axis Calculation ---
   let yMin = 0;
-  let yMax = 100000; // A default max to avoid empty chart issues
+  let yMax = 100000;
 
   if (projectionData.length > 0) {
-    const allValues = projectionData.flatMap(d => [d.Income, d.Expenses, d.Surplus]);
+    const allValues = projectionData.flatMap(d => [d.Income, d.Expenses, d.Surplus, d.BaseExpenses]);
     const minValue = Math.min(...allValues);
     const maxValue = Math.max(...allValues);
 
-    // Apply a 10% buffer first
-    const bufferedMin = minValue < 0 ? minValue * 1.1 : 0; // If min is negative, give it buffer. Otherwise, start at 0.
+    const bufferedMin = minValue < 0 ? minValue * 1.1 : 0;
     const bufferedMax = maxValue * 1.1;
 
-    // Round to nice numbers
     yMin = roundToNiceNumber(bufferedMin, false);
     yMax = roundToNiceNumber(bufferedMax, true);
   }
@@ -220,10 +279,53 @@ export default function ProjectedCashFlowChart({
             allowDataOverflow={true}
            />
           <RechartsTooltip formatter={(value, name) => [formatCurrency(value), name]} />
-          <Legend />
-          <Area type="monotone" dataKey="Income" name="Annual Income" fill={theme.palette.success.light} stroke={theme.palette.success.main} />
-          <Area type="monotone" dataKey="Expenses" name="Annual Expenses" fill={theme.palette.error.light} stroke={theme.palette.error.main} />
-          <Line type="monotone" dataKey="Surplus" name="Surplus" stroke={theme.palette.primary.main} strokeWidth={2} />
+          
+          <Legend 
+            content={(props) => renderLegend(props, hiddenLines)}
+            onClick={handleLegendClick} 
+          />
+          
+          <ReferenceLine y={0} stroke={theme.palette.text.primary} strokeWidth={2} />
+
+          <Area 
+            hide={hiddenLines["Income"]} 
+            type="monotone" 
+            dataKey="Income" 
+            name="Annual Income" 
+            fill={theme.palette.success.light} 
+            stroke={theme.palette.success.main} 
+          />
+          
+          <Area 
+            hide={hiddenLines["Expenses"]} 
+            legendType="none" 
+            type="monotone" 
+            dataKey="BaseExpenses" 
+            name="Base Expenses" 
+            fill={theme.palette.error.light} 
+            stroke={theme.palette.error.light} 
+            fillOpacity={0.3} 
+          />
+          <Line 
+            hide={hiddenLines["Expenses"]} 
+            type="monotone" 
+            dataKey="Expenses" 
+            name="Expenses" 
+            stroke={theme.palette.error.main} 
+            strokeDasharray="5 5" 
+            strokeWidth={2} 
+            dot={false} 
+          />
+          
+          <Line 
+            hide={hiddenLines["Surplus"]} 
+            type="monotone" 
+            dataKey="Surplus" 
+            name="Surplus" 
+            stroke={theme.palette.primary.main} 
+            strokeWidth={2} 
+            dot={false} 
+          />
         </ComposedChart>
       </ResponsiveContainer>
     </Paper>

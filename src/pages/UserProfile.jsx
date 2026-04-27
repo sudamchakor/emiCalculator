@@ -10,6 +10,7 @@ import { selectCurrency } from "../store/emiSlice"; // Only need currency now
 import PersonalProfileTab from "../features/profile/tabs/PersonalProfileTab";
 import FutureGoalsTab from "../features/profile/tabs/FutureGoalsTab";
 import Settings from "../features/profile/tabs/Settings";
+import ExpensesGraph from "../features/profile/components/ExpensesGraph"; // Import the new component
 import OnboardingModal from "../features/profile/tabs/OnboardingModal";
 
 function CustomTabPanel(props) {
@@ -126,6 +127,7 @@ export default function UserProfile() {
       {/* Tab 1: Personal Profile */}
       <CustomTabPanel value={tabValue} index={0}>
         <PersonalProfileTab onEditGoal={handleEditGoal} /> {/* Pass the handler */}
+        <ExpensesGraph /> {/* Add the new ExpensesGraph component */}
       </CustomTabPanel>
 
       {/* Tab 2: Future Goals */}
