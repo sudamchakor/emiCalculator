@@ -13,8 +13,8 @@ import {
   Divider,
 } from "@mui/material";
 import InfoIcon from "@mui/icons-material/Info";
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import dayjs from 'dayjs';
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import dayjs from "dayjs";
 import EditableIncomeExpenseItem from "../../../components/common/EditableIncomeExpenseItem";
 import SliderInput from "../../../components/common/SliderInput";
 import { AmountWithUnitInput } from "../../../components/common/CommonComponents";
@@ -32,7 +32,11 @@ import { selectCurrency } from "../../../store/emiSlice";
 
 const currentYear = new Date().getFullYear();
 
-export default function IncomeSection({ isModal, onCloseModal, isSmallScreen }) {
+export default function IncomeSection({
+  isModal,
+  onCloseModal,
+  isSmallScreen,
+}) {
   const dispatch = useDispatch();
 
   const incomes = useSelector(selectIncomes) || [];
@@ -40,8 +44,12 @@ export default function IncomeSection({ isModal, onCloseModal, isSmallScreen }) 
   const careerGrowthRaw = useSelector(selectCareerGrowthRate);
   const currency = useSelector(selectCurrency);
 
-  const careerGrowthRate = typeof careerGrowthRaw === 'object' ? careerGrowthRaw.value : (careerGrowthRaw || 0);
-  const careerGrowthType = typeof careerGrowthRaw === 'object' ? careerGrowthRaw.type : 'percentage';
+  const careerGrowthRate =
+    typeof careerGrowthRaw === "object"
+      ? careerGrowthRaw.value
+      : careerGrowthRaw || 0;
+  const careerGrowthType =
+    typeof careerGrowthRaw === "object" ? careerGrowthRaw.type : "percentage";
 
   const [newIncome, setNewIncome] = useState({
     name: "",
@@ -102,7 +110,8 @@ export default function IncomeSection({ isModal, onCloseModal, isSmallScreen }) 
       sx={{
         p: isModal ? 4 : 3, // Apply padding from modalStyle when in modal
         height: "100%",
-        ...(isModal && { // Apply modal-specific styles when in modal
+        ...(isModal && {
+          // Apply modal-specific styles when in modal
           bgcolor: "background.paper",
           boxShadow: 24,
           borderRadius: 2,
@@ -169,17 +178,6 @@ export default function IncomeSection({ isModal, onCloseModal, isSmallScreen }) 
                   }
                 />
               </Grid>
-              <Grid item xs={12} sm={6}>
-                <SliderInput
-                  label="Amount"
-                  value={Number(newIncome.amount) || 0}
-                  onChange={(val) => setNewIncome({ ...newIncome, amount: val })}
-                  min={0}
-                  max={10000000}
-                  step={1000}
-                  showInput={true}
-                />
-              </Grid>
               <Grid item xs={12} sm={4}>
                 <FormControl size="small" fullWidth>
                   <InputLabel>Frequency</InputLabel>
@@ -196,36 +194,68 @@ export default function IncomeSection({ isModal, onCloseModal, isSmallScreen }) 
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={12} sm={4}>
+              <Grid item xs={12} sm={12}>
+                <SliderInput
+                  label="Amount"
+                  value={Number(newIncome.amount) || 0}
+                  onChange={(val) =>
+                    setNewIncome({ ...newIncome, amount: val })
+                  }
+                  min={0}
+                  max={10000000}
+                  step={1000}
+                  showInput={true}
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
                 <DatePicker
                   label="Start Year"
-                  views={['year', 'month']}
+                  views={["year", "month"]}
                   openTo="month"
                   open={incomeStartYearOpen}
                   onOpen={() => setIncomeStartYearOpen(true)}
                   onClose={() => setIncomeStartYearOpen(false)}
                   value={dayjs(`${newIncome.startYear}-01-01`)}
                   onChange={(newValue) =>
-                    setNewIncome({ ...newIncome, startYear: newValue ? newValue.year() : currentYear })
+                    setNewIncome({
+                      ...newIncome,
+                      startYear: newValue ? newValue.year() : currentYear,
+                    })
                   }
-                  slotProps={{ textField: { size: 'small', fullWidth: true, onClick: () => setIncomeStartYearOpen(true) } }}
+                  slotProps={{
+                    textField: {
+                      size: "small",
+                      fullWidth: true,
+                      onClick: () => setIncomeStartYearOpen(true),
+                    },
+                  }}
                   minDate={dayjs(`${currentYear}-01-01`)}
                   maxDate={dayjs(`${currentYear + 50}-12-31`)}
                 />
               </Grid>
-              <Grid item xs={12} sm={4}>
+              <Grid item xs={12} sm={6}>
                 <DatePicker
                   label="End Year"
-                  views={['year', 'month']}
+                  views={["year", "month"]}
                   openTo="month"
                   open={incomeEndYearOpen}
                   onOpen={() => setIncomeEndYearOpen(true)}
                   onClose={() => setIncomeEndYearOpen(false)}
                   value={dayjs(`${newIncome.endYear}-01-01`)}
                   onChange={(newValue) =>
-                    setNewIncome({ ...newIncome, endYear: newValue ? newValue.year() : currentYear + 10 })
+                    setNewIncome({
+                      ...newIncome,
+                      endYear: newValue ? newValue.year() : currentYear + 10,
+                    })
                   }
-                  slotProps={{ textField: { size: 'small', fullWidth: true, onClick: () => setIncomeEndYearOpen(true) } }}
+                  slotProps={{
+                    textField: {
+                      size: "small",
+                      fullWidth: true,
+                      onClick: () => setIncomeEndYearOpen(true),
+                    },
+                  }}
                   minDate={dayjs(`${newIncome.startYear}-01-01`)}
                   maxDate={dayjs(`${currentYear + 50}-12-31`)}
                 />
@@ -243,13 +273,8 @@ export default function IncomeSection({ isModal, onCloseModal, isSmallScreen }) 
                 {editingIncomeId && (
                   <Button onClick={handleCancelEditIncome}>Cancel</Button>
                 )}
-                {isModal && (
-                  <Button onClick={onCloseModal}>Cancel</Button>
-                )}
-                <Button
-                  variant="contained"
-                  onClick={handleAddOrUpdateIncome}
-                >
+                {isModal && <Button onClick={onCloseModal}>Cancel</Button>}
+                <Button variant="contained" onClick={handleAddOrUpdateIncome}>
                   {editingIncomeId ? "Update" : "Add"}
                 </Button>
               </Grid>
@@ -282,26 +307,34 @@ export default function IncomeSection({ isModal, onCloseModal, isSmallScreen }) 
           </Typography>
           <AmountWithUnitInput
             label="Expected Annual Salary Hike"
-            value={careerGrowthType === 'percentage' ? (careerGrowthRate * 100).toFixed(2) : careerGrowthRate}
+            value={
+              careerGrowthType === "percentage"
+                ? (careerGrowthRate * 100).toFixed(2)
+                : careerGrowthRate
+            }
             onAmountChange={(e) => {
               const val = Number(e.target.value);
-              dispatch(setCareerGrowthRate({
-                type: careerGrowthType,
-                value: careerGrowthType === 'percentage' ? val / 100 : val
-              }));
+              dispatch(
+                setCareerGrowthRate({
+                  type: careerGrowthType,
+                  value: careerGrowthType === "percentage" ? val / 100 : val,
+                }),
+              );
             }}
-            unitValue={careerGrowthType === 'percentage' ? '%' : currency}
+            unitValue={careerGrowthType === "percentage" ? "%" : currency}
             onUnitChange={(e) => {
               const newUnit = e.target.value;
-              const newType = newUnit === '%' ? 'percentage' : 'fixed';
-              dispatch(setCareerGrowthRate({
-                type: newType,
-                value: newType === 'percentage' ? 0.1 : 50000
-              }));
+              const newType = newUnit === "%" ? "percentage" : "fixed";
+              dispatch(
+                setCareerGrowthRate({
+                  type: newType,
+                  value: newType === "percentage" ? 0.1 : 50000,
+                }),
+              );
             }}
             unitOptions={[
-              { value: '%', label: '%' },
-              { value: currency, label: currency }
+              { value: "%", label: "%" },
+              { value: currency, label: currency },
             ]}
           />
         </>

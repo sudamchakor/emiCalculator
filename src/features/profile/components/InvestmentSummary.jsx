@@ -22,7 +22,7 @@ const InvestmentSummary = ({ plans, targetAmount }) => {
     0,
   );
 
-  const isMismatch = totalValue !== (targetAmount || 0); // Ensure targetAmount is treated as a number
+  const isMismatch = totalValue <= (targetAmount || 0); // Ensure targetAmount is treated as a number
 
   const formatAmount = (amount) =>
     `₹${(amount || 0).toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
@@ -30,11 +30,7 @@ const InvestmentSummary = ({ plans, targetAmount }) => {
   return (
     <Card sx={{ mt: 2, border: isMismatch ? "2px solid red" : "none" }}>
       <CardContent sx={{ py: { xs: 1, sm: 2 } }}>
-        <Typography
-          variant="h6"
-          gutterBottom
-          sx={{ fontSize: { xs: "1rem", sm: "1.1rem", md: "1.25rem" } }}
-        >
+        <Typography gutterBottom sx={{ fontSize: "1rem", fontWeight: 500 }}>
           Investment Summary
         </Typography>
         {isMismatch && (
@@ -42,7 +38,7 @@ const InvestmentSummary = ({ plans, targetAmount }) => {
             color="error"
             variant="body2"
             gutterBottom
-            sx={{ fontSize: { xs: "0.75rem", sm: "0.875rem" } }}
+            sx={{ fontSize: "0.65rem" }}
           >
             Warning: The total projected value does not match the target amount.
           </Typography>
@@ -61,19 +57,17 @@ const InvestmentSummary = ({ plans, targetAmount }) => {
             }}
           >
             <Typography
-              variant="subtitle1"
               sx={{
-                fontSize: { xs: "0.85rem", sm: "0.95rem", md: "1rem" },
+                fontSize: { xs: "0.85rem", sm: "0.90rem", md: "0.95rem" },
                 textAlign: { xs: "left", sm: "center" },
               }}
             >
               Invested
             </Typography>
             <Typography
-              variant="h5"
               sx={{
                 fontWeight: "bold",
-                fontSize: { xs: "1rem", sm: "1.5rem", md: "1.75rem" }, // Reduced font size for xs
+                fontSize: "1rem", // Reduced font size for xs
                 textAlign: { xs: "right", sm: "center" },
               }}
             >
@@ -93,20 +87,18 @@ const InvestmentSummary = ({ plans, targetAmount }) => {
             }}
           >
             <Typography
-              variant="subtitle1"
               sx={{
-                fontSize: { xs: "0.85rem", sm: "0.95rem", md: "1rem" },
+                fontSize: { xs: "0.85rem", sm: "0.90rem", md: "0.95rem" },
                 textAlign: { xs: "left", sm: "center" },
               }}
             >
               Returns
             </Typography>
             <Typography
-              variant="h5"
               color="success.main"
               sx={{
                 fontWeight: "bold",
-                fontSize: { xs: "1rem", sm: "1.5rem", md: "1.75rem" }, // Reduced font size for xs
+                fontSize: "1rem", // Reduced font size for xs
                 textAlign: { xs: "right", sm: "center" },
               }}
             >
@@ -126,20 +118,18 @@ const InvestmentSummary = ({ plans, targetAmount }) => {
             }}
           >
             <Typography
-              variant="subtitle1"
               sx={{
-                fontSize: { xs: "0.85rem", sm: "0.95rem", md: "1rem" },
+                fontSize: { xs: "0.85rem", sm: "0.90rem", md: "0.95rem" },
                 textAlign: { xs: "left", sm: "center" },
               }}
             >
               Total Value
             </Typography>
             <Typography
-              variant="h5"
               color={isMismatch ? "error" : "primary.main"}
               sx={{
                 fontWeight: "bold",
-                fontSize: { xs: "1rem", sm: "1.5rem", md: "1.75rem" }, // Reduced font size for xs
+                fontSize: "1rem", // Reduced font size for xs
                 textAlign: { xs: "right", sm: "center" },
               }}
             >
@@ -159,19 +149,17 @@ const InvestmentSummary = ({ plans, targetAmount }) => {
             }}
           >
             <Typography
-              variant="subtitle1"
               sx={{
-                fontSize: { xs: "0.85rem", sm: "0.95rem", md: "1rem" },
+                fontSize: { xs: "0.85rem", sm: "0.90rem", md: "0.95rem" },
                 textAlign: { xs: "left", sm: "center" },
               }}
             >
               Time Period
             </Typography>
             <Typography
-              variant="h5"
               sx={{
                 fontWeight: "bold",
-                fontSize: { xs: "1rem", sm: "1.5rem", md: "1.75rem" }, // Reduced font size for xs
+                fontSize: "1rem",
                 textAlign: { xs: "right", sm: "center" },
               }}
             >

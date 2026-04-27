@@ -477,7 +477,7 @@ export default function ExpenseSection({
                     }
                   />
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid item xs={12}>
                   <SliderInput
                     label="Amount"
                     value={Number(newExpense.amount) || 0}
