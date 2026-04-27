@@ -18,6 +18,27 @@ import dayjs from "dayjs";
 
 const currentYear = new Date().getFullYear();
 
+// Helper to round values to nice numbers (e.g. 112344 -> 120000)
+const roundToNiceNumber = (val, roundUp) => {
+  if (val === 0) return 0;
+  const sign = val < 0 ? -1 : 1;
+  const absVal = Math.abs(val);
+  
+  // Find magnitude to get 2 significant digits (e.g., 10000 for 123456)
+  const magnitude = Math.pow(10, Math.floor(Math.log10(absVal)) - 1);
+  
+  let scaled = absVal / magnitude;
+  const shouldRoundUpAbs = (sign === 1 && roundUp) || (sign === -1 && !roundUp);
+  
+  if (shouldRoundUpAbs) {
+      scaled = Math.ceil(scaled);
+  } else {
+      scaled = Math.floor(scaled);
+  }
+  
+  return sign * scaled * magnitude;
+};
+
 export default function ProjectedCashFlowChart({
   currentAge,
   retirementAge,
@@ -29,6 +50,7 @@ export default function ProjectedCashFlowChart({
   goals,
   expenses, // Pass expenses for projection calculation
   incomes, // Accept incomes as a prop
+  inflationRate,
 }) {
   const theme = useTheme();
   const currency = useSelector(selectCurrency);
@@ -103,6 +125,11 @@ export default function ProjectedCashFlowChart({
           let yearlyAmount = Number(exp.amount) || 0;
           if (exp.frequency === 'monthly') yearlyAmount *= 12;
           else if (exp.frequency === 'quarterly') yearlyAmount *= 4;
+
+          const activeYears = year - Math.max(start, currentYear);
+          if (activeYears > 0) {
+            yearlyAmount *= Math.pow(1 + inflationRate, activeYears);
+          }
           annualExpense += yearlyAmount;
         }
       });
@@ -157,19 +184,41 @@ export default function ProjectedCashFlowChart({
     }
   }
 
+  // --- Dynamic Y-Axis Calculation ---
+  let yMin = 0;
+  let yMax = 100000; // A default max to avoid empty chart issues
+
+  if (projectionData.length > 0) {
+    const allValues = projectionData.flatMap(d => [d.Income, d.Expenses, d.Surplus]);
+    const minValue = Math.min(...allValues);
+    const maxValue = Math.max(...allValues);
+
+    // Apply a 10% buffer first
+    const bufferedMin = minValue < 0 ? minValue * 1.1 : 0; // If min is negative, give it buffer. Otherwise, start at 0.
+    const bufferedMax = maxValue * 1.1;
+
+    // Round to nice numbers
+    yMin = roundToNiceNumber(bufferedMin, false);
+    yMax = roundToNiceNumber(bufferedMax, true);
+  }
+
   return (
     <Paper sx={{ p: 3, height: "100%" }}>
       <Typography variant="h6" align="center" gutterBottom>
         Projected Annual Income vs. Expenses Until Retirement
       </Typography>
-      <ResponsiveContainer width="100%" height={300}>
+      <ResponsiveContainer width="100%" height={400}>
         <ComposedChart
           data={projectionData}
           margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
         >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="year" />
-          <YAxis tickFormatter={(val) => formatCurrency(val)} />
+          <YAxis
+            tickFormatter={(val) => formatCurrency(val)}
+            domain={[yMin, yMax]}
+            allowDataOverflow={true}
+           />
           <RechartsTooltip formatter={(value, name) => [formatCurrency(value), name]} />
           <Legend />
           <Area type="monotone" dataKey="Income" name="Annual Income" fill={theme.palette.success.light} stroke={theme.palette.success.main} />

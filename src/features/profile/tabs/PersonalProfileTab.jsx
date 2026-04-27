@@ -27,6 +27,7 @@ import {
   selectCurrentSurplus,
   selectCareerGrowthRate,
   selectIncomes,
+  selectGeneralInflationRate,
 } from "../../../store/profileSlice";
 import { selectCalculatedValues } from "../../emiCalculator/utils/emiCalculator";
 import IncomeSection from "../components/IncomeSection";
@@ -61,6 +62,7 @@ export default function PersonalProfileTab({ onEditGoal }) {
       : careerGrowthRaw || 0;
   const careerGrowthType =
     typeof careerGrowthRaw === "object" ? careerGrowthRaw.type : "percentage";
+  const generalInflationRate = useSelector(selectGeneralInflationRate) || 0.06;
 
   const { emi: monthlyEmi } = useSelector(selectCalculatedValues);
   const emiState = useSelector(
@@ -175,6 +177,7 @@ export default function PersonalProfileTab({ onEditGoal }) {
           goals={goals}
           expenses={expenses}
           incomes={incomes}
+          inflationRate={generalInflationRate}
         />
       </Grid>
 

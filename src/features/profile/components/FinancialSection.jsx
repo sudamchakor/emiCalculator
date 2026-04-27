@@ -16,6 +16,7 @@ import EditableIncomeExpenseItem from "../../../components/common/EditableIncome
 import ReadOnlyItem from "../../../components/common/ReadOnlyItem";
 import IncomeExpenseForm from "../../../components/common/IncomeExpenseForm";
 import { AmountWithUnitInput } from "../../../components/common/CommonComponents";
+import SliderInput from "../../../components/common/SliderInput";
 import { useDispatch, useSelector } from "react-redux";
 import {
   selectIncomes,
@@ -34,6 +35,8 @@ import {
   selectIndividualGoalInvestmentContributions,
   selectGoals,
   selectCurrentSurplus,
+  selectGeneralInflationRate,
+  setGeneralInflationRate,
 } from "../../../store/profileSlice";
 import { selectCurrency } from "../../../store/emiSlice";
 import { selectCalculatedValues } from "../../emiCalculator/utils/emiCalculator";
@@ -65,6 +68,7 @@ export default function FinancialSection({
   const goals = useSelector(selectGoals) || [];
   const investableSurplus = useSelector(selectCurrentSurplus);
   const { emi: monthlyEmi } = useSelector(selectCalculatedValues);
+  const generalInflationRate = useSelector(selectGeneralInflationRate);
 
   const items = isIncome ? incomes : expenses;
   const totalAmount = isIncome
@@ -551,6 +555,32 @@ export default function FinancialSection({
                 </Typography>
               </Paper>
             )}
+            <Divider sx={{ my: 2 }} />
+            <Typography
+              variant="h6"
+              gutterBottom
+              sx={{
+                fontWeight: 600,
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+              }}
+            >
+              Expense Inflation (Year-on-Year)
+            </Typography>
+            <Box sx={{ mt: 2 }}>
+              <SliderInput
+                label="Expected Annual Inflation Rate (%)"
+                value={(generalInflationRate * 100).toFixed(1)}
+                onChange={(val) => {
+                  dispatch(setGeneralInflationRate(val / 100));
+                }}
+                min={0}
+                max={20}
+                step={0.1}
+                isInline={false}
+              />
+            </Box>
           </Paper>
         </Grid>
       )}
