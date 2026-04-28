@@ -9,8 +9,8 @@ import {
 import { selectCurrency } from "../store/emiSlice"; // Only need currency now
 import PersonalProfileTab from "../features/profile/tabs/PersonalProfileTab";
 import FutureGoalsTab from "../features/profile/tabs/FutureGoalsTab";
+import WealthTab from "../features/profile/tabs/WealthTab";
 import Settings from "../features/profile/tabs/Settings";
-import ExpensesGraph from "../features/profile/components/ExpensesGraph"; // Import the new component
 import OnboardingModal from "../features/profile/tabs/OnboardingModal";
 
 function CustomTabPanel(props) {
@@ -35,7 +35,8 @@ export default function UserProfile() {
 
   const getTabIndex = (tabParam) => {
     if (tabParam === "goals") return 1;
-    if (tabParam === "settings") return 2;
+    if (tabParam === "wealth") return 2;
+    if (tabParam === "settings") return 3;
     return 0; // Default is personal
   };
 
@@ -58,7 +59,8 @@ export default function UserProfile() {
   const handleTabChange = (event, newValue) => {
     let newTabName = "personal";
     if (newValue === 1) newTabName = "goals";
-    if (newValue === 2) newTabName = "settings";
+    if (newValue === 2) newTabName = "wealth";
+    if (newValue === 3) newTabName = "settings";
     navigate(`/profile?tab=${newTabName}`);
     setGoalToEditId(null); // Clear goalToEditId when changing tabs
   };
@@ -120,6 +122,7 @@ export default function UserProfile() {
         >
           <Tab label="Personal Profile" />
           <Tab label="Future Goals" />
+          <Tab label="Wealth" />
           <Tab label="Settings" />
         </Tabs>
       </Box>
@@ -127,7 +130,6 @@ export default function UserProfile() {
       {/* Tab 1: Personal Profile */}
       <CustomTabPanel value={tabValue} index={0}>
         <PersonalProfileTab onEditGoal={handleEditGoal} /> {/* Pass the handler */}
-        <ExpensesGraph /> {/* Add the new ExpensesGraph component */}
       </CustomTabPanel>
 
       {/* Tab 2: Future Goals */}
@@ -135,8 +137,13 @@ export default function UserProfile() {
         <FutureGoalsTab goalToEditId={goalToEditId} /> {/* Pass goalToEditId */}
       </CustomTabPanel>
 
-      {/* Tab 3: Settings */}
+      {/* Tab 3: Wealth */}
       <CustomTabPanel value={tabValue} index={2}>
+        <WealthTab />
+      </CustomTabPanel>
+
+      {/* Tab 4: Settings */}
+      <CustomTabPanel value={tabValue} index={3}>
         <Settings />
       </CustomTabPanel>
 
