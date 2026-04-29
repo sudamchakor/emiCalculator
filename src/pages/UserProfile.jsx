@@ -1,16 +1,24 @@
 import React, { useState, useEffect } from "react";
-import { Box, Tabs, Tab, Typography, Alert, Link } from "@mui/material";
+import {
+  Box,
+  Tabs,
+  Tab,
+  Typography,
+  Alert,
+  Link,
+} from "@mui/material";
 import { useSelector, useDispatch } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
-  selectCurrentSurplus, // Import new selector
-  selectDebtFreeCountdown, // Import new selector
+  selectCurrentSurplus,
+  selectDebtFreeCountdown,
 } from "../store/profileSlice";
-import { selectCurrency } from "../store/emiSlice"; // Only need currency now
+import { selectCurrency } from "../store/emiSlice";
 import PersonalProfileTab from "../features/profile/tabs/PersonalProfileTab";
 import FutureGoalsTab from "../features/profile/tabs/FutureGoalsTab";
 import WealthTab from "../features/profile/tabs/WealthTab";
 import OnboardingModal from "../features/profile/tabs/OnboardingModal";
+import FinancialModal from "../features/profile/components/FinancialModal";
 
 function CustomTabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -35,22 +43,23 @@ export default function UserProfile() {
   const getTabIndex = (tabParam) => {
     if (tabParam === "goals") return 1;
     if (tabParam === "wealth") return 2;
-    return 0; // Default is personal
+    return 0;
   };
 
   const searchParams = new URLSearchParams(location.search);
   const tabParam = searchParams.get("tab");
 
   const [tabValue, setTabValue] = useState(() => getTabIndex(tabParam));
-  const [goalToEditId, setGoalToEditId] = useState(null); // New state for goal editing
+  const [goalToEditId, setGoalToEditId] = useState(null);
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [isProfileCreated, setIsProfileCreated] = useState(
     localStorage.getItem("isProfileCreated") === "true",
   );
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalType, setModalType] = useState("");
 
   useEffect(() => {
     setTabValue(getTabIndex(tabParam));
-    // If we switch to goals tab, clear goalToEditId if it's not explicitly set by a click
     if (tabParam !== "goals") {
       setGoalToEditId(null);
     }
@@ -61,12 +70,12 @@ export default function UserProfile() {
     if (newValue === 1) newTabName = "goals";
     if (newValue === 2) newTabName = "wealth";
     navigate(`/profile?tab=${newTabName}`);
-    setGoalToEditId(null); // Clear goalToEditId when changing tabs
+    setGoalToEditId(null);
   };
 
   const handleEditGoal = (goalId) => {
     setGoalToEditId(goalId);
-    navigate(`/profile?tab=goals`); // Switch to Future Goals tab
+    navigate(`/profile?tab=goals`);
   };
 
   const handleOnboardingClose = () => {
@@ -74,7 +83,16 @@ export default function UserProfile() {
     setIsProfileCreated(localStorage.getItem("isProfileCreated") === "true");
   };
 
-  // Use new selectors for surplus and debt-free countdown
+  const handleModalOpen = (type) => {
+    setModalType(type);
+    setModalOpen(true);
+  };
+
+  const handleModalClose = () => {
+    setModalOpen(false);
+    setModalType("");
+  };
+
   const investableSurplus = useSelector(selectCurrentSurplus);
   const debtFreeCountdown = useSelector(selectDebtFreeCountdown);
   const currency = useSelector(selectCurrency);
@@ -102,24 +120,24 @@ export default function UserProfile() {
         sx={{
           borderBottom: 1,
           borderColor: "divider",
-          width: "100%", // Ensure the Box takes full width
+          width: "100%",
         }}
       >
         <Tabs
           value={tabValue}
           onChange={handleTabChange}
           aria-label="profile tabs"
-          variant="scrollable" // Make tabs scrollable on smaller screens
-          scrollButtons="auto" // Show scroll buttons automatically
-          allowScrollButtonsMobile // Allow scroll buttons on mobile
+          variant="scrollable"
+          scrollButtons="auto"
+          allowScrollButtonsMobile
           sx={{
             "& .MuiTabs-indicator": {
-              backgroundColor: "primary.main", // Ensure indicator color matches theme
+              backgroundColor: "primary.main",
             },
             "& .MuiTab-root": {
-              color: "text.secondary", // Default tab text color
+              color: "text.secondary",
               "&.Mui-selected": {
-                color: "primary.main", // Selected tab text color
+                color: "primary.main",
               },
             },
           }}
@@ -130,25 +148,28 @@ export default function UserProfile() {
         </Tabs>
       </Box>
 
-      {/* Tab 1: Personal Profile */}
       <CustomTabPanel value={tabValue} index={0}>
-        <PersonalProfileTab onEditGoal={handleEditGoal} />{" "}
-        {/* Pass the handler */}
+        <PersonalProfileTab
+          onEditGoal={handleEditGoal}
+          onOpenModal={handleModalOpen}
+        />
       </CustomTabPanel>
 
-      {/* Tab 2: Future Goals */}
       <CustomTabPanel value={tabValue} index={1}>
-        <FutureGoalsTab goalToEditId={goalToEditId} /> {/* Pass goalToEditId */}
+        <FutureGoalsTab goalToEditId={goalToEditId} />
       </CustomTabPanel>
 
-      {/* Tab 3: Wealth */}
       <CustomTabPanel value={tabValue} index={2}>
         <WealthTab />
       </CustomTabPanel>
 
       <OnboardingModal open={onboardingOpen} onClose={handleOnboardingClose} />
+      <FinancialModal
+        open={modalOpen}
+        onClose={handleModalClose}
+        type={modalType}
+      />
 
-      {/* Persistent Impact Banner */}
       <Box
         sx={{
           position: "fixed",
@@ -159,10 +180,10 @@ export default function UserProfile() {
           color: "white",
           p: 2,
           display: "flex",
-          flexDirection: { xs: "column", sm: "row" }, // Stack vertically on extra small, row on small and up
+          flexDirection: { xs: "column", sm: "row" },
           justifyContent: "space-around",
-          alignItems: { xs: "flex-start", sm: "center" }, // Align items for stacked layout
-          gap: { xs: 1, sm: 0 }, // Add gap when stacked
+          alignItems: { xs: "flex-start", sm: "center" },
+          gap: { xs: 1, sm: 0 },
           zIndex: 1000,
           boxShadow: "0 -2px 10px rgba(0,0,0,0.1)",
         }}

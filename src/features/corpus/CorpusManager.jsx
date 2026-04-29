@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {
-  addAsset,
   removeAsset,
   selectAllAssets,
   selectTotalCorpus,
@@ -12,10 +11,6 @@ import {
   Button,
   Card,
   CardContent,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   IconButton,
   Paper,
   Table,
@@ -24,48 +19,21 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  TextField,
   Typography,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { formatCurrency } from '../../utils/formatting';
 
-const CorpusManager = () => {
+const CorpusManager = ({ onOpenModal }) => {
   const dispatch = useDispatch();
   const assets = useSelector(selectAllAssets);
   const totalCorpus = useSelector(selectTotalCorpus);
   const weightedAverageReturn = useSelector(selectWeightedAverageReturn);
-
-  const [open, setOpen] = useState(false);
-  const [newAsset, setNewAsset] = useState({
-    label: '',
-    value: '',
-    expectedReturn: '',
-    category: 'Equity',
-  });
-
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setNewAsset({ ...newAsset, [name]: value });
-  };
-
-  const handleAddAsset = () => {
-    const { label, value, expectedReturn, category } = newAsset;
-    if (label && value && expectedReturn) {
-      dispatch(addAsset(label, value, expectedReturn, category));
-      setNewAsset({ label: '', value: '', expectedReturn: '', category: 'Equity' });
-      handleClose();
-    }
-  };
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'));
 
   const handleRemoveAsset = (id) => {
     dispatch(removeAsset(id));
@@ -79,13 +47,15 @@ const CorpusManager = () => {
             <Typography variant="h5" component="div">
               Investment Corpus
             </Typography>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={handleClickOpen}
-            >
-              Add
-            </Button>
+            {!isSmallScreen && (
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={() => onOpenModal('corpus')}
+              >
+                Add
+              </Button>
+            )}
           </Box>
           <TableContainer component={Paper}>
             <Table>
@@ -138,53 +108,6 @@ const CorpusManager = () => {
           {weightedAverageReturn.toFixed(2)}%
         </Typography>
       </Paper>
-
-      <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>Add New Investment</DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            name="label"
-            label="Asset Name"
-            type="text"
-            fullWidth
-            variant="outlined"
-            value={newAsset.label}
-            onChange={handleInputChange}
-          />
-          <TextField
-            margin="dense"
-            name="value"
-            label="Current Amount"
-            type="number"
-            fullWidth
-            variant="outlined"
-            value={newAsset.value}
-            onChange={handleInputChange}
-            InputProps={{
-              startAdornment: <Typography>₹</Typography>,
-            }}
-          />
-          <TextField
-            margin="dense"
-            name="expectedReturn"
-            label="Expected Return"
-            type="number"
-            fullWidth
-            variant="outlined"
-            value={newAsset.expectedReturn}
-            onChange={handleInputChange}
-            InputProps={{
-              endAdornment: <Typography>%</Typography>,
-            }}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose}>Cancel</Button>
-          <Button onClick={handleAddAsset}>Add</Button>
-        </DialogActions>
-      </Dialog>
     </>
   );
 };

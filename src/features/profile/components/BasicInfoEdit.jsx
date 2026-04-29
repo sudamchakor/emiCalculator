@@ -44,11 +44,16 @@ export default function BasicInfoEdit({
 
   const [tempName, setTempName] = useState(currentName);
   const [tempOccupation, setTempOccupation] = useState(currentOccupation);
-  const [tempRiskTolerance, setTempRiskTolerance] = useState(currentRiskTolerance);
+  const [tempRiskTolerance, setTempRiskTolerance] =
+    useState(currentRiskTolerance);
   const [tempCurrentAge, setTempCurrentAge] = useState(currentAge);
   const [tempRetirementAge, setTempRetirementAge] = useState(retirementAge);
-  const [tempCareerGrowthRate, setTempCareerGrowthRate] = useState(currentCareerGrowthRate);
-  const [tempGeneralInflationRate, setTempGeneralInflationRate] = useState(currentGeneralInflationRate);
+  const [tempCareerGrowthRate, setTempCareerGrowthRate] = useState(
+    currentCareerGrowthRate,
+  );
+  const [tempGeneralInflationRate, setTempGeneralInflationRate] = useState(
+    currentGeneralInflationRate,
+  );
 
   const handleSave = () => {
     if (tempRetirementAge <= tempCurrentAge) {
@@ -57,12 +62,14 @@ export default function BasicInfoEdit({
       );
       return;
     }
-    dispatch(setBasicInfo({
-      name: tempName,
-      age: tempCurrentAge,
-      occupation: tempOccupation,
-      riskTolerance: tempRiskTolerance,
-    }));
+    dispatch(
+      setBasicInfo({
+        name: tempName,
+        age: tempCurrentAge,
+        occupation: tempOccupation,
+        riskTolerance: tempRiskTolerance,
+      }),
+    );
     dispatch(setCurrentAge(tempCurrentAge));
     dispatch(setRetirementAge(tempRetirementAge));
     dispatch(setCareerGrowthRate(tempCareerGrowthRate));
@@ -95,7 +102,7 @@ export default function BasicInfoEdit({
             onChange={(e) => setTempOccupation(e.target.value)}
           />
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid item xs={12} sm={12}>
           <SliderInput
             label="Current Age"
             value={tempCurrentAge}
@@ -106,7 +113,7 @@ export default function BasicInfoEdit({
             showInput={true}
           />
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid item xs={12} sm={12}>
           <SliderInput
             label="Target Retirement Age"
             value={tempRetirementAge}
@@ -120,7 +127,7 @@ export default function BasicInfoEdit({
             showInput={true}
           />
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid item xs={12} sm={12}>
           <SliderInput
             label="Expected Career Growth (%)"
             value={(tempCareerGrowthRate * 100).toFixed(1)}
@@ -131,7 +138,7 @@ export default function BasicInfoEdit({
             showInput={true}
           />
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid item xs={12} sm={12}>
           <SliderInput
             label="Expected Inflation Rate (%)"
             value={(tempGeneralInflationRate * 100).toFixed(1)}
@@ -158,9 +165,7 @@ export default function BasicInfoEdit({
         </Grid>
       </Grid>
 
-      <Box
-        sx={{ display: "flex", gap: 2, mt: 3, justifyContent: "flex-end" }}
-      >
+      <Box sx={{ display: "flex", gap: 2, mt: 3, justifyContent: "flex-end" }}>
         <Button
           size="small"
           variant="contained"

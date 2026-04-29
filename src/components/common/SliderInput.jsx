@@ -78,7 +78,7 @@ export const SliderInput = ({
     >
       <Typography
         variant="subtitle2"
-        sx={{ fontWeight: 600, whiteSpace: { xs: 'normal', sm: 'nowrap' } }} // Allow wrapping on xs
+        sx={{ fontWeight: 600, whiteSpace: 'normal' }} // Allow wrapping on all screen sizes
       >
         {label}
       </Typography>
@@ -186,9 +186,9 @@ export const SliderInput = ({
         <Box
           sx={{
             display: "flex",
-            flexDirection: { xs: "column", sm: "column", md: "row" }, // Stack on xs/sm, row on md+
-            alignItems: { xs: "flex-start", md: "center" }, // Align items
-            gap: { xs: 1, md: 2 }, // Adjust gap
+            flexDirection: { xs: "column", sm: "row" }, 
+            alignItems: { xs: "flex-start", sm: "center" }, // Align items
+            gap: { xs: 1, sm: 2 }, // Adjust gap
             width: "100%",
           }}
         >

@@ -8,10 +8,8 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  IconButton,
+  DialogActions,
 } from "@mui/material";
-import SaveIcon from "@mui/icons-material/Save";
-import CloseIcon from "@mui/icons-material/Close";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs from "dayjs";
 import SliderInput from "./SliderInput";
@@ -23,8 +21,7 @@ export default function IncomeExpenseForm({
   isExpense = false,
   onSave,
   onCancel,
-  submitLabel = "Add",
-  isInline = false, // If true, we might use icons or minimal UI
+  submitLabel = "Save",
 }) {
   const [formData, setFormData] = useState({
     name: "",
@@ -56,9 +53,9 @@ export default function IncomeExpenseForm({
     <Box
       sx={{
         display: "flex",
+        flexDirection: "column",
         gap: 2,
-        mt: isInline ? 0 : 2,
-        flexWrap: "wrap",
+        mt: 2,
         width: "100%",
       }}
     >
@@ -67,7 +64,7 @@ export default function IncomeExpenseForm({
           <TextField
             fullWidth
             size="small"
-            label={isExpense ? (isInline ? "Name" : "Expense Name") : "Source"}
+            label={isExpense ? "Expense Name" : "Source"}
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           />
@@ -208,36 +205,13 @@ export default function IncomeExpenseForm({
             maxDate={dayjs(`${currentYear + 50}-12-31`)}
           />
         </Grid>
-        <Grid item xs={12}>
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "flex-end",
-              gap: isInline ? 1 : 2,
-            }}
-          >
-            {isInline ? (
-              <>
-                <IconButton size="small" onClick={handleSubmit} color="success">
-                  <SaveIcon fontSize="small" />
-                </IconButton>
-                {onCancel && (
-                  <IconButton size="small" onClick={onCancel} color="inherit">
-                    <CloseIcon fontSize="small" />
-                  </IconButton>
-                )}
-              </>
-            ) : (
-              <>
-                {onCancel && <Button onClick={onCancel}>Cancel</Button>}
-                <Button variant="contained" onClick={handleSubmit}>
-                  {submitLabel}
-                </Button>
-              </>
-            )}
-          </Box>
-        </Grid>
       </Grid>
+      <DialogActions>
+        {onCancel && <Button onClick={onCancel}>Cancel</Button>}
+        <Button variant="contained" onClick={handleSubmit}>
+          {submitLabel}
+        </Button>
+      </DialogActions>
     </Box>
   );
 }

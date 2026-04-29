@@ -1,23 +1,20 @@
 import React, { useState } from "react";
 import {
   Grid,
-  Fab,
-  Modal,
   Box,
-  Typography,
-  Button,
   useMediaQuery,
   useTheme,
-  Menu,
-  MenuItem,
-  Paper,
+  SpeedDial,
+  SpeedDialIcon,
+  SpeedDialAction,
 } from "@mui/material";
-import { Divider } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
+import {
+  AttachMoney,
+  MoneyOff,
+  AccountBalanceWallet,
+} from "@mui/icons-material";
 import BasicInfoDisplay from "../components/BasicInfoDisplay";
 import BasicInfoEdit from "../components/BasicInfoEdit";
-import { AmountWithUnitInput } from "../../../components/common/CommonComponents"; // Keep AmountWithUnitInput
-import SliderInput from "../../../components/common/SliderInput"; // Corrected import for SliderInput
 import { useDispatch, useSelector } from "react-redux";
 import {
   selectProfileExpenses,
@@ -32,36 +29,19 @@ import {
   selectCareerGrowthRate,
   selectIncomes,
   selectGeneralInflationRate,
-  selectTotalMonthlyIncome,
-  selectTotalMonthlyExpenses,
-  setCareerGrowthRate, // Import setCareerGrowthRate
-  setGeneralInflationRate, // Import setGeneralInflationRate
-  selectName,
-  selectOccupation,
-  selectRiskTolerance,
 } from "../../../store/profileSlice";
-import { selectCurrency } from "../../../store/emiSlice";
 import { selectCalculatedValues } from "../../emiCalculator/utils/emiCalculator";
 import CashFlowDonutChart from "../components/CashFlowDonutChart";
 import ProjectedCashFlowChart from "../components/ProjectedCashFlowChart";
 import FinancialSection from "../components/FinancialSection";
-import CorpusManager from "../../corpus/CorpusManager"; // Import CorpusManager
+import CorpusManager from "../../corpus/CorpusManager";
 
-const modalStyle = {
-  position: "absolute",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  width: { xs: "90%", md: "50%" },
-  maxHeight: "90vh",
-  overflowY: "auto",
-};
-
-export default function PersonalProfileTab({ onEditGoal }) {
+export default function PersonalProfileTab({ onEditGoal, onOpenModal }) {
   const dispatch = useDispatch();
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("md"));
-  const currency = useSelector(selectCurrency);
+
+  const [speedDialOpen, setSpeedDialOpen] = useState(false);
 
   const expenses = useSelector(selectProfileExpenses) || [];
   const incomes = useSelector(selectIncomes) || [];
@@ -89,11 +69,6 @@ export default function PersonalProfileTab({ onEditGoal }) {
   );
   const investableSurplus = useSelector(selectCurrentSurplus);
   const goals = useSelector(selectGoals) || [];
-  const totalIncome = useSelector(selectTotalMonthlyIncome);
-  const totalExpenses =
-    useSelector(selectTotalMonthlyExpenses) +
-    (monthlyEmi || 0) +
-    totalMonthlyGoalContributions;
 
   const needsValue = expenses
     .filter((e) => e.category === "basic")
@@ -123,9 +98,6 @@ export default function PersonalProfileTab({ onEditGoal }) {
   ].filter((item) => item.value > 0);
 
   const [editingBasicInfo, setEditingBasicInfo] = useState(false);
-  const [openModal, setOpenModal] = useState(false);
-  const [modalType, setModalType] = useState(null);
-  const [anchorEl, setAnchorEl] = useState(null);
 
   const handleSaveBasicInfo = (newCurrentAge, newRetirementAge) => {
     dispatch(setCurrentAge(newCurrentAge));
@@ -133,24 +105,28 @@ export default function PersonalProfileTab({ onEditGoal }) {
     setEditingBasicInfo(false);
   };
 
-  const handleOpenModal = (type) => {
-    setModalType(type);
-    setOpenModal(true);
-    handleCloseMenu();
+  const handleModalOpen = (type) => {
+    onOpenModal(type);
+    setSpeedDialOpen(false);
   };
 
-  const handleCloseModal = () => {
-    setOpenModal(false);
-    setModalType(null);
-  };
-
-  const handleOpenMenu = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleCloseMenu = () => {
-    setAnchorEl(null);
-  };
+  const actions = [
+    {
+      icon: <AccountBalanceWallet />,
+      name: "Corpus",
+      handler: () => handleModalOpen("corpus"),
+    },
+    {
+      icon: <AttachMoney />,
+      name: "Income",
+      handler: () => handleModalOpen("income"),
+    },
+    {
+      icon: <MoneyOff />,
+      name: "Expense",
+      handler: () => handleModalOpen("expense"),
+    },
+  ];
 
   return (
     <>
@@ -175,31 +151,19 @@ export default function PersonalProfileTab({ onEditGoal }) {
 
         {/* Corpus Manager */}
         <Grid item xs={12} md={6}>
-          <CorpusManager />
+          <CorpusManager onOpenModal={onOpenModal} />
         </Grid>
 
         {/* Income and Expense Details Row */}
         <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              Income Details
-            </Typography>
-            <Divider sx={{ my: 2 }} />
-            <FinancialSection isIncome={true} isSmallScreen={isSmallScreen} />
-          </Paper>
+          <FinancialSection isIncome={true} onOpenModal={onOpenModal} />
         </Grid>
         <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              Expense Details
-            </Typography>
-            <Divider sx={{ my: 2 }} />
-            <FinancialSection
-              isIncome={false}
-              onEditGoal={onEditGoal}
-              isSmallScreen={isSmallScreen}
-            />
-          </Paper>
+          <FinancialSection
+            isIncome={false}
+            onEditGoal={onEditGoal}
+            onOpenModal={onOpenModal}
+          />
         </Grid>
 
         {/* Charts Row */}
@@ -226,79 +190,26 @@ export default function PersonalProfileTab({ onEditGoal }) {
           </Box>
         </Grid>
       </Grid>
-
       {isSmallScreen && (
-        <>
-          <Fab
-            color="primary"
-            aria-label="add"
-            sx={{
-              position: "fixed",
-              bottom: 16,
-              right: 16,
-              zIndex: 1050,
-            }}
-            onClick={handleOpenMenu}
-          >
-            <AddIcon />
-          </Fab>
-          <Menu
-            anchorEl={anchorEl}
-            open={Boolean(anchorEl)}
-            onClose={handleCloseMenu}
-            anchorOrigin={{
-              vertical: "top",
-              horizontal: "right",
-            }}
-            transformOrigin={{
-              vertical: "bottom",
-              horizontal: "right",
-            }}
-          >
-            <MenuItem onClick={() => handleOpenModal("income")}>
-              Add Income
-            </MenuItem>
-            <MenuItem onClick={() => handleOpenModal("expense")}>
-              Add Expense
-            </MenuItem>
-          </Menu>
-        </>
+        <SpeedDial
+          ariaLabel="SpeedDial for financial actions"
+          sx={{ position: "fixed", bottom: 80, right: 16 }}
+          icon={<SpeedDialIcon />}
+          onClose={() => setSpeedDialOpen(false)}
+          onOpen={() => setSpeedDialOpen(true)}
+          open={speedDialOpen}
+        >
+          {actions.map((action) => (
+            <SpeedDialAction
+              key={action.name}
+              icon={action.icon}
+              tooltipTitle={action.name}
+              onClick={action.handler}
+              tooltipOpen
+            />
+          ))}
+        </SpeedDial>
       )}
-
-      <Modal
-        open={openModal}
-        onClose={handleCloseModal}
-        aria-labelledby="add-item-modal-title"
-      >
-        <Box sx={modalStyle}>
-          <Typography
-            id="add-item-modal-title"
-            variant="h6"
-            component="h2"
-            sx={{ p: 2 }}
-          >
-            {modalType === "income" ? "Add New Income" : "Add New Expense"}
-          </Typography>
-          {modalType === "income" && (
-            <FinancialSection
-              isIncome={true}
-              isModal={true}
-              onCloseModal={handleCloseModal}
-            />
-          )}
-          {modalType === "expense" && (
-            <FinancialSection
-              isIncome={false}
-              isModal={true}
-              onCloseModal={handleCloseModal}
-              onEditGoal={onEditGoal}
-            />
-          )}
-          <Button onClick={handleCloseModal} sx={{ mt: 2, m: 2 }}>
-            Close
-          </Button>
-        </Box>
-      </Modal>
     </>
   );
 }
