@@ -766,6 +766,7 @@ export default function FutureGoalsTab({ goalToEditId }) {
               key={action.name}
               icon={action.icon}
               tooltipTitle={action.name}
+              tooltipOpen
               onClick={action.handler}
               disabled={action.name === 'New Custom Goal' && currentSurplus < 0}
             />
