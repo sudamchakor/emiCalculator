@@ -133,30 +133,7 @@ export default function BasicInfoDisplay({
   const generalInflationRate = useSelector(selectGeneralInflationRate);
 
   return (
-    <Paper
-      sx={{
-        p: 4,
-        borderRadius: 4,
-        boxShadow: "0 10px 30px rgba(0,0,0,0.07)",
-        backgroundColor: "#fff",
-        position: "relative",
-      }}
-    >
-      <IconButton
-        size="small"
-        onClick={onEdit}
-        sx={{
-          position: "absolute",
-          top: 16,
-          right: 16,
-          "&:hover": {
-            backgroundColor: "rgba(0,0,0,0.05)",
-          },
-        }}
-      >
-        <EditIcon />
-      </IconButton>
-
+    <>
       <Box>
         <Typography variant="h4" sx={{ fontWeight: "bold", color: "#333" }}>
           {name}
@@ -166,7 +143,10 @@ export default function BasicInfoDisplay({
         </Typography>
       </Box>
 
-      <RetirementTimeline currentAge={currentAge} retirementAge={retirementAge} />
+      <RetirementTimeline
+        currentAge={currentAge}
+        retirementAge={retirementAge}
+      />
 
       <Divider sx={{ my: 3 }} />
 
@@ -185,6 +165,6 @@ export default function BasicInfoDisplay({
           icon={<GraphicEqIcon fontSize="inherit" />}
         />
       </Grid>
-    </Paper>
+    </>
   );
 }

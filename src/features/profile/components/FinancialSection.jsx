@@ -11,6 +11,7 @@ import {
   Button,
   useMediaQuery,
   Divider,
+  CardHeader,
 } from "@mui/material";
 import InfoIcon from "@mui/icons-material/Info";
 import AddIcon from "@mui/icons-material/Add";
@@ -103,20 +104,15 @@ export default function FinancialSection({
 
   return (
     <>
-      <Card>
-        <CardContent>
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              mb: 2,
-            }}
-          >
-            <Typography variant="h5" component="div">
+      <Card sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
+        <CardHeader
+          title={
+            <Typography variant="h6" sx={{ fontWeight: "bold" }}>
               {sectionTitle}
             </Typography>
-            {!isSmallScreen && (
+          }
+          action={
+            !isSmallScreen && (
               <Button
                 variant="contained"
                 startIcon={<AddIcon />}
@@ -124,9 +120,18 @@ export default function FinancialSection({
               >
                 Add
               </Button>
-            )}
-          </Box>
-          <Divider sx={{ mb: 2 }} />
+            )
+          }
+        />
+        <Divider />
+        <CardContent
+          sx={{
+            flexGrow: 1,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
+          }}
+        >
           <Box sx={{ maxHeight: 200, overflowY: "auto", pr: 1 }}>
             {isIncome
               ? items.map((item) => (

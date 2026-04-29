@@ -7,11 +7,18 @@ import {
   SpeedDial,
   SpeedDialIcon,
   SpeedDialAction,
+  Card, // Added Card
+  CardContent, // Added CardContent
+  CardHeader, // Added CardHeader
+  IconButton, // Added IconButton for edit button in CardHeader
+  Typography,
+  Divider, // Added Typography for card titles
 } from "@mui/material";
 import {
   AttachMoney,
   MoneyOff,
   AccountBalanceWallet,
+  Edit as EditIcon, // Added EditIcon
 } from "@mui/icons-material";
 import BasicInfoDisplay from "../components/BasicInfoDisplay";
 import BasicInfoEdit from "../components/BasicInfoEdit";
@@ -37,7 +44,8 @@ import FinancialSection from "../components/FinancialSection";
 import CorpusManager from "../../corpus/CorpusManager";
 import FinancialModal from "../components/FinancialModal"; // Import FinancialModal
 
-export default function PersonalProfileTab({ onEditGoal }) { // Removed onOpenModal from props
+export default function PersonalProfileTab({ onEditGoal }) {
+  // Removed onOpenModal from props
   const dispatch = useDispatch();
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("md"));
@@ -105,7 +113,6 @@ export default function PersonalProfileTab({ onEditGoal }) { // Removed onOpenMo
     },
   ].filter((item) => item.value > 0);
 
-
   const handleSaveBasicInfo = (newCurrentAge, newRetirementAge) => {
     dispatch(setCurrentAge(newCurrentAge));
     dispatch(setRetirementAge(newRetirementAge));
@@ -151,20 +158,44 @@ export default function PersonalProfileTab({ onEditGoal }) { // Removed onOpenMo
       <Grid container spacing={3}>
         {/* Basic Info */}
         <Grid item xs={12} md={6}>
-          {editingBasicInfo ? (
-            <BasicInfoEdit
-              currentAge={currentAge}
-              retirementAge={retirementAge}
-              onSave={handleSaveBasicInfo}
-              onCancel={() => setEditingBasicInfo(false)}
+          <Card
+            sx={{ height: "100%", display: "flex", flexDirection: "column" }}
+          >
+            <CardHeader
+              title={
+                <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+                  Basic Information
+                </Typography>
+              }
+              action={
+                !editingBasicInfo && (
+                  <IconButton
+                    aria-label="edit basic info"
+                    onClick={() => setEditingBasicInfo(true)}
+                  >
+                    <EditIcon />
+                  </IconButton>
+                )
+              }
             />
-          ) : (
-            <BasicInfoDisplay
-              currentAge={currentAge}
-              retirementAge={retirementAge}
-              onEdit={() => setEditingBasicInfo(true)}
-            />
-          )}
+            <Divider />
+            <CardContent sx={{ flexGrow: 1 }}>
+              {editingBasicInfo ? (
+                <BasicInfoEdit
+                  currentAge={currentAge}
+                  retirementAge={retirementAge}
+                  onSave={handleSaveBasicInfo}
+                  onCancel={() => setEditingBasicInfo(false)}
+                />
+              ) : (
+                <BasicInfoDisplay
+                  currentAge={currentAge}
+                  retirementAge={retirementAge}
+                  // onEdit prop is no longer needed here as the edit button is in CardHeader
+                />
+              )}
+            </CardContent>
+          </Card>
         </Grid>
 
         {/* Corpus Manager */}
@@ -174,7 +205,10 @@ export default function PersonalProfileTab({ onEditGoal }) { // Removed onOpenMo
 
         {/* Income and Expense Details Row */}
         <Grid item xs={12} md={6}>
-          <FinancialSection isIncome={true} onOpenModal={handleOpenFinancialModal} />
+          <FinancialSection
+            isIncome={true}
+            onOpenModal={handleOpenFinancialModal}
+          />
         </Grid>
         <Grid item xs={12} md={6}>
           <FinancialSection
