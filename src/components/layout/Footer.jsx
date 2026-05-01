@@ -5,13 +5,14 @@ import {
   Link,
   Stack,
   Container,
-  Divider,
   useTheme,
   alpha,
 } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 
 const Footer = () => {
   const theme = useTheme();
+  const navigate = useNavigate();
 
   return (
     <Box
@@ -50,8 +51,8 @@ const Footer = () => {
             © {new Date().getFullYear()}{" "}
             <Link
               color="primary"
-              href="/"
-              sx={{ fontWeight: 700, textDecoration: "none" }}
+              onClick={() => navigate("/")}
+              sx={{ fontWeight: 700, textDecoration: "none", cursor: "pointer" }}
             >
               SmartFund Manager
             </Link>
@@ -59,24 +60,26 @@ const Footer = () => {
 
           <Stack direction="row" spacing={3}>
             <Link
-              href="/privacy-policy"
+              onClick={() => navigate("/privacy-policy")}
               underline="none"
               sx={{
                 color: "text.secondary",
                 fontWeight: 600,
                 fontSize: "0.75rem",
+                cursor: "pointer",
                 "&:hover": { color: "primary.main" },
               }}
             >
               Privacy Policy
             </Link>
             <Link
-              href="/terms-of-service"
+              onClick={() => navigate("/terms-of-service")}
               underline="none"
               sx={{
                 color: "text.secondary",
                 fontWeight: 600,
                 fontSize: "0.75rem",
+                cursor: "pointer",
                 "&:hover": { color: "primary.main" },
               }}
             >

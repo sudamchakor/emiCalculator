@@ -184,6 +184,7 @@ export default function FinancialSection({
                     formatCurrency={formatCurrency}
                     onConfirmDelete={() => dispatch(resetEmiState())}
                     isReadOnly={true}
+                    deletionImpactMessage="This will clear your EMI calculator data."
                     onClick={() => navigate("/calculator")}
                   />
                 )}

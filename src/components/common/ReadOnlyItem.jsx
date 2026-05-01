@@ -139,7 +139,7 @@ const ReadOnlyItem = (props) => {
       </Box>
 
       <Stack direction="row" spacing={0.5} alignItems="center">
-        {(!isReadOnly || (isGoal && onEditGoal)) && (
+        {((!isReadOnly && onEdit) || (isGoal && onEditGoal)) && (
           <IconButton
             size="small"
             onClick={handleEditClick}
