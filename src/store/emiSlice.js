@@ -32,6 +32,7 @@ const defaultInitialState = {
     homeInsUnit: "Rs", // 'Rs' or '%'
     maintenance: 0, // monthly Rs
   },
+  isLoanActive: true, // Flag to track if the loan should be displayed
   currency: "₹",
   themeMode: "dodgerblue",
   autoSave: true,
@@ -44,6 +45,7 @@ const emiSlice = createSlice({
     updateLoanDetails: (state, action) => {
       const { key, value } = action.payload;
       state.loanDetails[key] = value;
+      state.isLoanActive = true; // Any update makes the loan active
     },
     updateExpenses: (state, action) => {
       const { key, value } = action.payload;
@@ -75,6 +77,12 @@ const emiSlice = createSlice({
     resetEmiState: () => {
       return defaultInitialState; // Simply return the default state
     },
+    resetHomeLoanForm: (state) => {
+      state.loanDetails = defaultInitialState.loanDetails;
+      state.prepayments = defaultInitialState.prepayments;
+      state.expenses = defaultInitialState.expenses;
+      state.isLoanActive = false; // Deactivating the loan
+    },
   },
 });
 
@@ -87,7 +95,8 @@ export const {
   setCurrency,
   setThemeMode,
   setAutoSave,
-  resetEmiState, // Export the new action
+  resetEmiState,
+  resetHomeLoanForm,
 } = emiSlice.actions;
 
 export const selectLoanDetails = (state) => state.emi.loanDetails;
@@ -96,5 +105,6 @@ export const selectPrepayments = (state) => state.emi.prepayments;
 export const selectCurrency = (state) => state.emi.currency;
 export const selectThemeMode = (state) => state.emi.themeMode;
 export const selectAutoSave = (state) => state.emi.autoSave;
+export const selectIsLoanActive = (state) => state.emi.isLoanActive;
 
 export default emiSlice.reducer;

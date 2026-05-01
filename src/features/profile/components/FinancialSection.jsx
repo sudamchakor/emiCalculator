@@ -30,7 +30,11 @@ import {
   selectGoals,
   selectCurrentSurplus,
 } from "../../../store/profileSlice";
-import { resetEmiState, selectCurrency } from "../../../store/emiSlice";
+import {
+  resetHomeLoanForm,
+  selectCurrency,
+  selectIsLoanActive,
+} from "../../../store/emiSlice";
 import { selectCalculatedValues } from "../../emiCalculator/utils/emiCalculator";
 import { formatCurrency } from "../../../utils/formatting";
 import { useNavigate } from "react-router-dom";
@@ -57,10 +61,13 @@ export default function FinancialSection({
   const goals = useSelector(selectGoals) || [];
   const investableSurplus = useSelector(selectCurrentSurplus);
   const { emi: monthlyEmi } = useSelector(selectCalculatedValues);
+  const isLoanActive = useSelector(selectIsLoanActive);
 
   const totalAmount = isIncome
     ? totalIncome
-    : totalProfileExpenses + (monthlyEmi || 0) + totalMonthlyGoalContributions;
+    : totalProfileExpenses +
+      (isLoanActive ? monthlyEmi || 0 : 0) +
+      totalMonthlyGoalContributions;
   const isBudgetExceeded = !isIncome && investableSurplus < 0;
 
   // Grouping logic to pass investments into the subItems prop
@@ -163,14 +170,20 @@ export default function FinancialSection({
                   isIncome={true}
                   isReadOnly={false} // Ensure edit button is visible
                   onDelete={(id) => dispatch(deleteIncome(id))}
-                  onEdit={(itemId) => onOpenModal("income", incomes.find(inc => inc.id === itemId), "edit")}
+                  onEdit={(itemId) =>
+                    onOpenModal(
+                      "income",
+                      incomes.find((inc) => inc.id === itemId),
+                      "edit",
+                    )
+                  }
                   formatCurrency={formatCurrency}
                   totalIncome={totalIncome}
                 />
               ))
             ) : (
               <>
-                {monthlyEmi > 0 && (
+                {isLoanActive && monthlyEmi > 0 && (
                   <ReadOnlyItem
                     item={{
                       id: "home-loan-emi",
@@ -182,7 +195,7 @@ export default function FinancialSection({
                     totalIncome={totalIncome}
                     expenseRatio={(monthlyEmi / totalIncome) * 100}
                     formatCurrency={formatCurrency}
-                    onConfirmDelete={() => dispatch(resetEmiState())}
+                    onConfirmDelete={() => dispatch(resetHomeLoanForm())}
                     isReadOnly={true}
                     deletionImpactMessage="This will clear your EMI calculator data."
                     onClick={() => navigate("/calculator")}
@@ -210,7 +223,13 @@ export default function FinancialSection({
                     isExpense={true}
                     isReadOnly={false} // Ensure edit button is visible
                     onDelete={(id) => dispatch(deleteExpense(id))}
-                    onEdit={(itemId) => onOpenModal("expense", expenses.find(exp => exp.id === itemId), "edit")}
+                    onEdit={(itemId) =>
+                      onOpenModal(
+                        "expense",
+                        expenses.find((exp) => exp.id === itemId),
+                        "edit",
+                      )
+                    }
                     formatCurrency={formatCurrency}
                     totalIncome={totalIncome}
                     getExpenseColor={() => getExpenseItemColor(item.category)}
@@ -225,7 +244,15 @@ export default function FinancialSection({
           sx={{
             p: 2,
             background: (theme) =>
-              `linear-gradient(135deg, ${isBudgetExceeded ? theme.palette.error.main : theme.palette.primary.main} 0%, ${isBudgetExceeded ? theme.palette.error.dark : theme.palette.primary.dark} 100%)`,
+              `linear-gradient(135deg, ${
+                isBudgetExceeded
+                  ? theme.palette.error.main
+                  : theme.palette.primary.main
+              } 0%, ${
+                isBudgetExceeded
+                  ? theme.palette.error.dark
+                  : theme.palette.primary.dark
+              } 100%)`,
             color: "white",
             display: "flex",
             justifyContent: "space-between",
