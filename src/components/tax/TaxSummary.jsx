@@ -10,6 +10,7 @@ import {
   Tabs,
   Tab,
   Divider,
+  useMediaQuery,
 } from "@mui/material";
 import {
   CheckCircle as SuccessIcon,
@@ -30,6 +31,7 @@ const TaxSummary = ({
   hraBreakdown,
 }) => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const currency = useSelector(selectCurrency) || "₹";
   const [activeTab, setActiveTab] = useState("old");
 
@@ -84,7 +86,7 @@ const TaxSummary = ({
       sx={{
         p: 3,
         borderRadius: 4,
-        position: "sticky",
+        position: isMobile ? "static" : "sticky",
         top: 24,
         bgcolor: alpha(theme.palette.background.paper, 0.8),
         border: "1px solid",

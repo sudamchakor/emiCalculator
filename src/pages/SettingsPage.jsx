@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import {
   Box, Stack, Typography, useTheme, alpha, Grid, Button, Slide, Paper,
-  Select, MenuItem, FormControl, Switch, Snackbar, Alert, Divider
+  Select, MenuItem, FormControl, Switch,  Divider
 } from "@mui/material";
 import {
   PaletteOutlined as PaletteIcon,
@@ -13,14 +13,12 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 
 import {
-  selectThemeMode, selectDesignSystem, selectVisualStyle, selectCurrency, selectAutoSave,
   setThemeMode, setDesignSystem, setVisualStyle, setCurrency, setAutoSave
 } from "../store/emiSlice";
 
-import { themePresets, themeColors } from "../theme/ThemeConfig";
+import { themePresets } from "../theme/ThemeConfig";
 import ThemeSelector from "../components/common/ThemeSelector";
 import PageHeader from "../components/common/PageHeader";
-import VisualCard from "../components/settings/VisualCard";
 
 export default function SettingsPage() {
   const dispatch = useDispatch();

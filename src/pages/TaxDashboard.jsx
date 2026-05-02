@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, Suspense, lazy } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
   Typography,
@@ -29,14 +29,8 @@ import {
   DeleteSweep as DeleteSweepIcon,
   Analytics as AnalyticsIcon,
 } from "@mui/icons-material";
-import SalaryTable from "../components/tax/SalaryTable";
-import TaxSummary from "../components/tax/TaxSummary";
-import {
-  DynamicRowModal,
-  SettingsModal,
-} from "../components/tax/ActionModals";
-import Declarations from "../components/tax/Declarations";
-import TaxBreakdownChart from "../components/tax/TaxBreakdownChart";
+import { AnimatePresence } from "framer-motion";
+import SuspenseFallback from "../components/common/SuspenseFallback";
 import {
   updateMonthData,
   updateSettings,
@@ -60,6 +54,14 @@ import {
 } from "../store/profileSlice";
 import { calculateTax } from "../utils/taxEngine";
 import PageHeader from "../components/common/PageHeader";
+
+const SalaryTable = lazy(() => import("../components/tax/SalaryTable"));
+const TaxSummary = lazy(() => import("../components/tax/TaxSummary"));
+const Declarations = lazy(() => import("../components/tax/Declarations"));
+const TaxBreakdownChart = lazy(() => import("../components/tax/TaxBreakdownChart"));
+const DynamicRowModal = lazy(() => import('../components/tax/ActionModals').then(module => ({ default: module.DynamicRowModal })));
+const SettingsModal = lazy(() => import('../components/tax/ActionModals').then(module => ({ default: module.SettingsModal })));
+
 
 const TaxDashboard = () => {
   const theme = useTheme();
@@ -660,31 +662,33 @@ const TaxDashboard = () => {
 
   return (
     <Box sx={{ flexGrow: 1, position: "relative" }}>
-      {isUpdating && (
-        <Box
-          sx={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            bgcolor: alpha(theme.palette.background.default, 0.5),
-            backdropFilter: "blur(4px)",
-            zIndex: 999,
-            borderRadius: 3,
-          }}
-        >
-          <Skeleton
-            variant="rectangular"
-            width="100%"
-            height="100%"
-            sx={{ borderRadius: 3, opacity: 0.2 }}
-          />
-        </Box>
-      )}
+      <AnimatePresence>
+        {isUpdating && (
+          <Box
+            sx={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              bgcolor: alpha(theme.palette.background.default, 0.5),
+              backdropFilter: "blur(4px)",
+              zIndex: 999,
+              borderRadius: 3,
+            }}
+          >
+            <Skeleton
+              variant="rectangular"
+              width="100%"
+              height="100%"
+              sx={{ borderRadius: 3, opacity: 0.2 }}
+            />
+          </Box>
+        )}
+      </AnimatePresence>
 
       <PageHeader
         title="Indian Tax Engine (FY 2025-26)"
@@ -709,110 +713,113 @@ const TaxDashboard = () => {
         }
       />
 
-      <Grid container spacing={4}>
-        {/* Left Column: Heavy Data Entry */}
-        <Grid item xs={12} md={8}>
-          <SalaryTable
-            viewMode={viewMode}
-            onViewModeChange={(e, newMode) =>
-              newMode && setViewMode(newMode)
-            }
-            calculatedSalary={calculatedSalary}
-            earningsFixed={earningsFixed}
-            deductionsFixed={deductionsFixed}
-            otherFields={otherFields}
-            dynamicRows={dynamicRows}
-            renderRow={renderRow}
-            openAddModal={openAddModal}
-            onAnnualChange={handleAnnualChange}
-            wellInputStyle={wellInputStyle}
-          />
-          <Declarations
-            declarations={declarations}
-            houseProperty={houseProperty}
-            handleDeclarationChange={handleDeclarationChange}
-            updateHouseProperty={(value) =>
-              dispatch(updateHouseProperty(value))
-            }
-            wellInputStyle={wellInputStyle}
-            labelStyle={labelStyle}
-          />
-        </Grid>
+      <Suspense fallback={<SuspenseFallback />}>
+        <Grid container spacing={4}>
+          {/* Left Column: Heavy Data Entry */}
+          <Grid item xs={12} md={8}>
+            <SalaryTable
+              viewMode={viewMode}
+              onViewModeChange={(e, newMode) =>
+                newMode && setViewMode(newMode)
+              }
+              calculatedSalary={calculatedSalary}
+              earningsFixed={earningsFixed}
+              deductionsFixed={deductionsFixed}
+              otherFields={otherFields}
+              dynamicRows={dynamicRows}
+              renderRow={renderRow}
+              openAddModal={openAddModal}
+              onAnnualChange={handleAnnualChange}
+              wellInputStyle={wellInputStyle}
+            />
+            <Declarations
+              declarations={declarations}
+              houseProperty={houseProperty}
+              handleDeclarationChange={handleDeclarationChange}
+              updateHouseProperty={(value) =>
+                dispatch(updateHouseProperty(value))
+              }
+              wellInputStyle={wellInputStyle}
+              labelStyle={labelStyle}
+            />
+          </Grid>
 
-        {/* Right Column: Tax Verdict Terminal */}
-        <Grid
-          item
-          xs={12}
-          md={4}
-          sx={
-            isMobile
-              ? {
-                  position: "fixed",
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  zIndex: 1000,
-                  bgcolor: "background.paper",
-                  p: 2,
-                  boxShadow: "0 -2px 10px rgba(0,0,0,0.1)",
-                }
-              : {}
-          }
-        >
-          <TaxSummary
-            taxComparison={taxComparison}
-            declarations={declarations}
-            onQuickFill={handleQuickFill}
-            breakEven={breakEven}
-            calculatedSalary={calculatedSalary}
-            hraBreakdown={hraBreakdown}
-          />
-          <Button
-            variant="outlined"
-            startIcon={<AnalyticsIcon />}
-            onClick={() => setAnalyticsModalOpen(true)}
-            fullWidth
-            sx={{ mt: 2 }}
+          {/* Right Column: Tax Verdict Terminal */}
+          <Grid
+            item
+            xs={12}
+            md={4}
+            sx={
+              isMobile
+                ? {}
+                : {}
+            }
           >
-            View Analytics
-          </Button>
+            <TaxSummary
+              taxComparison={taxComparison}
+              declarations={declarations}
+              onQuickFill={handleQuickFill}
+              breakEven={breakEven}
+              calculatedSalary={calculatedSalary}
+              hraBreakdown={hraBreakdown}
+            />
+            <Button
+              variant="outlined"
+              startIcon={<AnalyticsIcon />}
+              onClick={() => setAnalyticsModalOpen(true)}
+              fullWidth
+              sx={{ mt: 2 }}
+            >
+              View Analytics
+            </Button>
+          </Grid>
         </Grid>
-      </Grid>
+      </Suspense>
 
       {/* Modals */}
-      <DynamicRowModal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        onSave={handleModalSave}
-        mode={modalMode}
-        label={modalLabel}
-        onLabelChange={(e) => setModalLabel(e.target.value)}
-        wellInputStyle={wellInputStyle}
-        labelStyle={labelStyle}
-      />
-      <SettingsModal
-        open={settingsModalOpen}
-        onClose={() => setSettingsModalOpen(false)}
-        settings={settings}
-        age={age}
-        onAgeChange={(e) => dispatch(updateAge(e.target.value))}
-        onSettingChange={handleSettingChange}
-        earningsFixed={earningsFixed}
-        dynamicRows={dynamicRows}
-        calculatedSalary={calculatedSalary}
-        onInclusionChange={(field, value) =>
-          dispatch(
-            updateMonthData({
-              index: 0,
-              field,
-              value,
-              populateRemaining: true,
-            }),
-          )
-        }
-        wellInputStyle={wellInputStyle}
-        labelStyle={labelStyle}
-      />
+      <AnimatePresence>
+        {modalOpen && (
+          <Suspense fallback={<div />}>
+            <DynamicRowModal
+              open={modalOpen}
+              onClose={() => setModalOpen(false)}
+              onSave={handleModalSave}
+              mode={modalMode}
+              label={modalLabel}
+              onLabelChange={(e) => setModalLabel(e.target.value)}
+              wellInputStyle={wellInputStyle}
+              labelStyle={labelStyle}
+            />
+          </Suspense>
+        )}
+        {settingsModalOpen && (
+          <Suspense fallback={<div />}>
+            <SettingsModal
+              open={settingsModalOpen}
+              onClose={() => setSettingsModalOpen(false)}
+              settings={settings}
+              age={age}
+              onAgeChange={(e) => dispatch(updateAge(e.target.value))}
+              onSettingChange={handleSettingChange}
+              earningsFixed={earningsFixed}
+              dynamicRows={dynamicRows}
+              calculatedSalary={calculatedSalary}
+              onInclusionChange={(field, value) =>
+                dispatch(
+                  updateMonthData({
+                    index: 0,
+                    field,
+                    value,
+                    populateRemaining: true,
+                  }),
+                )
+              }
+              wellInputStyle={wellInputStyle}
+              labelStyle={labelStyle}
+            />
+          </Suspense>
+        )}
+      </AnimatePresence>
       <Dialog
         open={analyticsModalOpen}
         onClose={() => setAnalyticsModalOpen(false)}
@@ -821,10 +828,12 @@ const TaxDashboard = () => {
       >
         <DialogTitle>Tax Analytics</DialogTitle>
         <DialogContent>
-          <TaxBreakdownChart
-            taxComparison={taxComparison}
-            calculatedSalary={calculatedSalary}
-          />
+          <Suspense fallback={<SuspenseFallback />}>
+            <TaxBreakdownChart
+              taxComparison={taxComparison}
+              calculatedSalary={calculatedSalary}
+            />
+          </Suspense>
         </DialogContent>
       </Dialog>
     </Box>

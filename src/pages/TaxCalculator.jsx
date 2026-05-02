@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { Box, CssBaseline } from '@mui/material';
 import { useSelector } from 'react-redux';
 import { selectThemeMode } from '../store/emiSlice';
-import { themes } from '../components/common/ThemeSelector';
-import TaxDashboard from './TaxDashboard';
+import SuspenseFallback from '../components/common/SuspenseFallback';
 import { themeColors } from '../theme/ThemeConfig';
+
+const TaxDashboard = lazy(() => import('./TaxDashboard'));
 
 const TaxCalculator = () => {
   const themeMode = useSelector(selectThemeMode);
@@ -48,7 +49,9 @@ const TaxCalculator = () => {
     <Box>
       <ThemeProvider theme={taxTheme}>
         <CssBaseline />
-        <TaxDashboard />
+        <Suspense fallback={<SuspenseFallback />}>
+          <TaxDashboard />
+        </Suspense>
       </ThemeProvider>
     </Box>
   );
