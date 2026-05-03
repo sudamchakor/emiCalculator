@@ -9,6 +9,7 @@ const DataCard = ({ title, icon, colorToken, children, sx = {} }) => {
 
   return (
     <Box
+      data-testid="data-card-root" // Added data-testid here
       sx={{
         p: { xs: 2, sm: 2.5 },
         borderRadius: 3,
