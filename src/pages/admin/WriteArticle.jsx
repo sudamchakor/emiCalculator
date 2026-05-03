@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import {
@@ -9,68 +9,100 @@ import {
   Button,
   Container,
   Paper,
-  Snackbar, // Import Snackbar
-  Alert,    // Import Alert
+  Snackbar,
+  Alert,
   Stack,
   Divider,
   CircularProgress,
   Fade,
+  Tooltip,
+  ToggleButton,
+  ToggleButtonGroup,
+  IconButton,
 } from '@mui/material';
+import {
+  Visibility,
+  Edit,
+  Fullscreen,
+  FullscreenExit,
+  CloudUpload as CloudUploadIcon,
+  Save as SaveIcon,
+  DeleteSweep as DeleteSweepIcon,
+  Article as ArticleIcon,
+  ArrowBack,
+} from '@mui/icons-material';
 import { useNavigate, useParams } from 'react-router-dom';
-import PageHeader from '../../components/common/PageHeader';
-import ArticleIcon from '@mui/icons-material/Article';
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import SaveIcon from '@mui/icons-material/Save';
 
 // Firebase Imports
 import { db } from '../../firebaseConfig';
-import { collection, addDoc, serverTimestamp, doc, getDoc, updateDoc } from 'firebase/firestore';
+import {
+  collection,
+  addDoc,
+  serverTimestamp,
+  doc,
+  getDoc,
+  updateDoc,
+} from 'firebase/firestore';
 
-// Centralized category imports
+// Utils / Config
 import { articleCategories } from '../../utils/articleCategories';
 import { useAuth } from '../../hooks/useAuth';
 import { ADMIN_UID } from '../../utils/constants';
+import PageHeader from '../../components/common/PageHeader';
 
 const WriteArticle = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const { user, loading: authLoading } = useAuth();
+  const quillRef = useRef(null);
 
-  // Form State
+  // --- Form State ---
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [content, setContent] = useState('');
 
-  // UI State
+  // --- UI State ---
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAuthorized, setIsAuthorized] = useState(false);
-
-  // State for Snackbar notifications
+  const [viewMode, setViewMode] = useState('edit'); // 'edit' | 'preview'
+  const [isFullScreen, setIsFullScreen] = useState(false);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
     severity: 'success',
   });
 
+  // --- WYSIWYG Modules Configuration ---
   const modules = {
     toolbar: [
-      [{ header: [1, 2, 3, false] }],
+      [{ header: [1, 2, 3, 4, false] }],
       ['bold', 'italic', 'underline', 'strike', 'blockquote'],
-      [{ list: 'ordered' }, { list: 'bullet' }],
-      ['link', 'image'],
+      [{ color: [] }, { background: [] }],
+      [{ list: 'ordered' }, { list: 'bullet' }, { align: [] }],
+      ['link', 'image', 'video'],
       ['clean'],
     ],
   };
 
+  // --- Helpers: Word Count & Stats ---
+  const getStats = useCallback(() => {
+    const text = content.replace(/<[^>]*>/g, '').trim();
+    const words = text ? text.split(/\s+/).length : 0;
+    const readTime = Math.ceil(words / 200);
+    return { words, readTime };
+  }, [content]);
+
+  const stats = getStats();
+
+  // --- Effect: Authorization Logic ---
   useEffect(() => {
     if (!authLoading) {
-      if (!user) {
-        navigate('/admin/login');
-      } else if (user.uid !== ADMIN_UID) {
+      if (!user) navigate('/admin/login');
+      else if (user.uid !== ADMIN_UID) {
         setSnackbar({
           open: true,
-          message: 'You are not authorized to write or edit articles.',
+          message: 'Unauthorized access.',
           severity: 'error',
         });
         navigate('/admin/articles');
@@ -80,71 +112,80 @@ const WriteArticle = () => {
     }
   }, [user, authLoading, navigate]);
 
+  // --- Effect: Load Article (Edit Mode) or Local Draft (New Mode) ---
   useEffect(() => {
-    const fetchArticle = async () => {
+    const loadData = async () => {
       if (id && isAuthorized) {
         try {
-          const docRef = doc(db, 'articles', id);
-          const docSnap = await getDoc(docRef);
-
+          const docSnap = await getDoc(doc(db, 'articles', id));
           if (docSnap.exists()) {
             const data = docSnap.data();
             setTitle(data.title || '');
             setCategory(data.category || '');
             setImageUrl(data.imageUrl || '');
             setContent(data.content || '');
-          } else {
-            console.log('No such document!');
-            setSnackbar({
-              open: true,
-              message: 'Article not found.',
-              severity: 'error',
-            });
-            navigate('/admin/articles');
           }
-        } catch (error) {
-          console.error('Error fetching article for edit:', error);
+        } catch (err) {
           setSnackbar({
             open: true,
-            message: 'Error loading article for editing.',
+            message: 'Failed to load article.',
             severity: 'error',
           });
         }
+      } else if (!id && isAuthorized) {
+        const savedDraft = localStorage.getItem('sf_article_draft');
+        if (savedDraft) {
+          const parsed = JSON.parse(savedDraft);
+          setTitle(parsed.title || '');
+          setCategory(parsed.category || '');
+          setImageUrl(parsed.imageUrl || '');
+          setContent(parsed.content || '');
+        }
       }
     };
+    loadData();
+  }, [id, isAuthorized]);
 
-    if (isAuthorized) {
-      fetchArticle();
+  // --- Effect: Auto-save Draft ---
+  useEffect(() => {
+    if (!id && isAuthorized && (title || content)) {
+      const draft = {
+        title,
+        category,
+        imageUrl,
+        content,
+        timestamp: Date.now(),
+      };
+      localStorage.setItem('sf_article_draft', JSON.stringify(draft));
     }
-  }, [id, navigate, isAuthorized]);
+  }, [title, category, imageUrl, content, id, isAuthorized]);
 
+  // --- Effect: Block navigation if unsaved ---
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if ((title || content) && !isSubmitting) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [title, content, isSubmitting]);
+
+  // --- Handlers ---
   const handlePublish = async (e, status = 'published') => {
     if (e) e.preventDefault();
-
-    if (!user || user.uid !== ADMIN_UID) {
-      setSnackbar({
-        open: true,
-        message: 'You are not authorized to perform this action.',
-        severity: 'error',
-      });
-      return;
-    }
-
     if (!title || !content || !category) {
       setSnackbar({
         open: true,
-        message: 'Please fill in Title, Category, and Content.',
+        message: 'Please fill all required fields.',
         severity: 'warning',
       });
       return;
     }
 
     setIsSubmitting(true);
-
     try {
-      const authorUid = user.uid;
-      const authorName = user.displayName || user.email;
-
       const articleData = {
         title,
         category,
@@ -152,47 +193,24 @@ const WriteArticle = () => {
         content,
         status,
         updatedAt: serverTimestamp(),
-        authorUid,
-        authorName,
+        authorUid: user.uid,
+        authorName: user.displayName || user.email,
       };
 
       if (id) {
-        const docRef = doc(db, 'articles', id);
-        await updateDoc(docRef, articleData);
-        setSnackbar({
-          open: true,
-          message:
-            status === 'published'
-              ? 'Article updated and published successfully!'
-              : 'Draft updated!',
-          severity: 'success',
-        });
+        await updateDoc(doc(db, 'articles', id), articleData);
       } else {
-        const articlesRef = collection(db, 'articles');
-        await addDoc(articlesRef, {
+        await addDoc(collection(db, 'articles'), {
           ...articleData,
           createdAt: serverTimestamp(),
         });
-        setSnackbar({
-          open: true,
-          message:
-            status === 'published'
-              ? 'Article published successfully!'
-              : 'Draft saved!',
-          severity: 'success',
-        });
-
-        setTitle('');
-        setCategory('');
-        setImageUrl('');
-        setContent('');
+        localStorage.removeItem('sf_article_draft');
       }
       navigate('/admin/articles');
     } catch (error) {
-      console.error('Firestore Error:', error);
       setSnackbar({
         open: true,
-        message: 'Error connecting to database.',
+        message: 'Database Error.',
         severity: 'error',
       });
     } finally {
@@ -200,206 +218,290 @@ const WriteArticle = () => {
     }
   };
 
-  const handleCloseSnackbar = (event, reason) => {
-    if (reason === 'clickaway') {
-      return;
-    }
-    setSnackbar({ ...snackbar, open: false });
-  };
-
-  if (authLoading) {
+  if (authLoading)
     return (
-      <Container maxWidth="md" sx={{ py: 8, textAlign: 'center' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}>
         <CircularProgress />
-      </Container>
+      </Box>
     );
-  }
+  if (!isAuthorized) return null;
 
-  // If not authorized, render nothing for the main content area,
-  // but still render the Snackbar.
-  if (!isAuthorized) {
-    return (
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={5000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-      >
-        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
-    );
-  }
-
-  // Only render Fade and its content if authorized
   return (
-    <>
-      <Fade in={true} timeout={1000}>
-        {/* Wrap everything in a simple div to ensure a stable DOM element for Fade */}
-        <div>
-          <Container maxWidth="lg" sx={{ py: 4 }}>
-            <PageHeader
-              title={id ? 'Edit Article' : 'Create Article'}
-              subtitle={
-                id
-                  ? 'Modify and update your existing article.'
-                  : 'Draft and format high-quality financial content for the platform.'
+    <Fade in timeout={800}>
+      <Box
+        sx={
+          isFullScreen
+            ? {
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100vw',
+                height: '100vh',
+                zIndex: 1300,
+                bgcolor: 'background.paper',
+                overflowY: 'auto',
+                p: { xs: 1, md: 4 },
               }
-              icon={ArticleIcon}
-            />
+            : {}
+        }
+      >
+        <Container maxWidth="lg" sx={{ py: 4 }}>
+          {/* Header Section */}
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
+              mb: 3,
+            }}
+          >
+            <Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                {!isFullScreen && (
+                  <IconButton onClick={() => navigate(-1)}>
+                    <ArrowBack />
+                  </IconButton>
+                )}
+                <Typography variant="h4" fontWeight="bold">
+                  {id ? 'Edit Article' : 'Create Article'}
+                </Typography>
+              </Box>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ ml: isFullScreen ? 0 : 6 }}
+              >
+                {stats.words} words | {stats.readTime} min read
+              </Typography>
+            </Box>
 
-            <Paper
-              elevation={3}
-              sx={{
-                p: { xs: 2, md: 4 },
-                mt: 3,
-                borderRadius: 2,
-                boxShadow: 3,
-              }}
-            >
-              <form onSubmit={(e) => handlePublish(e, 'published')}>
-                <Stack spacing={3}>
-                  <Box display="grid" gridTemplateColumns={{ md: '2fr 1fr' }} gap={2}>
-                    <TextField
-                      label="Article Title"
-                      variant="outlined"
-                      fullWidth
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
-                      required
-                      placeholder="e.g., Maximizing Tax Savings in 2026"
-                    />
-                    <TextField
-                      select
-                      label="Category"
-                      value={category}
-                      onChange={(e) => setCategory(e.target.value)}
-                      required
-                    >
-                      {articleCategories.map((option) => (
-                        <MenuItem key={option} value={option}>
-                          {option}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                  </Box>
+            <Stack direction="row" spacing={1} alignItems="center">
+              <ToggleButtonGroup
+                value={viewMode}
+                exclusive
+                onChange={(e, val) => val && setViewMode(val)}
+                size="small"
+                color="primary"
+              >
+                <ToggleButton value="edit">
+                  <Edit sx={{ mr: 1, fontSize: 18 }} /> Edit
+                </ToggleButton>
+                <ToggleButton value="preview">
+                  <Visibility sx={{ mr: 1, fontSize: 18 }} /> Preview
+                </ToggleButton>
+              </ToggleButtonGroup>
+              <Tooltip
+                title={isFullScreen ? 'Exit Fullscreen' : 'Fullscreen Mode'}
+              >
+                <IconButton
+                  onClick={() => setIsFullScreen(!isFullScreen)}
+                  color="inherit"
+                >
+                  {isFullScreen ? <FullscreenExit /> : <Fullscreen />}
+                </IconButton>
+              </Tooltip>
+            </Stack>
+          </Box>
 
+          <Paper
+            elevation={isFullScreen ? 0 : 3}
+            sx={{ p: { xs: 2, md: 4 }, borderRadius: 2 }}
+          >
+            {viewMode === 'edit' ? (
+              <Stack spacing={3}>
+                <Box
+                  display="grid"
+                  gridTemplateColumns={{ md: '2fr 1fr' }}
+                  gap={2}
+                >
                   <TextField
-                    label="Featured Image URL"
+                    label="Article Title"
                     variant="outlined"
                     fullWidth
-                    value={imageUrl}
-                    onChange={(e) => setImageUrl(e.target.value)}
-                    helperText="Paste a URL for the header image"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="e.g., Guide to Investment Diversification"
                   />
+                  <TextField
+                    select
+                    label="Category"
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                  >
+                    {articleCategories.map((opt) => (
+                      <MenuItem key={opt} value={opt}>
+                        {opt}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </Box>
 
-                  <Divider sx={{ my: 2, borderColor: 'divider' }} />
+                <TextField
+                  label="Featured Image URL"
+                  fullWidth
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                  helperText="Recommended: 1200x600px"
+                />
 
-                  <Box>
-                    <Typography
-                      variant="subtitle1"
-                      sx={{ mb: 1, fontWeight: 'bold', color: 'text.primary' }}
-                    >
-                      Article Content
-                    </Typography>
-                    <Box
-                      sx={{
-                        '.ql-container': {
-                          minHeight: '350px',
-                          fontSize: '16px',
-                          borderBottomLeftRadius: 8,
-                          borderBottomRightRadius: 8,
-                          borderColor: 'divider',
-                        },
-                        '.ql-toolbar': {
-                          borderTopLeftRadius: 8,
-                          borderTopRightRadius: 8,
-                          background: (theme) => theme.palette.action.hover,
-                          borderColor: 'divider',
-                        },
-                        '.ql-editor': {
-                          minHeight: '350px',
-                        },
-                      }}
-                    >
-                      <ReactQuill
-                        theme="snow"
-                        value={content}
-                        onChange={setContent}
-                        modules={modules}
-                        placeholder="Start writing..."
-                      />
-                    </Box>
-                  </Box>
-
+                {imageUrl && (
                   <Box
                     sx={{
-                      display: 'flex',
-                      justifyContent: 'flex-end',
-                      gap: 2,
-                      mt: 2,
+                      position: 'relative',
+                      width: '100%',
+                      height: 200,
+                      borderRadius: 2,
+                      overflow: 'hidden',
+                      border: '1px solid #ddd',
                     }}
                   >
-                    <Button
-                      variant="outlined"
-                      color="inherit"
-                      onClick={() => navigate(-1)}
-                      disabled={isSubmitting}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      startIcon={<SaveIcon />}
-                      onClick={() => handlePublish(null, 'draft')}
-                      disabled={isSubmitting}
-                      color="secondary"
-                    >
-                      {id ? 'Save Changes' : 'Save Draft'}
-                    </Button>
-                    <Button
-                      type="submit"
-                      variant="contained"
-                      color="primary"
-                      startIcon={
-                        isSubmitting ? (
-                          <CircularProgress size={20} color="inherit" />
-                        ) : (
-                          <CloudUploadIcon />
-                        )
+                    <Box
+                      component="img"
+                      src={imageUrl}
+                      sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      onError={(e) =>
+                        (e.target.src =
+                          'https://placehold.co/1200x600?text=Invalid+Image+URL')
                       }
-                      disabled={isSubmitting}
-                      sx={{ px: 4 }}
-                    >
-                      {isSubmitting
-                        ? id
-                          ? 'Updating...'
-                          : 'Publishing...'
-                        : id
-                        ? 'Update Article'
-                        : 'Publish Now'}{' '}
-                    </Button>
+                    />
                   </Box>
-                </Stack>
-              </form>
-            </Paper>
-          </Container>
-        </div>
-      </Fade>
+                )}
 
-      {/* Snackbar for notifications */}
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={5000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-      >
-        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
-    </>
+                <Divider />
+
+                <Box
+                  sx={{
+                    '.ql-toolbar': {
+                      position: 'sticky',
+                      top: isFullScreen ? 0 : -24, // Adjust based on your layout's navbar height
+                      zIndex: 10,
+                      bgcolor: 'background.paper',
+                      borderTopLeftRadius: 8,
+                      borderTopRightRadius: 8,
+                    },
+                    '.ql-container': {
+                      minHeight: '450px',
+                      fontSize: '1.1rem',
+                      borderBottomLeftRadius: 8,
+                      borderBottomRightRadius: 8,
+                    },
+                  }}
+                >
+                  <ReactQuill
+                    ref={quillRef}
+                    theme="snow"
+                    value={content}
+                    onChange={setContent}
+                    modules={modules}
+                    placeholder="Write your article content here..."
+                  />
+                </Box>
+              </Stack>
+            ) : (
+              /* --- WYSIWYG PREVIEW MODE --- */
+              <Box
+                className="ql-snow"
+                sx={{ minHeight: '600px', p: { md: 4 } }}
+              >
+                <Box sx={{ maxWidth: '800px', mx: 'auto' }}>
+                  <Typography
+                    variant="overline"
+                    color="primary"
+                    fontWeight="bold"
+                  >
+                    {category || 'Category'}
+                  </Typography>
+                  <Typography variant="h3" sx={{ fontWeight: 'bold', mb: 2 }}>
+                    {title || 'Untitled Article'}
+                  </Typography>
+                  {imageUrl && (
+                    <Box
+                      component="img"
+                      src={imageUrl}
+                      sx={{ width: '100%', borderRadius: 2, mb: 4 }}
+                    />
+                  )}
+                  <Divider sx={{ mb: 4 }} />
+                  <Box
+                    className="ql-editor" // This class applies Quill's styles to the HTML
+                    dangerouslySetInnerHTML={{
+                      __html: content || '<p>No content to preview.</p>',
+                    }}
+                    sx={{ p: '0 !important' }}
+                  />
+                </Box>
+              </Box>
+            )}
+
+            {/* Footer Actions */}
+            <Box
+              sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}
+            >
+              <Button
+                color="error"
+                startIcon={<DeleteSweepIcon />}
+                onClick={() => {
+                  if (window.confirm('Clear all unsaved progress?')) {
+                    setTitle('');
+                    setContent('');
+                    setImageUrl('');
+                    setCategory('');
+                    localStorage.removeItem('sf_article_draft');
+                  }
+                }}
+              >
+                Clear
+              </Button>
+
+              <Stack direction="row" spacing={2}>
+                <Button
+                  variant="outlined"
+                  color="inherit"
+                  onClick={() => navigate(-1)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  startIcon={<SaveIcon />}
+                  disabled={isSubmitting}
+                  onClick={() => handlePublish(null, 'draft')}
+                >
+                  Save Draft
+                </Button>
+                <Button
+                  variant="contained"
+                  startIcon={
+                    isSubmitting ? (
+                      <CircularProgress size={20} />
+                    ) : (
+                      <CloudUploadIcon />
+                    )
+                  }
+                  disabled={isSubmitting}
+                  onClick={(e) => handlePublish(e, 'published')}
+                  sx={{ px: 4 }}
+                >
+                  {id ? 'Update' : 'Publish'}
+                </Button>
+              </Stack>
+            </Box>
+          </Paper>
+        </Container>
+
+        <Snackbar
+          open={snackbar.open}
+          autoHideDuration={6000}
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert severity={snackbar.severity} sx={{ width: '100%' }}>
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
+      </Box>
+    </Fade>
   );
 };
 
