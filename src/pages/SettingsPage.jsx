@@ -1,145 +1,267 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useEffect, useRef } from 'react';
 import {
-  Box, Stack, Typography, useTheme, alpha, Grid, Button, Slide, Paper,
-  Select, MenuItem, FormControl, Switch,  Divider
-} from "@mui/material";
+  Box,
+  Stack,
+  Typography,
+  useTheme,
+  alpha,
+  Grid,
+  Button,
+  Slide,
+  Paper,
+  Select,
+  MenuItem,
+  Switch,
+  Divider,
+} from '@mui/material';
 import {
-  PaletteOutlined as PaletteIcon,
+  SettingsOutlined as SettingsIcon,
   SaveOutlined as SaveIcon,
-  SettingsSuggestOutlined as AdvancedIcon,
-  CloudDoneOutlined as SyncIcon,
-  PaymentsOutlined as CurrencyIcon
-} from "@mui/icons-material";
-import { useDispatch, useSelector } from "react-redux";
+} from '@mui/icons-material';
+import { useDispatch, useSelector } from 'react-redux';
 
 import {
-  setThemeMode, setDesignSystem, setVisualStyle, setCurrency, setAutoSave
-} from "../store/emiSlice";
+  setThemeMode,
+  setDesignSystem,
+  setVisualStyle,
+  setCurrency,
+  setAutoSave,
+} from '../store/emiSlice';
 
-import { themePresets } from "../theme/ThemeConfig";
-import ThemeSelector from "../components/common/ThemeSelector";
-import PageHeader from "../components/common/PageHeader";
+import { themePresets } from '../theme/ThemeConfig';
+import ThemeSelector from '../components/common/ThemeSelector';
+import PageHeader from '../components/common/PageHeader';
 
 export default function SettingsPage() {
   const dispatch = useDispatch();
   const theme = useTheme();
 
-  const saved = useSelector(state => state.emi);
-  const [draft, setDraft] = useState({ ...saved });
-  const [openToast, setOpenToast] = useState(false);
+  const globalSettings = useSelector((state) => state.emi);
+  const originalSettings = useRef({ ...globalSettings });
+  const [hasSaved, setHasSaved] = useState(false);
 
-  useEffect(() => { setDraft({ ...saved }); }, [saved]);
+  useEffect(() => {
+    return () => {
+      if (!hasSaved) {
+        const orig = originalSettings.current;
+        dispatch(setThemeMode(orig.themeMode));
+        dispatch(setDesignSystem(orig.designSystem));
+        dispatch(setVisualStyle(orig.visualStyle));
+        dispatch(setCurrency(orig.currency));
+        dispatch(setAutoSave(orig.autoSave));
+      }
+    };
+  }, [hasSaved, dispatch]);
 
-  const currentPreset = useMemo(() => {
-    const found = Object.entries(themePresets).find(([_, p]) =>
-        p.arch === draft.designSystem && p.style === draft.visualStyle
-    );
-    return found ? found[0] : "custom";
-  }, [draft.designSystem, draft.visualStyle]);
-
-  const handlePresetChange = (presetKey) => {
-    if (presetKey === "custom") return;
-    const preset = themePresets[presetKey];
-    setDraft({ ...draft, designSystem: preset.arch, visualStyle: preset.style });
-  };
-
-  const isDirty = draft.themeMode !== saved.themeMode ||
-      draft.designSystem !== saved.designSystem ||
-      draft.visualStyle !== saved.visualStyle ||
-      draft.currency !== saved.currency ||
-      draft.autoSave !== saved.autoSave;
+  const isDirty =
+    JSON.stringify(globalSettings) !== JSON.stringify(originalSettings.current);
 
   const handleSave = () => {
-    dispatch(setThemeMode(draft.themeMode));
-    dispatch(setDesignSystem(draft.designSystem));
-    dispatch(setVisualStyle(draft.visualStyle));
-    dispatch(setCurrency(draft.currency));
-    dispatch(setAutoSave(draft.autoSave));
-    setOpenToast(true);
+    originalSettings.current = { ...globalSettings };
+    setHasSaved(true);
+    setTimeout(() => setHasSaved(false), 500);
+  };
+
+  const handleUndo = () => {
+    const orig = originalSettings.current;
+    dispatch(setThemeMode(orig.themeMode));
+    dispatch(setDesignSystem(orig.designSystem));
+    dispatch(setVisualStyle(orig.visualStyle));
   };
 
   return (
-      <Box sx={{ width: "100%", p: { xs: 2, md: 4 }, pb: 15, display: "flex", justifyContent: "center" }}>
-        <Box sx={{ width: "100%", maxWidth: 1000 }}>
-          <PageHeader title="Appearance" subtitle="Customize your dashboard aesthetics." icon={PaletteIcon} />
+    <Box
+      sx={{
+        width: '100%',
+        p: { xs: 2, md: 3 },
+        display: 'flex',
+        justifyContent: 'center',
+      }}
+    >
+      <Box sx={{ width: '100%', maxWidth: 700 }}>
+        <PageHeader
+          title="Settings"
+          subtitle="Configure your workspace environment."
+          icon={SettingsIcon}
+        />
 
-          <Stack spacing={5}>
-            <Box sx={{ p: 4, bgcolor: alpha(theme.palette.primary.main, 0.03), borderRadius: 6, border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}` }}>
-              <Typography variant="h6" sx={{ mb: 1, fontWeight: 800 }}>Visual Style Gallery</Typography>
-              <FormControl fullWidth sx={{ mt: 2 }}>
-                <Select value={currentPreset} onChange={(e) => handlePresetChange(e.target.value)} sx={{ borderRadius: 3, bgcolor: 'background.paper' }}>
+        <Stack spacing={2.5} sx={{ mt: 1 }}>
+          {/* Section 1: Appearance */}
+          <Box>
+            <Typography
+              variant="overline"
+              sx={{
+                fontWeight: 800,
+                color: 'primary.main',
+                letterSpacing: 1.2,
+              }}
+            >
+              Appearance
+            </Typography>
+            <Stack spacing={2} sx={{ mt: 1 }}>
+              <Box>
+                <Typography
+                  variant="caption"
+                  sx={{ fontWeight: 700, mb: 0.5, display: 'block' }}
+                >
+                  Layout Style
+                </Typography>
+                <Select
+                  fullWidth
+                  size="small"
+                  value={
+                    Object.keys(themePresets).find(
+                      (k) =>
+                        themePresets[k].arch === globalSettings.designSystem &&
+                        themePresets[k].style === globalSettings.visualStyle,
+                    ) || 'custom'
+                  }
+                  onChange={(e) => {
+                    const p = themePresets[e.target.value];
+                    if (p) {
+                      dispatch(setDesignSystem(p.arch));
+                      dispatch(setVisualStyle(p.style));
+                    }
+                  }}
+                  sx={{ borderRadius: 2 }}
+                >
                   {Object.entries(themePresets).map(([key, p]) => (
-                      <MenuItem key={key} value={key}>{p.name} — {p.desc}</MenuItem>
+                    <MenuItem key={key} value={key}>
+                      {p.name}
+                    </MenuItem>
                   ))}
-                  <MenuItem value="custom">Manual Configuration (Advanced)</MenuItem>
                 </Select>
-              </FormControl>
-            </Box>
+              </Box>
 
-            <Box>
-              <Typography variant="h6" sx={{ mb: 2, fontWeight: 800 }}>Brand Identity</Typography>
-              <ThemeSelector selectedTheme={draft.themeMode} onThemeChange={(v) => setDraft({...draft, themeMode: v})} />
-            </Box>
+              <Box>
+                <Typography
+                  variant="caption"
+                  sx={{ fontWeight: 700, mb: 0.5, display: 'block' }}
+                >
+                  Color Theme
+                </Typography>
+                <ThemeSelector
+                  selectedTheme={globalSettings.themeMode}
+                  onThemeChange={(v) => dispatch(setThemeMode(v))}
+                />
+              </Box>
+            </Stack>
+          </Box>
 
-            <Divider />
+          <Divider sx={{ opacity: 0.6 }} />
 
-            <Box>
-              <Typography variant="h6" sx={{ mb: 3, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 1 }}><AdvancedIcon color="primary" /> Fine-Tune Style</Typography>
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
-                  <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 700 }}>App Personality</Typography>
-                  <Stack direction="row" spacing={1}>
-                    {['material', 'apple', 'fluent'].map((arch) => (
-                        <Button key={arch} onClick={() => setDraft({...draft, designSystem: arch})} variant={draft.designSystem === arch ? "contained" : "outlined"} sx={{ flex: 1, borderRadius: 2 }}>{arch}</Button>
-                    ))}
-                  </Stack>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 700 }}>Surface Vibe</Typography>
-                  <Stack direction="row" spacing={1}>
-                    {['flat', 'minimalist', 'glass', 'neumorphic'].map((style) => (
-                        <Button key={style} onClick={() => setDraft({...draft, visualStyle: style})} variant={draft.visualStyle === style ? "contained" : "outlined"} sx={{ flex: 1, borderRadius: 2 }}>{style}</Button>
-                    ))}
-                  </Stack>
-                </Grid>
+          {/* Section 2: Regional & Sync */}
+          <Box>
+            <Typography
+              variant="overline"
+              sx={{
+                fontWeight: 800,
+                color: 'primary.main',
+                letterSpacing: 1.2,
+              }}
+            >
+              Preferences
+            </Typography>
+            <Grid container spacing={4} alignItems="center" sx={{ mt: 0.5 }}>
+              <Grid item xs={6}>
+                <Typography
+                  variant="caption"
+                  sx={{ fontWeight: 700, mb: 0.5, display: 'block' }}
+                >
+                  Currency
+                </Typography>
+                <Select
+                  value={globalSettings.currency}
+                  onChange={(e) => dispatch(setCurrency(e.target.value))}
+                  fullWidth
+                  size="small"
+                  sx={{ borderRadius: 2 }}
+                >
+                  <MenuItem value="₹">Rupee (₹)</MenuItem>
+                  <MenuItem value="$">Dollar ($)</MenuItem>
+                  <MenuItem value="€">Euro (€)</MenuItem>
+                </Select>
               </Grid>
-            </Box>
-
-            <Divider />
-
-            <Box>
-              <Typography variant="h6" sx={{ mb: 3, fontWeight: 800 }}>Functional Settings</Typography>
-              <Grid container spacing={4}>
-                <Grid item xs={12} md={6}>
-                  <Stack spacing={1}>
-                    <Typography variant="caption" sx={{ fontWeight: 800, display: 'flex', alignItems: 'center', gap: 1 }}><CurrencyIcon sx={{ fontSize: '1rem' }} /> PREFERRED CURRENCY</Typography>
-                    <Select value={draft.currency} onChange={(e) => setDraft({...draft, currency: e.target.value})} fullWidth size="small" sx={{ borderRadius: 2 }}>
-                      <MenuItem value="₹">Indian Rupee (₹)</MenuItem>
-                      <MenuItem value="$">US Dollar ($)</MenuItem>
-                      <MenuItem value="€">Euro (€)</MenuItem>
-                    </Select>
-                  </Stack>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ p: 2, bgcolor: alpha(theme.palette.divider, 0.05), borderRadius: 3 }}>
-                    <Typography variant="body2" sx={{ fontWeight: 800, display: 'flex', alignItems: 'center', gap: 1 }}><SyncIcon fontSize="small" /> AUTOSAVE</Typography>
-                    <Switch checked={draft.autoSave} onChange={(e) => setDraft({...draft, autoSave: e.target.checked})} />
-                  </Stack>
-                </Grid>
+              <Grid item xs={6}>
+                <Stack
+                  direction="row"
+                  justifyContent="space-between"
+                  alignItems="center"
+                >
+                  <Box>
+                    <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                      Cloud Sync
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Auto-save data
+                    </Typography>
+                  </Box>
+                  <Switch
+                    size="small"
+                    checked={globalSettings.autoSave}
+                    onChange={(e) => dispatch(setAutoSave(e.target.checked))}
+                  />
+                </Stack>
               </Grid>
-            </Box>
-          </Stack>
+            </Grid>
+          </Box>
+        </Stack>
 
-          <Slide direction="up" in={isDirty}>
-            <Paper elevation={24} sx={{ position: 'fixed', bottom: 40, left: '50%', transform: 'translateX(-50%) !important', p: 1.5, borderRadius: 100, bgcolor: 'text.primary', color: 'background.paper', display: 'flex', alignItems: 'center', gap: 4, px: 3, zIndex: 2000 }}>
-              <Typography variant="body2" sx={{ fontWeight: 700, ml: 1 }}>Unsaved style changes</Typography>
-              <Stack direction="row" spacing={1}>
-                <Button onClick={() => setDraft({ ...saved })} sx={{ color: alpha(theme.palette.common.white, 0.6), fontWeight: 700 }}>Undo</Button>
-                <Button onClick={handleSave} variant="contained" startIcon={<SaveIcon />} sx={{ borderRadius: 100, px: 4, fontWeight: 800 }}>Save Changes</Button>
-              </Stack>
-            </Paper>
-          </Slide>
-        </Box>
+        {/* Minimal Action Bar */}
+        <Slide direction="up" in={isDirty}>
+          <Paper
+            elevation={6}
+            sx={{
+              position: 'fixed',
+              bottom: 30,
+              left: '50%',
+              transform: 'translateX(-50%) !important',
+              p: 0.8,
+              borderRadius: 2,
+              bgcolor: 'text.primary',
+              color: 'background.paper',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 3,
+              px: 2,
+              zIndex: 3000,
+            }}
+          >
+            <Typography
+              variant="caption"
+              sx={{ fontWeight: 700, opacity: 0.8 }}
+            >
+              Unsaved Preview
+            </Typography>
+            <Stack direction="row" spacing={1}>
+              <Button
+                size="small"
+                onClick={handleUndo}
+                sx={{
+                  color: alpha(theme.palette.common.white, 0.6),
+                  fontSize: '0.7rem',
+                }}
+              >
+                Discard
+              </Button>
+              <Button
+                size="small"
+                onClick={handleSave}
+                variant="contained"
+                startIcon={<SaveIcon sx={{ fontSize: '0.9rem !important' }} />}
+                sx={{
+                  borderRadius: 1.5,
+                  fontWeight: 800,
+                  textTransform: 'none',
+                  px: 2,
+                }}
+              >
+                Save
+              </Button>
+            </Stack>
+          </Paper>
+        </Slide>
       </Box>
+    </Box>
   );
 }

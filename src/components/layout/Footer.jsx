@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import {
   Box,
   Typography,
@@ -7,13 +7,13 @@ import {
   Container,
   useTheme,
   alpha,
-} from "@mui/material";
-import { useNavigate } from "react-router-dom";
+} from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 
 const footerLinks = [
-  { label: "Privacy Policy", path: "/privacy-policy" },
-  { label: "Terms of Service", path: "/terms-of-service" },
-  { label: "Contact Us", path: "/contact-us" },
+  { label: 'Privacy Policy', path: '/privacy-policy' },
+  { label: 'Terms of Service', path: '/terms-of-service' },
+  { label: 'Contact Us', path: '/contact-us' },
 ];
 
 const Footer = () => {
@@ -26,43 +26,41 @@ const Footer = () => {
       sx={{
         py: 2,
         px: 2,
-        // --- STICKY LOGIC ---
-        position: "fixed",
+        position: 'fixed',
         bottom: 0,
         left: 0,
         right: 0,
-        zIndex: theme.zIndex.appBar, // Ensures it stays above page content
-        // --------------------
+        zIndex: theme.zIndex.appBar,
 
-        // Glassmorphism effect
-        backgroundColor: alpha(theme.palette.background.paper, 0.8),
-        backdropFilter: "blur(8px)",
-        borderTop: "1px solid",
-        borderColor: alpha(theme.palette.divider, 0.1),
-        textAlign: "center",
+        // Dynamic styling:
+        backgroundColor: alpha(theme.palette.background.paper, 0.9),
+        backdropFilter: 'blur(10px)', // Works for 'Glass' style
+        borderTop: '1px solid',
+        borderColor: theme.palette.divider,
+        color: theme.palette.text.secondary,
+        transition: theme.transitions.create([
+          'background-color',
+          'border-color',
+        ]),
       }}
     >
       <Container maxWidth="lg">
         <Stack
-          direction={{ xs: "column", sm: "row" }}
+          direction={{ xs: 'column', sm: 'row' }}
           spacing={{ xs: 1, sm: 4 }}
           justifyContent="center"
           alignItems="center"
         >
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={{ fontWeight: 500 }}
-          >
-            © {new Date().getFullYear()}{" "}
+          <Typography variant="body2" color="inherit" sx={{ fontWeight: 500 }}>
+            © {new Date().getFullYear()}{' '}
             <Link
               href="/"
               color="primary"
               onClick={(e) => {
                 e.preventDefault();
-                navigate("/");
+                navigate('/');
               }}
-              sx={{ fontWeight: 700, textDecoration: "none" }}
+              sx={{ fontWeight: 700, textDecoration: 'none' }}
             >
               SmartFund Manager
             </Link>
@@ -79,10 +77,10 @@ const Footer = () => {
                 }}
                 underline="none"
                 sx={{
-                  color: "text.secondary",
+                  color: 'inherit',
                   fontWeight: 600,
-                  fontSize: "0.75rem",
-                  "&:hover": { color: "primary.main" },
+                  fontSize: '0.75rem',
+                  '&:hover': { color: 'primary.main' },
                 }}
               >
                 {link.label}
@@ -92,12 +90,12 @@ const Footer = () => {
 
           <Typography
             variant="caption"
-            color="text.disabled"
             sx={{
               fontWeight: 600,
-              display: { xs: "none", md: "block" },
-              borderLeft: `1px solid ${alpha(theme.palette.divider, 0.2)}`,
+              display: { xs: 'none', md: 'block' },
+              borderLeft: `1px solid ${theme.palette.divider}`,
               pl: 4,
+              color: 'text.disabled',
             }}
           >
             Built for precision. Managed with intelligence.
