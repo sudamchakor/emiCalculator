@@ -8,167 +8,215 @@ import {
   Container,
   InputAdornment,
   Button,
+  useTheme,
+  Pagination,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
 import ArticleIcon from '@mui/icons-material/Article';
 import { Link } from 'react-router-dom';
-
-// Firestore Imports
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
 
 import ArticleCard from '../../components/articles/ArticleCard';
 import PageHeader from '../../components/common/PageHeader';
 import { useAuth } from '../../hooks/useAuth';
-import SuspenseFallback from '../../components/common/SuspenseFallback'; // Import SuspenseFallback
+import SuspenseFallback from '../../components/common/SuspenseFallback';
 
 const ArticlesArchive = () => {
+  const theme = useTheme();
   const { isAuthenticated } = useAuth();
 
-  // States
-  const [allArticles, setAllArticles] = useState([]); // Master list from DB
-  const [filteredArticles, setFilteredArticles] = useState([]); // Displayed list
-  const [loading, setLoading] = useState(true); // Reintroduced loading state for data fetching
+  // Data States
+  const [allArticles, setAllArticles] = useState([]);
+  const [filteredArticles, setFilteredArticles] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Filter States
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
 
-  // 1. Fetch data from Firestore on mount
+  // Pagination States
+  const [page, setPage] = useState(1);
+  const articlesPerPage = 6; // Set how many articles per page
+
   useEffect(() => {
     const fetchArticles = async () => {
       try {
-        setLoading(true); // Set loading to true before fetching
-        const articlesCollection = collection(db, 'articles');
-        // We order by timestamp so newest articles appear first
-        const q = query(articlesCollection, orderBy('createdAt', 'desc'));
+        setLoading(true);
+        const q = query(
+          collection(db, 'articles'),
+          orderBy('createdAt', 'desc'),
+        );
         const querySnapshot = await getDocs(q);
 
-        const fetchedArticles = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
+        const fetchedArticles = querySnapshot.docs
+          .map((doc) => ({ id: doc.id, ...doc.data() }))
+          .filter((a) => a && a.title);
 
         setAllArticles(fetchedArticles);
         setFilteredArticles(fetchedArticles);
-      } catch (error) {
-        console.error('Error fetching articles: ', error);
-        // Optionally, you could set an error state here to display an error message
+      } catch (err) {
+        console.error('Fetch error:', err);
       } finally {
-        setLoading(false); // Set loading to false after fetching (success or error)
+        setLoading(false);
       }
     };
-
     fetchArticles();
   }, []);
 
-  // 2. Handle Filtering (Client-side)
+  // Filter Logic + Page Reset
   useEffect(() => {
-    let result = allArticles;
-
-    if (searchTerm) {
-      result = result.filter(
-        (article) =>
-          article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          article.excerpt?.toLowerCase().includes(searchTerm.toLowerCase()),
-      );
-    }
-
-    if (selectedCategory !== 'All') {
-      result = result.filter(
-        (article) => article.category === selectedCategory,
-      );
-    }
+    const result = allArticles.filter((a) => {
+      const matchesSearch =
+        a.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        a.excerpt?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCat =
+        selectedCategory === 'All' || a.category === selectedCategory;
+      return matchesSearch && matchesCat;
+    });
 
     setFilteredArticles(result);
+    setPage(1); // Reset to first page whenever filters change
   }, [searchTerm, selectedCategory, allArticles]);
 
-  // Derived categories list from all articles
+  // Pagination Logic
+  const indexOfLastArticle = page * articlesPerPage;
+  const indexOfFirstArticle = indexOfLastArticle - articlesPerPage;
+  const currentArticles = filteredArticles.slice(
+    indexOfFirstArticle,
+    indexOfLastArticle,
+  );
+  const totalPages = Math.ceil(filteredArticles.length / articlesPerPage);
+
+  const handlePageChange = (event, value) => {
+    setPage(value);
+    // Smooth scroll to top when page changes
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const categories = [
     'All',
-    ...new Set(allArticles.map((article) => article.category)),
+    ...new Set(allArticles.map((a) => a.category).filter(Boolean)),
   ];
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <PageHeader
-        title="Finance Articles"
-        subtitle="Stay informed with our latest insights and guides."
-        icon={ArticleIcon}
-      />
-
-      <Box
-        sx={{
-          display: 'flex',
-          gap: 2,
-          mb: 4,
-          flexDirection: { xs: 'column', sm: 'row' },
-          alignItems: 'center',
-        }}
-      >
-        <TextField
-          label="Search Articles"
-          variant="outlined"
-          fullWidth
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon />
-              </InputAdornment>
-            ),
-          }}
+    <Box
+      sx={{
+        bgcolor: theme.palette.background.default,
+        minHeight: '100vh',
+        pb: 10,
+      }}
+    >
+      <Container maxWidth="lg" sx={{ py: 6 }}>
+        <PageHeader
+          title="Knowledge Hub"
+          subtitle="Empowering your financial journey with expert insights."
+          icon={ArticleIcon}
         />
-        <TextField
-          select
-          label="Category"
-          variant="outlined"
-          value={selectedCategory}
-          onChange={(e) => setSelectedCategory(e.target.value)}
-          sx={{ minWidth: 180 }}
-        >
-          {categories.map((category) => (
-            <MenuItem key={category} value={category}>
-              {category}
-            </MenuItem>
-          ))}
-        </TextField>
-        {isAuthenticated && (
-          <Button
-            component={Link}
-            to="/admin/write-article"
-            variant="contained"
-            color="primary"
-            startIcon={<AddIcon />}
-            sx={{ flexShrink: 0, mt: { xs: 2, sm: 0 } }}
-          >
-            Add Article
-          </Button>
-        )}
-      </Box>
 
-      {loading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-          <SuspenseFallback message="" /> {/* Show SuspenseFallback without message */}
-        </Box>
-      ) : (
-        <Grid container spacing={4}>
-          {filteredArticles.length > 0 ? (
-            filteredArticles.map((article) => (
-              <Grid item xs={12} sm={6} md={4} key={article.id}>
-                <ArticleCard article={article} />
-              </Grid>
-            ))
-          ) : (
-            <Grid item xs={12}>
-              <Typography variant="h6" color="text.secondary" align="center">
-                No articles found matching your criteria.
-              </Typography>
+        {/* Search and Filters */}
+        <Grid container spacing={2} sx={{ mb: 6, alignItems: 'center' }}>
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              placeholder="Search by title or topic..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon color="primary" />
+                  </InputAdornment>
+                ),
+                sx: { borderRadius: 3, bgcolor: '#fff' },
+              }}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <TextField
+              select
+              fullWidth
+              label="Category"
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              InputProps={{ sx: { borderRadius: 3, bgcolor: '#fff' } }}
+            >
+              {categories.map((cat) => (
+                <MenuItem key={cat} value={cat}>
+                  {cat}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Grid>
+          {isAuthenticated && (
+            <Grid item xs={12} sm={6} md={3}>
+              <Button
+                component={Link}
+                to="/admin/write-article"
+                variant="contained"
+                fullWidth
+                startIcon={<AddIcon />}
+                sx={{
+                  py: 1.5,
+                  borderRadius: 3,
+                  fontWeight: 700,
+                  boxShadow: theme.shadows[4],
+                }}
+              >
+                Create Article
+              </Button>
             </Grid>
           )}
         </Grid>
-      )}
-    </Container>
+
+        {loading ? (
+          <SuspenseFallback message="" />
+        ) : (
+          <>
+            <Grid container spacing={4}>
+              {currentArticles.map((article) => (
+                <Grid item xs={12} sm={6} md={4} key={article.id}>
+                  <ArticleCard article={article} />
+                </Grid>
+              ))}
+
+              {!loading && filteredArticles.length === 0 && (
+                <Grid item xs={12}>
+                  <Box sx={{ textAlign: 'center', py: 12, opacity: 0.6 }}>
+                    <Typography variant="h5">
+                      No matching insights found.
+                    </Typography>
+                    <Typography>
+                      Try adjusting your filters or search terms.
+                    </Typography>
+                  </Box>
+                </Grid>
+              )}
+            </Grid>
+
+            {/* Pagination Component */}
+            {totalPages > 1 && (
+              <Box sx={{ mt: 8, display: 'flex', justifyContent: 'center' }}>
+                <Pagination
+                  count={totalPages}
+                  page={page}
+                  onChange={handlePageChange}
+                  color="primary"
+                  size="large"
+                  sx={{
+                    '& .MuiPaginationItem-root': {
+                      fontWeight: 'bold',
+                      borderRadius: 2,
+                    },
+                  }}
+                />
+              </Box>
+            )}
+          </>
+        )}
+      </Container>
+    </Box>
   );
 };
 

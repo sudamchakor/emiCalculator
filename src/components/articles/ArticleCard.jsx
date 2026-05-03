@@ -1,101 +1,189 @@
 import React from 'react';
-import { Box, Typography, Button, useTheme, alpha } from '@mui/material';
+import {
+  Card,
+  CardContent,
+  CardMedia,
+  Typography,
+  Box,
+  Button,
+  CardActions,
+  useTheme,
+} from '@mui/material';
 import { Link } from 'react-router-dom';
-import DataCard from '../common/DataCard'; // Assuming DataCard is in common
-import ImageIcon from '@mui/icons-material/Image'; // Default icon
 
-// Import centralized category icons
-import { categoryIcons } from '../../utils/articleCategories';
+// Icons
+import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
+import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
+import ShieldIcon from '@mui/icons-material/Shield';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import SavingsIcon from '@mui/icons-material/Savings';
+import FlagIcon from '@mui/icons-material/Flag';
+import BalanceIcon from '@mui/icons-material/Balance';
+import ArticleIcon from '@mui/icons-material/Article';
+import PaymentsIcon from '@mui/icons-material/Payments';
 
-const ArticleCard = ({ article }) => {
-  const theme = useTheme();
+const getCategoryPalette = (category, theme) => {
+  const cat = category?.toUpperCase() || 'DEFAULT';
 
-  // Get the appropriate icon component based on the article's category
-  const IconComponent = categoryIcons[article.category] || ImageIcon; // Fallback to ImageIcon
-
-  // Format dates
-  const formatDate = (timestamp) => {
-    if (!timestamp) return 'N/A';
-    // Check if it's a Firestore Timestamp object
-    if (timestamp.toDate) {
-      return timestamp.toDate().toLocaleDateString();
-    }
-    // Otherwise, assume it's already a string or Date object
-    return new Date(timestamp).toLocaleDateString();
+  const palettes = {
+    'TAX STRATEGY': {
+      icon: <ReceiptLongIcon fontSize="large" />,
+      color: theme.palette.info.main,
+      bg: theme.palette.info.light + '20',
+    },
+    TAX: {
+      icon: <ReceiptLongIcon fontSize="large" />,
+      color: theme.palette.info.dark,
+      bg: theme.palette.info.light + '20',
+    },
+    'INVESTMENT & TAX': {
+      icon: <AccountBalanceWalletIcon fontSize="large" />,
+      color: theme.palette.success.main,
+      bg: theme.palette.success.light + '20',
+    },
+    INVESTMENTS: {
+      icon: <TrendingUpIcon fontSize="large" />,
+      color: theme.palette.success.dark,
+      bg: theme.palette.success.light + '20',
+    },
+    'FINANCIAL SECURITY': {
+      icon: <ShieldIcon fontSize="large" />,
+      color: theme.palette.error.main,
+      bg: theme.palette.error.light + '20',
+    },
+    'GOAL PLANNING': {
+      icon: <FlagIcon fontSize="large" />,
+      color: theme.palette.secondary.main,
+      bg: theme.palette.secondary.light + '20',
+    },
+    SAVINGS: {
+      icon: <SavingsIcon fontSize="large" />,
+      color: '#c2185b',
+      bg: '#fce4ec',
+    },
+    'FINANCIAL PLANNING': {
+      icon: <BalanceIcon fontSize="large" />,
+      color: theme.palette.primary.dark,
+      bg: theme.palette.primary.light + '20',
+    },
+    FINANCE: {
+      icon: <PaymentsIcon fontSize="large" />,
+      color: theme.palette.warning.dark,
+      bg: theme.palette.warning.light + '20',
+    },
   };
 
   return (
-    <DataCard
+    palettes[cat] || {
+      icon: <ArticleIcon fontSize="large" />,
+      color: theme.palette.text.secondary,
+      bg: theme.palette.action.hover,
+    }
+  );
+};
+
+const ArticleCard = ({ article }) => {
+  const theme = useTheme(); // Access the global theme
+
+  if (!article) return null;
+
+  const palette = getCategoryPalette(article.category, theme);
+
+  return (
+    <Card
+      elevation={0}
       sx={{
+        height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        height: '100%',
-        p: 0, // Remove padding from DataCard to control it here
-        overflow: 'hidden',
+        borderRadius: 4,
+        border: `1px solid ${theme.palette.divider}`,
+        transition: 'all 0.3s ease',
+        '&:hover': {
+          transform: 'translateY(-8px)',
+          boxShadow: '0 12px 24px rgba(0,0,0,0.1)',
+          borderColor: theme.palette.primary.light,
+        },
       }}
     >
+      {/* Media / Icon Section */}
       {article.imageUrl ? (
-        <Box
-          sx={{
-            width: '100%',
-            height: 180,
-            backgroundImage: `url(${article.imageUrl})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            borderTopLeftRadius: theme.shape.borderRadius,
-            borderTopRightRadius: theme.shape.borderRadius,
-            mb: 2,
-          }}
+        <CardMedia
+          component="img"
+          height="180"
+          image={article.imageUrl}
+          alt={article.title}
+          sx={{ borderBottom: `1px solid ${theme.palette.divider}` }}
         />
       ) : (
         <Box
           sx={{
-            width: '100%',
             height: 180,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: theme.palette.grey[200],
-            color: theme.palette.grey[600],
-            borderTopLeftRadius: theme.shape.borderRadius,
-            borderTopRightRadius: theme.shape.borderRadius,
-            mb: 2,
+            bgcolor: palette.bg,
+            color: palette.color,
           }}
         >
-          <IconComponent sx={{ fontSize: 80 }} />
+          {palette.icon}
         </Box>
       )}
-      <Box sx={{ p: 2, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-        <Typography variant="overline" color="text.secondary" sx={{ mb: 0.5 }}>
-          {article.category}
+
+      <CardContent sx={{ flexGrow: 1, pt: 3 }}>
+        <Typography
+          variant="overline"
+          sx={{ color: palette.color, fontWeight: 800, letterSpacing: 1.2 }}
+        >
+          {article.category || 'Resources'}
         </Typography>
-        <Typography variant="h6" component="h3" sx={{ mb: 1, fontWeight: 700, lineHeight: 1.3 }}>
-          {article.title}
+
+        <Typography
+          variant="h6"
+          sx={{
+            fontWeight: 700,
+            mt: 0.5,
+            mb: 1.5,
+            lineHeight: 1.3,
+            color: theme.palette.text.primary,
+          }}
+        >
+          {article.title || 'Insightful Reading'}
         </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2, flexGrow: 1 }}>
-          {article.excerpt}
+
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{
+            display: '-webkit-box',
+            WebkitLineClamp: 3,
+            WebkitBoxDirection: 'vertical',
+            overflow: 'hidden',
+          }}
+        >
+          {article.excerpt ||
+            'Explore this detailed guide on optimizing your financial strategy.'}
         </Typography>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1, mb: 2 }}>
-          <Typography variant="caption" color="text.secondary">
-            Created: {formatDate(article.createdAt)}
-          </Typography>
-          {article.updatedAt && (
-            <Typography variant="caption" color="text.secondary">
-              Updated: {formatDate(article.updatedAt)}
-            </Typography>
-          )}
-        </Box>
+      </CardContent>
+
+      <CardActions sx={{ p: 2, pt: 0 }}>
         <Button
           component={Link}
           to={`/articles/${article.id}`}
-          variant="contained"
+          fullWidth
+          variant="outlined"
           color="primary"
-          sx={{ alignSelf: 'flex-start', mt: 'auto' }}
+          sx={{
+            borderRadius: 2,
+            textTransform: 'none',
+            fontWeight: 600,
+            '&:hover': { bgcolor: theme.palette.primary.main, color: '#fff' },
+          }}
         >
-          Read More
+          Read Full Article
         </Button>
-      </Box>
-    </DataCard>
+      </CardActions>
+    </Card>
   );
 };
 

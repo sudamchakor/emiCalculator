@@ -14,6 +14,7 @@ import {
   Stack,
   Divider,
   CircularProgress,
+  Fade,
 } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import PageHeader from '../../components/common/PageHeader';
@@ -28,7 +29,7 @@ import { collection, addDoc, serverTimestamp, doc, getDoc, updateDoc } from 'fir
 // Centralized category imports
 import { articleCategories } from '../../utils/articleCategories';
 import { useAuth } from '../../hooks/useAuth';
-import { ADMIN_UID } from '../../utils/constants'; // Import ADMIN_UID
+import { ADMIN_UID } from '../../utils/constants';
 
 const WriteArticle = () => {
   const navigate = useNavigate();
@@ -43,12 +44,12 @@ const WriteArticle = () => {
 
   // UI State
   const [isSubmitting, setIsSubmitting] = useState(false);
-  // Removed loadingArticle state, as Suspense handles initial component loading
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
     severity: 'success',
   });
+  const [isAuthorized, setIsAuthorized] = useState(false);
 
   const modules = {
     toolbar: [
@@ -63,25 +64,24 @@ const WriteArticle = () => {
   useEffect(() => {
     if (!authLoading) {
       if (!user) {
-        // Not authenticated
         navigate('/admin/login');
       } else if (user.uid !== ADMIN_UID) {
-        // Authenticated but not admin
         setSnackbar({
           open: true,
           message: 'You are not authorized to write or edit articles.',
           severity: 'error',
         });
-        navigate('/admin/articles'); // Redirect non-admin users
+        navigate('/admin/articles');
+      } else {
+        setIsAuthorized(true);
       }
     }
   }, [user, authLoading, navigate]);
 
   useEffect(() => {
     const fetchArticle = async () => {
-      if (id) {
+      if (id && isAuthorized) {
         try {
-          // Removed setLoadingArticle(true);
           const docRef = doc(db, 'articles', id);
           const docSnap = await getDoc(docRef);
 
@@ -107,18 +107,14 @@ const WriteArticle = () => {
             message: 'Error loading article for editing.',
             severity: 'error',
           });
-        } finally {
-          // Removed setLoadingArticle(false);
         }
       }
     };
 
-    // Only fetch if authenticated and is admin
-    if (!authLoading && user && user.uid === ADMIN_UID) {
+    if (isAuthorized) {
       fetchArticle();
     }
-    // No need for an else if to setLoadingArticle(false) as it's removed
-  }, [id, navigate, user, authLoading]);
+  }, [id, navigate, isAuthorized]);
 
   const handlePublish = async (e, status = 'published') => {
     if (e) e.preventDefault();
@@ -144,9 +140,8 @@ const WriteArticle = () => {
     setIsSubmitting(true);
 
     try {
-      // Embed author information directly into the article
       const authorUid = user.uid;
-      const authorName = user.displayName || user.email; // Use displayName or fallback to email
+      const authorName = user.displayName || user.email;
 
       const articleData = {
         title,
@@ -155,12 +150,11 @@ const WriteArticle = () => {
         content,
         status,
         updatedAt: serverTimestamp(),
-        authorUid, // Store author UID
-        authorName, // Store author Name
+        authorUid,
+        authorName,
       };
 
       if (id) {
-        // Update existing article
         const docRef = doc(db, 'articles', id);
         await updateDoc(docRef, articleData);
         setSnackbar({
@@ -172,7 +166,6 @@ const WriteArticle = () => {
           severity: 'success',
         });
       } else {
-        // Add new article
         const articlesRef = collection(db, 'articles');
         await addDoc(articlesRef, {
           ...articleData,
@@ -187,13 +180,12 @@ const WriteArticle = () => {
           severity: 'success',
         });
 
-        // Reset form on success for new article creation
         setTitle('');
         setCategory('');
         setImageUrl('');
         setContent('');
       }
-      navigate('/admin/articles'); // Redirect to admin articles list after save/publish
+      navigate('/admin/articles');
     } catch (error) {
       console.error('Firestore Error:', error);
       setSnackbar({
@@ -206,7 +198,7 @@ const WriteArticle = () => {
     }
   };
 
-  if (authLoading) { // Only wait for auth to load, initial component loading handled by Suspense
+  if (authLoading) {
     return (
       <Container maxWidth="md" sx={{ py: 8, textAlign: 'center' }}>
         <CircularProgress />
@@ -214,153 +206,177 @@ const WriteArticle = () => {
     );
   }
 
-  // If user is not admin, display unauthorized message
-  if (!user || user.uid !== ADMIN_UID) {
+  // If not authorized, render nothing for the main content area,
+  // but still render the Snackbar.
+  if (!isAuthorized) {
     return (
-      <Container maxWidth="md" sx={{ py: 8, textAlign: 'center' }}>
-        <Typography variant="h5" color="error">
-          You are not authorized to access this page.
-        </Typography>
-        <Button variant="contained" sx={{ mt: 2 }} onClick={() => navigate('/admin/articles')}>
-          Go to Articles
-        </Button>
-      </Container>
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={5000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      >
+        <Alert severity={snackbar.severity} variant="filled">
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     );
-    }
+  }
 
+  // Only render Fade and its content if authorized
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <PageHeader
-        title={id ? 'Edit Article' : 'Create Article'}
-        subtitle={
-          id
-            ? 'Modify and update your existing article.'
-            : 'Draft and format high-quality financial content for the platform.'
-        }
-        icon={ArticleIcon}
-      />
-
-      <Paper elevation={3} sx={{ p: { xs: 2, md: 4 }, mt: 3, borderRadius: 2 }}>
-        <form onSubmit={(e) => handlePublish(e, 'published')}>
-          <Stack spacing={3}>
-            <Box display="grid" gridTemplateColumns={{ md: '2fr 1fr' }} gap={2}>
-              <TextField
-                label="Article Title"
-                variant="outlined"
-                fullWidth
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                required
-                placeholder="e.g., Maximizing Tax Savings in 2026"
-              />
-              <TextField
-                select
-                label="Category"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                required
-              >
-                {articleCategories.map((option) => (
-                  <MenuItem key={option} value={option}>
-                    {option}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Box>
-
-            <TextField
-              label="Featured Image URL"
-              variant="outlined"
-              fullWidth
-              value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
-              helperText="Paste a URL for the header image"
+    <>
+      <Fade in={true} timeout={1000}>
+        {/* Wrap everything in a simple div to ensure a stable DOM element for Fade */}
+        <div>
+          <Container maxWidth="lg" sx={{ py: 4 }}>
+            <PageHeader
+              title={id ? 'Edit Article' : 'Create Article'}
+              subtitle={
+                id
+                  ? 'Modify and update your existing article.'
+                  : 'Draft and format high-quality financial content for the platform.'
+              }
+              icon={ArticleIcon}
             />
 
-            <Divider />
-
-            <Box>
-              <Typography
-                variant="subtitle1"
-                sx={{ mb: 1, fontWeight: 'bold', color: 'text.secondary' }}
-              >
-                Article Content
-              </Typography>
-              <Box
-                sx={{
-                  '.ql-container': {
-                    minHeight: '350px',
-                    fontSize: '16px',
-                    borderBottomLeftRadius: 8,
-                    borderBottomRightRadius: 8,
-                  },
-                  '.ql-toolbar': {
-                    borderTopLeftRadius: 8,
-                    borderTopRightRadius: 8,
-                    background: '#f8f9fa',
-                  },
-                }}
-              >
-                <ReactQuill
-                  theme="snow"
-                  value={content}
-                  onChange={setContent}
-                  modules={modules}
-                  placeholder="Start writing..."
-                />
-              </Box>
-            </Box>
-
-            <Box
+            <Paper
+              elevation={3}
               sx={{
-                display: 'flex',
-                justifyContent: 'flex-end',
-                gap: 2,
-                mt: 2,
+                p: { xs: 2, md: 4 },
+                mt: 3,
+                borderRadius: 2,
+                boxShadow: 3,
               }}
             >
-              <Button
-                variant="outlined"
-                color="inherit"
-                onClick={() => navigate(-1)}
-                disabled={isSubmitting}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="outlined"
-                startIcon={<SaveIcon />}
-                onClick={() => handlePublish(null, 'draft')}
-                disabled={isSubmitting}
-              >
-                {id ? 'Save Changes' : 'Save Draft'}
-              </Button>
-              <Button
-                type="submit"
-                variant="contained"
-                color="primary"
-                startIcon={
-                  isSubmitting ? (
-                    <CircularProgress size={20} color="inherit" />
-                  ) : (
-                    <CloudUploadIcon />
-                  )
-                }
-                disabled={isSubmitting}
-                sx={{ px: 4 }}
-              >
-                {isSubmitting
-                  ? id
-                    ? 'Updating...'
-                    : 'Publishing...'
-                  : id
-                  ? 'Update Article'
-                  : 'Publish Now'}{' '}
-              </Button>
-            </Box>
-          </Stack>
-        </form>
-      </Paper>
+              <form onSubmit={(e) => handlePublish(e, 'published')}>
+                <Stack spacing={3}>
+                  <Box display="grid" gridTemplateColumns={{ md: '2fr 1fr' }} gap={2}>
+                    <TextField
+                      label="Article Title"
+                      variant="outlined"
+                      fullWidth
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      required
+                      placeholder="e.g., Maximizing Tax Savings in 2026"
+                    />
+                    <TextField
+                      select
+                      label="Category"
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value)}
+                      required
+                    >
+                      {articleCategories.map((option) => (
+                        <MenuItem key={option} value={option}>
+                          {option}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </Box>
+
+                  <TextField
+                    label="Featured Image URL"
+                    variant="outlined"
+                    fullWidth
+                    value={imageUrl}
+                    onChange={(e) => setImageUrl(e.target.value)}
+                    helperText="Paste a URL for the header image"
+                  />
+
+                  <Divider sx={{ my: 2, borderColor: 'divider' }} />
+
+                  <Box>
+                    <Typography
+                      variant="subtitle1"
+                      sx={{ mb: 1, fontWeight: 'bold', color: 'text.primary' }}
+                    >
+                      Article Content
+                    </Typography>
+                    <Box
+                      sx={{
+                        '.ql-container': {
+                          minHeight: '350px',
+                          fontSize: '16px',
+                          borderBottomLeftRadius: 8,
+                          borderBottomRightRadius: 8,
+                          borderColor: 'divider',
+                        },
+                        '.ql-toolbar': {
+                          borderTopLeftRadius: 8,
+                          borderTopRightRadius: 8,
+                          background: (theme) => theme.palette.action.hover,
+                          borderColor: 'divider',
+                        },
+                        '.ql-editor': {
+                          minHeight: '350px',
+                        },
+                      }}
+                    >
+                      <ReactQuill
+                        theme="snow"
+                        value={content}
+                        onChange={setContent}
+                        modules={modules}
+                        placeholder="Start writing..."
+                      />
+                    </Box>
+                  </Box>
+
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'flex-end',
+                      gap: 2,
+                      mt: 2,
+                    }}
+                  >
+                    <Button
+                      variant="outlined"
+                      color="inherit"
+                      onClick={() => navigate(-1)}
+                      disabled={isSubmitting}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      startIcon={<SaveIcon />}
+                      onClick={() => handlePublish(null, 'draft')}
+                      disabled={isSubmitting}
+                      color="secondary"
+                    >
+                      {id ? 'Save Changes' : 'Save Draft'}
+                    </Button>
+                    <Button
+                      type="submit"
+                      variant="contained"
+                      color="primary"
+                      startIcon={
+                        isSubmitting ? (
+                          <CircularProgress size={20} color="inherit" />
+                        ) : (
+                          <CloudUploadIcon />
+                        )
+                      }
+                      disabled={isSubmitting}
+                      sx={{ px: 4 }}
+                    >
+                      {isSubmitting
+                        ? id
+                          ? 'Updating...'
+                          : 'Publishing...'
+                        : id
+                        ? 'Update Article'
+                        : 'Publish Now'}{' '}
+                    </Button>
+                  </Box>
+                </Stack>
+              </form>
+            </Paper>
+          </Container>
+        </div>
+      </Fade>
 
       <Snackbar
         open={snackbar.open}
@@ -371,7 +387,7 @@ const WriteArticle = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
-    </Container>
+    </>
   );
 };
 

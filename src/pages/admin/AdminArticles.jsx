@@ -4,7 +4,7 @@ import {
   Typography,
   Button,
   Box,
-  CircularProgress, // Keep CircularProgress for authLoading
+  CircularProgress,
   Table,
   TableBody,
   TableCell,
@@ -14,6 +14,7 @@ import {
   Paper,
   IconButton,
   TablePagination,
+  Fade, // Import Fade component
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -25,15 +26,14 @@ import { collection, getDocs, doc, deleteDoc } from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
 import { useAuth } from '../../hooks/useAuth';
 import { ADMIN_UID } from '../../utils/constants';
-import SuspenseFallback from '../../components/common/SuspenseFallback'; // Import SuspenseFallback
+import SuspenseFallback from '../../components/common/SuspenseFallback';
 
 const AdminArticles = () => {
   const [articles, setArticles] = useState([]);
-  const [loadingArticles, setLoadingArticles] = useState(true); // Reintroduced loading state for article data
+  const [loadingArticles, setLoadingArticles] = useState(true);
   const [error, setError] = useState(null);
   const { user, loading: authLoading } = useAuth();
 
-  // Pagination state
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
@@ -42,7 +42,7 @@ const AdminArticles = () => {
   useEffect(() => {
     const fetchArticles = async () => {
       try {
-        setLoadingArticles(true); // Set loading to true before fetching
+        setLoadingArticles(true);
         const querySnapshot = await getDocs(collection(db, 'articles'));
         const articlesData = querySnapshot.docs.map((doc) => ({
           id: doc.id,
@@ -53,7 +53,7 @@ const AdminArticles = () => {
         console.error('Error fetching articles:', err);
         setError('Failed to load articles.');
       } finally {
-        setLoadingArticles(false); // Set loading to false after fetching
+        setLoadingArticles(false);
       }
     };
 
@@ -79,10 +79,9 @@ const AdminArticles = () => {
 
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0); // Reset to the first page when rows per page changes
+    setPage(0);
   };
 
-  // Helper to format Firestore Timestamps
   const formatDate = (timestamp) => {
     if (!timestamp) return 'N/A';
     if (timestamp.toDate) {
@@ -91,7 +90,7 @@ const AdminArticles = () => {
     return new Date(timestamp).toLocaleDateString();
   };
 
-  if (authLoading) { // Still wait for auth to load
+  if (authLoading) {
     return (
       <Container maxWidth="md" sx={{ py: 8, textAlign: 'center' }}>
         <CircularProgress />
@@ -107,7 +106,7 @@ const AdminArticles = () => {
     );
   }
 
-  if (loadingArticles) { // Show SuspenseFallback while articles are loading
+  if (loadingArticles) {
     return (
       <Container maxWidth="md" sx={{ py: 8, textAlign: 'center' }}>
         <SuspenseFallback message="" />
@@ -116,99 +115,116 @@ const AdminArticles = () => {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          mb: 4,
-        }}
-      >
-        <Typography variant="h4" component="h1">
-          Manage Articles
-        </Typography>
-        {isAdmin && (
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<AddIcon />}
-            component={Link}
-            to="/admin/articles/new"
+    <Fade in={!loadingArticles} timeout={1000}>
+      <Box> {/* Wrap Container with a Box to ensure a stable direct child for Fade */}
+        <Container maxWidth="lg" sx={{ py: 4 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              mb: 4,
+            }}
           >
-            Add New Article
-          </Button>
-        )}
-      </Box>
+            <Typography variant="h4" component="h1">
+              Manage Articles
+            </Typography>
+            {isAdmin && (
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<AddIcon />}
+                component={Link}
+                to="/admin/articles/new"
+              >
+                Add New Article
+              </Button>
+            )}
+          </Box>
 
-      {articles.length === 0 ? (
-        <Typography variant="h6" align="center">
-          No articles found.
-        </Typography>
-      ) : (
-        <Paper>
-          <TableContainer>
-            <Table sx={{ minWidth: 650 }} aria-label="articles table">
-              <TableHead>
-                <TableRow>
-                  <TableCell>Title</TableCell>
-                  <TableCell>Category</TableCell>
-                  <TableCell>Author</TableCell>
-                  <TableCell>Created At</TableCell>
-                  <TableCell>Updated At</TableCell>
-                  {isAdmin && <TableCell align="right">Actions</TableCell>}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {articles
-                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                  .map((article) => (
-                    <TableRow
-                      key={article.id}
-                      sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                    >
-                      <TableCell component="th" scope="row">
-                        {article.title}
-                      </TableCell>
-                      <TableCell>{article.category}</TableCell>
-                      <TableCell>{article.authorName || 'N/A'}</TableCell>
-                      <TableCell>{formatDate(article.createdAt)}</TableCell>
-                      <TableCell>{formatDate(article.updatedAt)}</TableCell>
-                      {isAdmin && (
-                        <TableCell align="right">
-                          <IconButton
-                            aria-label="edit"
-                            component={Link}
-                            to={`/admin/articles/edit/${article.id}`}
-                          >
-                            <EditIcon />
-                          </IconButton>
-                          <IconButton
-                            aria-label="delete"
-                            color="error"
-                            onClick={() => handleDelete(article.id)}
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </TableCell>
-                      )}
+          {articles.length === 0 ? (
+            <Typography variant="h6" align="center" sx={{ color: 'text.secondary' }}>
+              No articles found.
+            </Typography>
+          ) : (
+            <Paper
+              sx={{
+                borderRadius: 2,
+                overflow: 'hidden',
+              }}
+            >
+              <TableContainer>
+                <Table sx={{ minWidth: 650 }} aria-label="articles table">
+                  <TableHead>
+                    <TableRow sx={{ backgroundColor: 'primary.light' }}>
+                      <TableCell sx={{ color: 'primary.contrastText', fontWeight: 'bold' }}>Title</TableCell>
+                      <TableCell sx={{ color: 'primary.contrastText', fontWeight: 'bold' }}>Category</TableCell>
+                      <TableCell sx={{ color: 'primary.contrastText', fontWeight: 'bold' }}>Author</TableCell>
+                      <TableCell sx={{ color: 'primary.contrastText', fontWeight: 'bold' }}>Created At</TableCell>
+                      <TableCell sx={{ color: 'primary.contrastText', fontWeight: 'bold' }}>Updated At</TableCell>
+                      {isAdmin && <TableCell align="right" sx={{ color: 'primary.contrastText', fontWeight: 'bold' }}>Actions</TableCell>}
                     </TableRow>
-                  ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          <TablePagination
-            rowsPerPageOptions={[5, 10, 25]}
-            component="div"
-            count={articles.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-          />
-        </Paper>
-      )}
-    </Container>
+                  </TableHead>
+                  <TableBody>
+                    {articles
+                      .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                      .map((article) => (
+                        <TableRow
+                          key={article.id}
+                          sx={{
+                            '&:last-child td, &:last-child th': { border: 0 },
+                            '&:hover': {
+                              backgroundColor: 'action.hover',
+                              cursor: 'pointer',
+                            },
+                            transition: 'background-color 0.3s ease',
+                          }}
+                        >
+                          <TableCell component="th" scope="row">
+                            {article.title}
+                          </TableCell>
+                          <TableCell>{article.category}</TableCell>
+                          <TableCell>{article.authorName || 'N/A'}</TableCell>
+                          <TableCell>{formatDate(article.createdAt)}</TableCell>
+                          <TableCell>{formatDate(article.updatedAt)}</TableCell>
+                          {isAdmin && (
+                            <TableCell align="right">
+                              <IconButton
+                                aria-label="edit"
+                                component={Link}
+                                to={`/admin/articles/edit/${article.id}`}
+                                color="primary"
+                              >
+                                <EditIcon />
+                              </IconButton>
+                              <IconButton
+                                aria-label="delete"
+                                color="error"
+                                onClick={() => handleDelete(article.id)}
+                              >
+                                <DeleteIcon />
+                              </IconButton>
+                            </TableCell>
+                          )}
+                        </TableRow>
+                      ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+              <TablePagination
+                rowsPerPageOptions={[5, 10, 25]}
+                component="div"
+                count={articles.length}
+                rowsPerPage={rowsPerPage}
+                page={page}
+                onPageChange={handleChangePage}
+                onRowsPerPageChange={handleChangeRowsPerPage}
+              />
+            </Paper>
+          )}
+        </Container>
+      </Box>
+    </Fade>
   );
 };
 

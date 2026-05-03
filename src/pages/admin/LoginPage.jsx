@@ -10,10 +10,11 @@ import {
   Snackbar,
   Stack,
   Divider,
+  Fade, // Import Fade component
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import {
-  signInWithEmailAndPassword, // Keep for email/password login
+  signInWithEmailAndPassword,
   GoogleAuthProvider,
   GithubAuthProvider,
   signInWithPopup,
@@ -31,7 +32,6 @@ const LoginPage = () => {
   });
   const navigate = useNavigate();
 
-  // Handle traditional email/password login
   const handleEmailPasswordLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -55,7 +55,6 @@ const LoginPage = () => {
     }
   };
 
-  // Generic handler for social logins
   const handleSocialLogin = async (providerInstance, providerName) => {
     setLoading(true);
     try {
@@ -90,97 +89,114 @@ const LoginPage = () => {
 
   return (
     <Container maxWidth="xs" sx={{ py: 8 }}>
-      <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
-        <Typography variant="h4" component="h1" align="center" gutterBottom>
-          Admin Login
-        </Typography>
-        <Typography
-          variant="body2"
-          align="center"
-          color="text.secondary"
-          sx={{ mb: 3 }}
+      <Fade in={true} timeout={1000}> {/* Fade in the login form */}
+        <Paper
+          elevation={6} // Increased elevation for more prominence
+          sx={{
+            p: 4,
+            borderRadius: 3, // More rounded corners
+            backgroundColor: 'background.paper', // Ensure it uses theme background
+            boxShadow: 6, // Stronger shadow
+          }}
         >
-          Sign in to manage articles.
-        </Typography>
+          <Typography variant="h4" component="h1" align="center" gutterBottom
+            sx={{ color: 'primary.main', fontWeight: 'bold' }} // Use primary color and bold
+          >
+            Admin Login
+          </Typography>
+          <Typography
+            variant="body2"
+            align="center"
+            color="text.secondary" // Use secondary text color
+            sx={{ mb: 3 }}
+          >
+            Sign in to manage articles.
+          </Typography>
 
-        {/* Email/Password Login Form */}
-        <form onSubmit={handleEmailPasswordLogin}>
-          <Stack spacing={3}>
-            <TextField
-              label="Email"
-              type="email"
-              variant="outlined"
-              fullWidth
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-            <TextField
-              label="Password"
-              type="password"
-              variant="outlined"
-              fullWidth
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+          {/* Email/Password Login Form */}
+          <form onSubmit={handleEmailPasswordLogin}>
+            <Stack spacing={3}>
+              <TextField
+                label="Email"
+                type="email"
+                variant="outlined"
+                fullWidth
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+              <TextField
+                label="Password"
+                type="password"
+                variant="outlined"
+                fullWidth
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                fullWidth
+                disabled={loading}
+                startIcon={
+                  loading && <CircularProgress size={20} color="inherit" />
+                }
+                sx={{ py: 1.5 }} // Add some vertical padding to the button
+              >
+                {loading ? 'Logging In...' : 'Login with Email'}
+              </Button>
+            </Stack>
+          </form>
+
+          <Divider sx={{ my: 3, borderColor: 'divider' }}>OR</Divider> {/* Use theme divider color */}
+
+          {/* Social Login Buttons */}
+          <Stack spacing={2}>
             <Button
-              type="submit"
-              variant="contained"
-              color="primary"
+              variant="outlined"
               fullWidth
+              onClick={handleGoogleLogin}
               disabled={loading}
               startIcon={
-                loading && <CircularProgress size={20} color="inherit" />
+                loading ? (
+                  <CircularProgress size={20} color="inherit" />
+                ) : (
+                  <img
+                    src="https://img.icons8.com/color/16/000000/google-logo.png"
+                    alt="Google"
+                    style={{ marginRight: 8 }} // Add some spacing
+                  />
+                )
               }
+              sx={{ py: 1.5 }}
             >
-              {loading ? 'Logging In...' : 'Login with Email'}
+              Login with Google
+            </Button>
+            <Button
+              variant="outlined"
+              fullWidth
+              onClick={handleGithubLogin}
+              disabled={loading}
+              startIcon={
+                loading ? (
+                  <CircularProgress size={20} color="inherit" />
+                ) : (
+                  <img
+                    src="https://img.icons8.com/ios-glyphs/16/000000/github.png"
+                    alt="GitHub"
+                    style={{ marginRight: 8 }} // Add some spacing
+                  />
+                )
+              }
+              sx={{ py: 1.5 }}
+            >
+              Login with GitHub
             </Button>
           </Stack>
-        </form>
-
-        <Divider sx={{ my: 3 }}>OR</Divider>
-
-        {/* Social Login Buttons */}
-        <Stack spacing={2}>
-          <Button
-            variant="outlined"
-            fullWidth
-            onClick={handleGoogleLogin}
-            disabled={loading}
-            startIcon={
-              loading ? (
-                <CircularProgress size={20} color="inherit" />
-              ) : (
-                <img
-                  src="https://img.icons8.com/color/16/000000/google-logo.png"
-                  alt="Google"
-                />
-              )
-            }
-          >
-            Login with Google
-          </Button>
-          <Button
-            variant="outlined"
-            fullWidth
-            onClick={handleGithubLogin}
-            disabled={loading}
-            startIcon={
-              loading ? (
-                <CircularProgress size={20} color="inherit" />
-              ) : (
-                <img
-                  src="https://img.icons8.com/ios-glyphs/16/000000/github.png"
-                  alt="GitHub"
-                />
-              )
-            }
-          >
-            Login with GitHub
-          </Button>
-        </Stack>
-      </Paper>
+        </Paper>
+      </Fade>
 
       <Snackbar
         open={snackbar.open}

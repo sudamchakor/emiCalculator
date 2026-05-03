@@ -1,146 +1,138 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
   Box,
-  Typography,
   Container,
-  Chip,
-  Stack,
-  Divider,
+  Typography,
   Button,
+  Chip,
+  Divider,
+  Stack,
   useTheme,
-  // CircularProgress, // Removed CircularProgress import
+  IconButton,
+  Tooltip,
 } from '@mui/material';
+
+// Icons
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import ImageIcon from '@mui/icons-material/Image';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import ArticleIcon from '@mui/icons-material/Article';
 
-// Firestore Imports
+// Firestore
 import { doc, getDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
 
-// Centralized category imports
-import { categoryIcons } from '../../utils/articleCategories';
-import { useAuth } from '../../hooks/useAuth'; // Import useAuth
-import SuspenseFallback from '../../components/common/SuspenseFallback'; // Import SuspenseFallback
+import { useAuth } from '../../hooks/useAuth';
+import SuspenseFallback from '../../components/common/SuspenseFallback';
+
+// Reusing the category palette logic for consistency
+const getCategoryPalette = (category, theme) => {
+  const cat = category?.toUpperCase() || 'DEFAULT';
+  const palettes = {
+    'TAX STRATEGY': {
+      color: theme.palette.info.main,
+      bg: theme.palette.info.light + '20',
+    },
+    INVESTMENTS: {
+      color: theme.palette.success.main,
+      bg: theme.palette.success.light + '20',
+    },
+    'FINANCIAL SECURITY': {
+      color: theme.palette.error.main,
+      bg: theme.palette.error.light + '20',
+    },
+    'GOAL PLANNING': {
+      color: theme.palette.secondary.main,
+      bg: theme.palette.secondary.light + '20',
+    },
+  };
+  return (
+    palettes[cat] || {
+      color: theme.palette.text.secondary,
+      bg: theme.palette.action.hover,
+    }
+  );
+};
 
 const SingleArticle = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const theme = useTheme();
-  const { user } = useAuth(); // Get user from useAuth, authLoading is handled higher up
+  const { isAuthenticated } = useAuth();
 
-  // States
   const [article, setArticle] = useState(null);
-  const [loading, setLoading] = useState(true); // Keep internal loading for data fetching
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchArticle = async () => {
       try {
-        setLoading(true);
         const docRef = doc(db, 'articles', id);
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
-          const data = docSnap.data();
-
-          // Handle Firestore Timestamp conversion if 'date' is a Timestamp object
-          const formattedDate = data.date?.toDate
-            ? data.date.toDate().toLocaleDateString()
-            : data.date;
-
-          setArticle({
-            id: docSnap.id,
-            ...data,
-            date: formattedDate,
-          });
+          setArticle({ id: docSnap.id, ...docSnap.data() });
         } else {
-          console.log('No such document!');
-          setArticle(null); // Explicitly set to null if not found
+          console.error('No such document!');
+          navigate('/articles');
         }
       } catch (error) {
         console.error('Error fetching article:', error);
-        setArticle(null); // Set to null on error to show "Article Not Found"
       } finally {
         setLoading(false);
       }
     };
-
     fetchArticle();
-  }, [id]);
+  }, [id, navigate]);
 
   const handleDelete = async () => {
-    if (window.confirm('Are you sure you want to delete this article? This action cannot be undone.')) {
+    if (window.confirm('Are you sure you want to delete this article?')) {
       try {
         await deleteDoc(doc(db, 'articles', id));
-        alert('Article deleted successfully!');
-        navigate('/articles'); // Redirect to articles archive after deletion
+        navigate('/articles');
       } catch (error) {
         console.error('Error deleting article:', error);
-        alert('Failed to delete article.');
       }
     }
   };
 
-  // Helper to format Firestore Timestamps
-  const formatDate = (timestamp) => {
-    if (!timestamp) return 'N/A';
-    if (timestamp.toDate) {
-      return timestamp.toDate().toLocaleDateString();
-    }
-    return new Date(timestamp).toLocaleDateString();
-  };
+  if (loading) return <SuspenseFallback />;
+  if (!article) return null;
 
-  if (loading) { // Only use internal loading for article data fetching
-    return (
-      <Container maxWidth="md" sx={{ py: 8, textAlign: 'center' }}>
-        <SuspenseFallback message="" /> {/* Use SuspenseFallback without message */}
-      </Container>
-    );
-  }
-
-  if (!article) {
-    return (
-      <Container maxWidth="md" sx={{ py: 4 }}>
-        <Typography variant="h5" color="error" align="center">
-          Article Not Found
-        </Typography>
-        <Box sx={{ mt: 3, textAlign: 'center' }}>
-          <Button
-            component={Link}
-            to="/articles"
-            startIcon={<ArrowBackIcon />}
-            variant="outlined"
-          >
-            Back to Articles
-          </Button>
-        </Box>
-      </Container>
-    );
-  }
-
-  const IconComponent = categoryIcons[article.category] || ImageIcon;
+  const palette = getCategoryPalette(article.category, theme);
 
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <Container maxWidth="md" sx={{ py: 6 }}>
+      {/* Navigation & Actions Row */}
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          mb: 4,
+        }}
+      >
         <Button
+          startIcon={<ArrowBackIcon />}
           component={Link}
           to="/articles"
-          startIcon={<ArrowBackIcon />}
           variant="outlined"
+          sx={{ borderRadius: 2, textTransform: 'none' }}
         >
           Back to Articles
         </Button>
-        {user && ( // Conditionally render edit/delete buttons if user is logged in
+
+        {isAuthenticated && (
           <Stack direction="row" spacing={1}>
             <Button
-              component={Link}
-              to={`/admin/articles/edit/${article.id}`}
               startIcon={<EditIcon />}
+              component={Link}
+              to={`/admin/edit-article/${id}`}
               variant="contained"
               color="primary"
+              sx={{ borderRadius: 2 }}
             >
               Edit
             </Button>
@@ -149,6 +141,7 @@ const SingleArticle = () => {
               variant="outlined"
               color="error"
               onClick={handleDelete}
+              sx={{ borderRadius: 2 }}
             >
               Delete
             </Button>
@@ -156,80 +149,101 @@ const SingleArticle = () => {
         )}
       </Box>
 
+      {/* Article Header */}
       <Typography
-        variant="h4"
+        variant="h3"
         component="h1"
-        gutterBottom
-        sx={{ fontWeight: 700 }}
+        sx={{ fontWeight: 800, mb: 2, lineHeight: 1.2 }}
       >
         {article.title}
       </Typography>
 
-      <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 3 }}>
-        <Chip label={article.category} color="primary" size="small" />
-        <Typography variant="body2" color="text.secondary">
-          {article.date} • {article.readTime || '5 min'} read
-        </Typography>
-      </Stack>
-
-      {/* Display Created At and Updated At */}
-      <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 3 }}>
-        <Typography variant="caption" color="text.secondary">
-          Created: {formatDate(article.createdAt)}
-        </Typography>
-        {article.updatedAt && (
-          <Typography variant="caption" color="text.secondary">
-            Updated: {formatDate(article.updatedAt)}
-          </Typography>
-        )}
-      </Stack>
-
-
-      {article.imageUrl ? (
-        <Box
-          component="img"
-          src={article.imageUrl}
-          alt={article.title}
-          sx={{
-            width: '100%',
-            maxHeight: 400,
-            objectFit: 'cover',
-            borderRadius: 2,
-            mb: 3,
-          }}
+      <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 4 }}>
+        <Chip
+          label={article.category}
+          sx={{ bgcolor: palette.bg, color: palette.color, fontWeight: 700 }}
         />
-      ) : (
-        <Box
-          sx={{
-            width: '100%',
-            height: 300,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: theme.palette.grey[200],
-            color: theme.palette.grey[600],
-            borderRadius: 2,
-            mb: 3,
-          }}
+        <Stack
+          direction="row"
+          spacing={0.5}
+          alignItems="center"
+          sx={{ color: 'text.secondary' }}
         >
-          <IconComponent sx={{ fontSize: 120 }} />
-        </Box>
-      )}
+          <AccessTimeIcon fontSize="small" />
+          <Typography variant="body2">
+            {article.readTime || '5'} min read
+          </Typography>
+        </Stack>
+      </Stack>
 
-      <Divider sx={{ mb: 3 }} />
+      {/* Meta Dates */}
+      <Box sx={{ mb: 4, color: 'text.disabled' }}>
+        <Typography variant="caption" display="block">
+          Created: {article.createdAt?.toDate().toLocaleDateString()}
+          {article.updatedAt &&
+            ` • Updated: ${article.updatedAt.toDate().toLocaleDateString()}`}
+        </Typography>
+      </Box>
 
-      <Typography variant="body1" component="div" sx={{ lineHeight: 1.7 }}>
-        {article.content?.split('\n').map((paragraph, index) => (
-          <p key={index}>{paragraph}</p>
-        ))}
-      </Typography>
+      {/* Main Image or Themed Icon */}
+      <Box
+        sx={{
+          width: '100%',
+          height: { xs: 250, md: 450 },
+          borderRadius: 4,
+          overflow: 'hidden',
+          mb: 6,
+          bgcolor: palette.bg,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          border: `1px solid ${theme.palette.divider}`,
+        }}
+      >
+        {article.imageUrl ? (
+          <Box
+            component="img"
+            src={article.imageUrl}
+            sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+        ) : (
+          <ArticleIcon
+            sx={{ fontSize: 120, color: palette.color, opacity: 0.5 }}
+          />
+        )}
+      </Box>
 
-      <Box sx={{ mt: 4, textAlign: 'center' }}>
+      {/* Article Content */}
+      <Box
+        sx={{
+          typography: 'body1',
+          lineHeight: 1.8,
+          color: theme.palette.text.primary,
+          '& p': { mb: 3 },
+          '& h2': { mt: 6, mb: 2, fontWeight: 700 },
+          '& blockquote': {
+            borderLeft: `4px solid ${theme.palette.primary.main}`,
+            pl: 3,
+            py: 1,
+            my: 4,
+            fontStyle: 'italic',
+            bgcolor: theme.palette.action.hover,
+          },
+        }}
+      >
+        {/* If using Markdown, you'd use a component like react-markdown here */}
+        <div dangerouslySetInnerHTML={{ __html: article.content }} />
+      </Box>
+
+      <Divider sx={{ my: 8 }} />
+
+      {/* Bottom Navigation */}
+      <Box sx={{ textAlign: 'center' }}>
         <Button
+          startIcon={<ArrowBackIcon />}
           component={Link}
           to="/articles"
-          startIcon={<ArrowBackIcon />}
-          variant="outlined"
+          sx={{ color: theme.palette.text.secondary }}
         >
           Back to Articles
         </Button>
