@@ -1,36 +1,14 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import ReactQuill from 'react-quill';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import 'react-quill/dist/quill.snow.css';
 import {
   Box,
-  Typography,
-  TextField,
-  MenuItem,
-  Button,
   Container,
   Paper,
   Snackbar,
   Alert,
-  Stack,
-  Divider,
   CircularProgress,
   Fade,
-  Tooltip,
-  ToggleButton,
-  ToggleButtonGroup,
-  IconButton,
 } from '@mui/material';
-import {
-  Visibility,
-  Edit,
-  Fullscreen,
-  FullscreenExit,
-  CloudUpload as CloudUploadIcon,
-  Save as SaveIcon,
-  DeleteSweep as DeleteSweepIcon,
-  Article as ArticleIcon,
-  ArrowBack,
-} from '@mui/icons-material';
 import { useNavigate, useParams } from 'react-router-dom';
 
 // Firebase Imports
@@ -45,10 +23,14 @@ import {
 } from 'firebase/firestore';
 
 // Utils / Config
-import { articleCategories } from '../../utils/articleCategories';
 import { useAuth } from '../../hooks/useAuth';
 import { ADMIN_UID } from '../../utils/constants';
-import PageHeader from '../../components/common/PageHeader';
+
+// New Components
+import ArticleEditorHeader from '../../components/admin/ArticleEditorHeader';
+import ArticleEditorForm from '../../components/admin/ArticleEditorForm';
+import ArticlePreview from '../../components/admin/ArticlePreview';
+import ArticleEditorActions from '../../components/admin/ArticleEditorActions';
 
 const WriteArticle = () => {
   const navigate = useNavigate();
@@ -74,16 +56,22 @@ const WriteArticle = () => {
   });
 
   // --- WYSIWYG Modules Configuration ---
-  const modules = {
-    toolbar: [
-      [{ header: [1, 2, 3, 4, false] }],
-      ['bold', 'italic', 'underline', 'strike', 'blockquote'],
-      [{ color: [] }, { background: [] }],
-      [{ list: 'ordered' }, { list: 'bullet' }, { align: [] }],
-      ['link', 'image', 'video'],
-      ['clean'],
-    ],
-  };
+  const modules = useMemo(
+    () => ({
+      toolbar: [
+        [{ font: [] }, { size: ['small', false, 'large', 'huge'] }],
+        [{ header: [1, 2, 3, 4, 5, 6, false] }],
+        ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+        [{ script: 'sub' }, { script: 'super' }],
+        [{ color: [] }, { background: [] }],
+        [{ list: 'ordered' }, { list: 'bullet' }, { indent: '-1' }, { indent: '+1' }],
+        [{ align: [] }],
+        ['link', 'image', 'video'],
+        ['clean'],
+      ],
+    }),
+    []
+  );
 
   // --- Helpers: Word Count & Stats ---
   const getStats = useCallback(() => {
@@ -218,6 +206,16 @@ const WriteArticle = () => {
     }
   };
 
+  const clearForm = () => {
+    if (window.confirm('Clear all unsaved progress?')) {
+      setTitle('');
+      setContent('');
+      setImageUrl('');
+      setCategory('');
+      localStorage.removeItem('sf_article_draft');
+    }
+  };
+
   if (authLoading)
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}>
@@ -246,247 +244,48 @@ const WriteArticle = () => {
         }
       >
         <Container maxWidth="lg" sx={{ py: 4 }}>
-          {/* Header Section */}
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'flex-start',
-              mb: 3,
-            }}
-          >
-            <Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                {!isFullScreen && (
-                  <IconButton onClick={() => navigate(-1)}>
-                    <ArrowBack />
-                  </IconButton>
-                )}
-                <Typography variant="h4" fontWeight="bold">
-                  {id ? 'Edit Article' : 'Create Article'}
-                </Typography>
-              </Box>
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={{ ml: isFullScreen ? 0 : 6 }}
-              >
-                {stats.words} words | {stats.readTime} min read
-              </Typography>
-            </Box>
-
-            <Stack direction="row" spacing={1} alignItems="center">
-              <ToggleButtonGroup
-                value={viewMode}
-                exclusive
-                onChange={(e, val) => val && setViewMode(val)}
-                size="small"
-                color="primary"
-              >
-                <ToggleButton value="edit">
-                  <Edit sx={{ mr: 1, fontSize: 18 }} /> Edit
-                </ToggleButton>
-                <ToggleButton value="preview">
-                  <Visibility sx={{ mr: 1, fontSize: 18 }} /> Preview
-                </ToggleButton>
-              </ToggleButtonGroup>
-              <Tooltip
-                title={isFullScreen ? 'Exit Fullscreen' : 'Fullscreen Mode'}
-              >
-                <IconButton
-                  onClick={() => setIsFullScreen(!isFullScreen)}
-                  color="inherit"
-                >
-                  {isFullScreen ? <FullscreenExit /> : <Fullscreen />}
-                </IconButton>
-              </Tooltip>
-            </Stack>
-          </Box>
+          <ArticleEditorHeader
+            id={id}
+            stats={stats}
+            viewMode={viewMode}
+            setViewMode={setViewMode}
+            isFullScreen={isFullScreen}
+            setIsFullScreen={setIsFullScreen}
+          />
 
           <Paper
             elevation={isFullScreen ? 0 : 3}
             sx={{ p: { xs: 2, md: 4 }, borderRadius: 2 }}
           >
             {viewMode === 'edit' ? (
-              <Stack spacing={3}>
-                <Box
-                  display="grid"
-                  gridTemplateColumns={{ md: '2fr 1fr' }}
-                  gap={2}
-                >
-                  <TextField
-                    label="Article Title"
-                    variant="outlined"
-                    fullWidth
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    placeholder="e.g., Guide to Investment Diversification"
-                  />
-                  <TextField
-                    select
-                    label="Category"
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                  >
-                    {articleCategories.map((opt) => (
-                      <MenuItem key={opt} value={opt}>
-                        {opt}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                </Box>
-
-                <TextField
-                  label="Featured Image URL"
-                  fullWidth
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                  helperText="Recommended: 1200x600px"
-                />
-
-                {imageUrl && (
-                  <Box
-                    sx={{
-                      position: 'relative',
-                      width: '100%',
-                      height: 200,
-                      borderRadius: 2,
-                      overflow: 'hidden',
-                      border: '1px solid #ddd',
-                    }}
-                  >
-                    <Box
-                      component="img"
-                      src={imageUrl}
-                      sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      onError={(e) =>
-                        (e.target.src =
-                          'https://placehold.co/1200x600?text=Invalid+Image+URL')
-                      }
-                    />
-                  </Box>
-                )}
-
-                <Divider />
-
-                <Box
-                  sx={{
-                    '.ql-toolbar': {
-                      position: 'sticky',
-                      top: isFullScreen ? 0 : -24, // Adjust based on your layout's navbar height
-                      zIndex: 10,
-                      bgcolor: 'background.paper',
-                      borderTopLeftRadius: 8,
-                      borderTopRightRadius: 8,
-                    },
-                    '.ql-container': {
-                      minHeight: '450px',
-                      fontSize: '1.1rem',
-                      borderBottomLeftRadius: 8,
-                      borderBottomRightRadius: 8,
-                    },
-                  }}
-                >
-                  <ReactQuill
-                    ref={quillRef}
-                    theme="snow"
-                    value={content}
-                    onChange={setContent}
-                    modules={modules}
-                    placeholder="Write your article content here..."
-                  />
-                </Box>
-              </Stack>
+              <ArticleEditorForm
+                title={title}
+                setTitle={setTitle}
+                category={category}
+                setCategory={setCategory}
+                imageUrl={imageUrl}
+                setImageUrl={setImageUrl}
+                content={content}
+                setContent={setContent}
+                quillRef={quillRef}
+                modules={modules}
+                isFullScreen={isFullScreen}
+              />
             ) : (
-              /* --- WYSIWYG PREVIEW MODE --- */
-              <Box
-                className="ql-snow"
-                sx={{ minHeight: '600px', p: { md: 4 } }}
-              >
-                <Box sx={{ maxWidth: '800px', mx: 'auto' }}>
-                  <Typography
-                    variant="overline"
-                    color="primary"
-                    fontWeight="bold"
-                  >
-                    {category || 'Category'}
-                  </Typography>
-                  <Typography variant="h3" sx={{ fontWeight: 'bold', mb: 2 }}>
-                    {title || 'Untitled Article'}
-                  </Typography>
-                  {imageUrl && (
-                    <Box
-                      component="img"
-                      src={imageUrl}
-                      sx={{ width: '100%', borderRadius: 2, mb: 4 }}
-                    />
-                  )}
-                  <Divider sx={{ mb: 4 }} />
-                  <Box
-                    className="ql-editor" // This class applies Quill's styles to the HTML
-                    dangerouslySetInnerHTML={{
-                      __html: content || '<p>No content to preview.</p>',
-                    }}
-                    sx={{ p: '0 !important' }}
-                  />
-                </Box>
-              </Box>
+              <ArticlePreview
+                title={title}
+                category={category}
+                imageUrl={imageUrl}
+                content={content}
+              />
             )}
 
-            {/* Footer Actions */}
-            <Box
-              sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}
-            >
-              <Button
-                color="error"
-                startIcon={<DeleteSweepIcon />}
-                onClick={() => {
-                  if (window.confirm('Clear all unsaved progress?')) {
-                    setTitle('');
-                    setContent('');
-                    setImageUrl('');
-                    setCategory('');
-                    localStorage.removeItem('sf_article_draft');
-                  }
-                }}
-              >
-                Clear
-              </Button>
-
-              <Stack direction="row" spacing={2}>
-                <Button
-                  variant="outlined"
-                  color="inherit"
-                  onClick={() => navigate(-1)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant="outlined"
-                  color="secondary"
-                  startIcon={<SaveIcon />}
-                  disabled={isSubmitting}
-                  onClick={() => handlePublish(null, 'draft')}
-                >
-                  Save Draft
-                </Button>
-                <Button
-                  variant="contained"
-                  startIcon={
-                    isSubmitting ? (
-                      <CircularProgress size={20} />
-                    ) : (
-                      <CloudUploadIcon />
-                    )
-                  }
-                  disabled={isSubmitting}
-                  onClick={(e) => handlePublish(e, 'published')}
-                  sx={{ px: 4 }}
-                >
-                  {id ? 'Update' : 'Publish'}
-                </Button>
-              </Stack>
-            </Box>
+            <ArticleEditorActions
+              id={id}
+              isSubmitting={isSubmitting}
+              handlePublish={handlePublish}
+              clearForm={clearForm}
+            />
           </Paper>
         </Container>
 

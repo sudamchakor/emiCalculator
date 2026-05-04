@@ -1,31 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Box,
-  Typography,
-  TextField,
-  MenuItem,
-  Grid,
-  Container,
-  InputAdornment,
-  Button,
-  useTheme,
-  Pagination,
-} from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search';
-import AddIcon from '@mui/icons-material/Add';
+import { Box, Container, useTheme } from '@mui/material';
 import ArticleIcon from '@mui/icons-material/Article';
-import { Link } from 'react-router-dom';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
 
-import ArticleCard from '../../components/articles/ArticleCard';
 import PageHeader from '../../components/common/PageHeader';
-import { useAuth } from '../../hooks/useAuth';
 import SuspenseFallback from '../../components/common/SuspenseFallback';
+import ArticleFilterAndSearch from '../../components/articles/ArticleFilterAndSearch';
+import ArticleGridDisplay from '../../components/articles/ArticleGridDisplay';
+import ArticlePagination from '../../components/articles/ArticlePagination';
 
 const ArticlesArchive = () => {
   const theme = useTheme();
-  const { isAuthenticated } = useAuth();
 
   // Data States
   const [allArticles, setAllArticles] = useState([]);
@@ -115,104 +101,29 @@ const ArticlesArchive = () => {
           icon={ArticleIcon}
         />
 
-        {/* Search and Filters */}
-        <Grid container spacing={2} sx={{ mb: 6, alignItems: 'center' }}>
-          <Grid item xs={12} md={6}>
-            <TextField
-              fullWidth
-              placeholder="Search by title or topic..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon color="primary" />
-                  </InputAdornment>
-                ),
-                sx: { borderRadius: 3, bgcolor: '#fff' },
-              }}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <TextField
-              select
-              fullWidth
-              label="Category"
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              InputProps={{ sx: { borderRadius: 3, bgcolor: '#fff' } }}
-            >
-              {categories.map((cat) => (
-                <MenuItem key={cat} value={cat}>
-                  {cat}
-                </MenuItem>
-              ))}
-            </TextField>
-          </Grid>
-          {isAuthenticated && (
-            <Grid item xs={12} sm={6} md={3}>
-              <Button
-                component={Link}
-                to="/admin/write-article"
-                variant="contained"
-                fullWidth
-                startIcon={<AddIcon />}
-                sx={{
-                  py: 1.5,
-                  borderRadius: 3,
-                  fontWeight: 700,
-                  boxShadow: theme.shadows[4],
-                }}
-              >
-                Create Article
-              </Button>
-            </Grid>
-          )}
-        </Grid>
+        <ArticleFilterAndSearch
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+          categories={categories}
+        />
 
         {loading ? (
           <SuspenseFallback message="" />
         ) : (
           <>
-            <Grid container spacing={4}>
-              {currentArticles.map((article) => (
-                <Grid item xs={12} sm={6} md={4} key={article.id}>
-                  <ArticleCard article={article} />
-                </Grid>
-              ))}
+            <ArticleGridDisplay
+              articles={currentArticles}
+              loading={loading}
+              filteredArticlesCount={filteredArticles.length}
+            />
 
-              {!loading && filteredArticles.length === 0 && (
-                <Grid item xs={12}>
-                  <Box sx={{ textAlign: 'center', py: 12, opacity: 0.6 }}>
-                    <Typography variant="h5">
-                      No matching insights found.
-                    </Typography>
-                    <Typography>
-                      Try adjusting your filters or search terms.
-                    </Typography>
-                  </Box>
-                </Grid>
-              )}
-            </Grid>
-
-            {/* Pagination Component */}
-            {totalPages > 1 && (
-              <Box sx={{ mt: 8, display: 'flex', justifyContent: 'center' }}>
-                <Pagination
-                  count={totalPages}
-                  page={page}
-                  onChange={handlePageChange}
-                  color="primary"
-                  size="large"
-                  sx={{
-                    '& .MuiPaginationItem-root': {
-                      fontWeight: 'bold',
-                      borderRadius: 2,
-                    },
-                  }}
-                />
-              </Box>
-            )}
+            <ArticlePagination
+              totalPages={totalPages}
+              page={page}
+              handlePageChange={handlePageChange}
+            />
           </>
         )}
       </Container>

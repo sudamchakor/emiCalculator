@@ -15,6 +15,7 @@ export default function StyledPaper({ children, sx = {} }) {
         height: "100%",
         ...sx,
       }}
+      data-testid="styled-paper"
     >
       {children}
     </Paper>

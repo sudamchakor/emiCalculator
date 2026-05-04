@@ -19,6 +19,7 @@ import Header from './components/layout/Header';
 import AdminHeader from './components/layout/AdminHeader';
 import Footer from './components/layout/Footer';
 import SuspenseFallback from './components/common/SuspenseFallback';
+import ErrorBoundary from './components/common/ErrorBoundary'; // Import ErrorBoundary
 import { AuthProvider, useAuth } from './hooks/useAuth';
 
 // Lazy Loaded Pages
@@ -142,7 +143,7 @@ const AppContent = () => {
                   path="/personal-loan"
                   element={<PersonalLoanCalculator />}
                 />
-                <Route path="/investment" element={<InvestmentCalculator />} />
+                <Route path="/investment/*" element={<InvestmentCalculator />} />
                 <Route path="/tax-calculator" element={<TaxCalculator />} />
                 <Route path="/faq" element={<FAQ />} />
                 <Route path="/privacy-policy" element={<PrivacyPolicy />} />
@@ -205,7 +206,9 @@ export default function App() {
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <HelmetProvider>
             <AuthProvider>
-              <AppContent />
+              <ErrorBoundary>
+                <AppContent />
+              </ErrorBoundary>
             </AuthProvider>
           </HelmetProvider>
         </LocalizationProvider>

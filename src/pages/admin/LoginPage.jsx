@@ -89,7 +89,8 @@ const LoginPage = () => {
 
   return (
     <Container maxWidth="xs" sx={{ py: 8 }}>
-      <Fade in={true} timeout={1000}> {/* Fade in the login form */}
+      {/* Fade in the login form */}
+      <Fade in={true} timeout={1000}>
         <Paper
           elevation={6} // Increased elevation for more prominence
           sx={{
@@ -99,7 +100,11 @@ const LoginPage = () => {
             boxShadow: 6, // Stronger shadow
           }}
         >
-          <Typography variant="h4" component="h1" align="center" gutterBottom
+          <Typography
+            variant="h4"
+            component="h1"
+            align="center"
+            gutterBottom
             sx={{ color: 'primary.main', fontWeight: 'bold' }} // Use primary color and bold
           >
             Admin Login
@@ -112,7 +117,6 @@ const LoginPage = () => {
           >
             Sign in to manage articles.
           </Typography>
-
           {/* Email/Password Login Form */}
           <form onSubmit={handleEmailPasswordLogin}>
             <Stack spacing={3}>
@@ -149,9 +153,8 @@ const LoginPage = () => {
               </Button>
             </Stack>
           </form>
-
-          <Divider sx={{ my: 3, borderColor: 'divider' }}>OR</Divider> {/* Use theme divider color */}
-
+          <Divider sx={{ my: 3, borderColor: 'divider' }}>OR</Divider>{' '}
+          {/* Use theme divider color */}
           {/* Social Login Buttons */}
           <Stack spacing={2}>
             <Button

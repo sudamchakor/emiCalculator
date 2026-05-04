@@ -1,50 +1,52 @@
 import React, { useState, useEffect } from 'react';
 import {
   Container,
-  Typography,
-  Button,
   Box,
-  CircularProgress,
-  Table,
-  TableBody,
-  TableCell,
   TableContainer,
-  TableHead,
-  TableRow,
   Paper,
-  IconButton,
   TablePagination,
   Fade,
-  Snackbar, // Import Snackbar
-  Alert,    // Import Alert
+  Snackbar,
+  Alert,
+  Tabs,
+  Tab,
 } from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import AddIcon from '@mui/icons-material/Add';
-import { Link } from 'react-router-dom';
 
-// Firestore Imports
-import { collection, getDocs, doc, deleteDoc } from 'firebase/firestore';
+// Firestore
+import {
+  collection,
+  getDocs,
+  doc,
+  deleteDoc,
+  updateDoc,
+  query,
+  orderBy,
+} from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
 import { useAuth } from '../../hooks/useAuth';
 import { ADMIN_UID } from '../../utils/constants';
 import SuspenseFallback from '../../components/common/SuspenseFallback';
 import ConfirmationModal from '../../components/common/ConfirmationModal';
 
+// New Components
+import AdminHeader from '../../components/admin/AdminHeader';
+import AdminArticleTable from '../../components/admin/AdminArticleTable';
+import AdminCommentTable from '../../components/admin/AdminCommentTable';
+
 const AdminArticles = () => {
   const [articles, setArticles] = useState([]);
-  const [loadingArticles, setLoadingArticles] = useState(true);
-  const [error, setError] = useState(null);
+  const [comments, setComments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [tabValue, setTabValue] = useState(0);
   const { user, loading: authLoading } = useAuth();
 
+  // Pagination states
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  // State for confirmation modal
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [articleToDelete, setArticleToDelete] = useState(null);
-
-  // State for Snackbar notifications
+  const [itemToDelete, setItemToDelete] = useState(null);
+  const [deleteType, setDeleteType] = useState('articles');
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
@@ -54,231 +56,197 @@ const AdminArticles = () => {
   const isAdmin = user && user.uid === ADMIN_UID;
 
   useEffect(() => {
-    const fetchArticles = async () => {
-      try {
-        setLoadingArticles(true);
-        const querySnapshot = await getDocs(collection(db, 'articles'));
-        const articlesData = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setArticles(articlesData);
-      } catch (err) {
-        console.error('Error fetching articles:', err);
-        setError('Failed to load articles.');
-        setSnackbar({ open: true, message: 'Failed to load articles.', severity: 'error' });
-      } finally {
-        setLoadingArticles(false);
-      }
-    };
-
-    fetchArticles();
+    fetchData();
   }, []);
 
-  // Function to open the confirmation modal
-  const confirmDelete = (id) => {
-    setArticleToDelete(id);
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      // 1. Fetch Articles
+      const artSnap = await getDocs(
+        query(collection(db, 'articles'), orderBy('createdAt', 'desc')),
+      );
+      const artData = artSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      setArticles(artData);
+
+      // 2. Fetch Comments (Sorted: Unapproved/Pending First, then Newest)
+      const comSnap = await getDocs(
+        query(
+          collection(db, 'comments'),
+          orderBy('isApproved', 'asc'),
+          orderBy('createdAt', 'desc'),
+        ),
+      );
+      const comData = comSnap.docs.map((d) => {
+        const data = d.data();
+        // Find the related article title for context
+        const relatedArt = artData.find((a) => a.id === data.articleId);
+        return {
+          id: d.id,
+          ...data,
+          articleTitle: relatedArt?.title || 'Unknown Article',
+        };
+      });
+      setComments(comData);
+    } catch (err) {
+      console.error(err);
+      setSnackbar({
+        open: true,
+        message: 'Error loading dashboard data.',
+        severity: 'error',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleApproveComment = async (commentId) => {
+    try {
+      await updateDoc(doc(db, 'comments', commentId), { isApproved: true });
+      setComments(
+        comments.map((c) =>
+          c.id === commentId ? { ...c, isApproved: true } : c,
+        ),
+      );
+      setSnackbar({
+        open: true,
+        message: 'Comment approved and published!',
+        severity: 'success',
+      });
+    } catch (err) {
+      setSnackbar({
+        open: true,
+        message: 'Approval failed.',
+        severity: 'error',
+      });
+    }
+  };
+
+  const confirmDelete = (id, type) => {
+    setItemToDelete(id);
+    setDeleteType(type);
     setIsModalOpen(true);
   };
 
-  // Function to handle actual deletion after confirmation
   const handleConfirmDelete = async () => {
-    if (articleToDelete) {
-      try {
-        await deleteDoc(doc(db, 'articles', articleToDelete));
-        setArticles(articles.filter((article) => article.id !== articleToDelete));
-        setSnackbar({ open: true, message: 'Article deleted successfully!', severity: 'success' });
-      } catch (err) {
-        console.error('Error deleting article:', err);
-        setSnackbar({ open: true, message: 'Failed to delete article.', severity: 'error' });
-      } finally {
-        setIsModalOpen(false);
-        setArticleToDelete(null);
+    try {
+      await deleteDoc(doc(db, deleteType, itemToDelete));
+      if (deleteType === 'articles') {
+        setArticles(articles.filter((a) => a.id !== itemToDelete));
+      } else {
+        setComments(comments.filter((c) => c.id !== itemToDelete));
       }
+      setSnackbar({
+        open: true,
+        message: 'Item deleted permanently.',
+        severity: 'success',
+      });
+    } catch (err) {
+      setSnackbar({ open: true, message: 'Delete failed.', severity: 'error' });
+    } finally {
+      setIsModalOpen(false);
     }
   };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setArticleToDelete(null);
+  // Helper for Date + Time formatting
+  const formatFullDate = (ts) => {
+    if (!ts) return 'N/A';
+    const date = ts.toDate ? ts.toDate() : new Date(ts);
+    return date.toLocaleString('en-IN', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   };
 
-  const handleCloseSnackbar = (event, reason) => {
-    if (reason === 'clickaway') {
-      return;
-    }
-    setSnackbar({ ...snackbar, open: false });
-  };
-
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
-
-  const formatDate = (timestamp) => {
-    if (!timestamp) return 'N/A';
-    if (timestamp.toDate) {
-      return timestamp.toDate().toLocaleDateString();
-    }
-    return new Date(timestamp).toLocaleDateString();
-  };
-
-  if (authLoading) {
-    return (
-      <Container maxWidth="md" sx={{ py: 8, textAlign: 'center' }}>
-        <CircularProgress />
-      </Container>
-    );
-  }
-
-  if (error) {
-    return (
-      <Container maxWidth="md" sx={{ py: 8, textAlign: 'center' }}>
-        <Typography color="error">{error}</Typography>
-      </Container>
-    );
-  }
-
-  if (loadingArticles) {
-    return (
-      <Container maxWidth="md" sx={{ py: 8, textAlign: 'center' }}>
-        <SuspenseFallback message="" />
-      </Container>
-    );
-  }
+  if (authLoading || loading) return <SuspenseFallback />;
 
   return (
-    <Fade in={!loadingArticles} timeout={1000}>
+    <Fade in={!loading} timeout={800}>
       <Box>
         <Container maxWidth="lg" sx={{ py: 4 }}>
-          <Box
+          <AdminHeader isAdmin={isAdmin} tabValue={tabValue} />
+
+          <Tabs
+            value={tabValue}
+            onChange={(e, v) => {
+              setTabValue(v);
+              setPage(0);
+            }}
+            sx={{ mb: 3, '& .MuiTab-root': { fontWeight: 700 } }}
+            textColor="primary"
+            indicatorColor="primary"
+          >
+            <Tab label={`Articles (${articles.length})`} />
+            <Tab
+              label={`Comments (${comments.filter((c) => !c.isApproved).length} Pending)`}
+            />
+          </Tabs>
+
+          <Paper
+            elevation={0}
             sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              mb: 4,
+              border: '1px solid #eee',
+              borderRadius: 3,
+              overflow: 'hidden',
             }}
           >
-            <Typography variant="h4" component="h1">
-              Manage Articles
-            </Typography>
-            {isAdmin && (
-              <Button
-                variant="contained"
-                color="primary"
-                startIcon={<AddIcon />}
-                component={Link}
-                to="/admin/articles/new"
-              >
-                Add New Article
-              </Button>
-            )}
-          </Box>
-
-          {articles.length === 0 ? (
-            <Typography variant="h6" align="center" sx={{ color: 'text.secondary' }}>
-              No articles found.
-            </Typography>
-          ) : (
-            <Paper
-              sx={{
-                borderRadius: 2,
-                overflow: 'hidden',
+            <TableContainer>
+              {tabValue === 0 ? (
+                <AdminArticleTable
+                  articles={articles}
+                  page={page}
+                  rowsPerPage={rowsPerPage}
+                  confirmDelete={confirmDelete}
+                  formatFullDate={formatFullDate}
+                />
+              ) : (
+                <AdminCommentTable
+                  comments={comments}
+                  page={page}
+                  rowsPerPage={rowsPerPage}
+                  handleApproveComment={handleApproveComment}
+                  confirmDelete={confirmDelete}
+                  formatFullDate={formatFullDate}
+                />
+              )}
+            </TableContainer>
+            <TablePagination
+              rowsPerPageOptions={[10, 25, 50]}
+              component="div"
+              count={tabValue === 0 ? articles.length : comments.length}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              onPageChange={(e, p) => setPage(p)}
+              onRowsPerPageChange={(e) => {
+                setRowsPerPage(parseInt(e.target.value, 10));
+                setPage(0);
               }}
-            >
-              <TableContainer>
-                <Table sx={{ minWidth: 650 }} aria-label="articles table">
-                  <TableHead>
-                    <TableRow sx={{ backgroundColor: 'primary.light' }}>
-                      <TableCell sx={{ color: 'primary.contrastText', fontWeight: 'bold' }}>Title</TableCell>
-                      <TableCell sx={{ color: 'primary.contrastText', fontWeight: 'bold' }}>Category</TableCell>
-                      <TableCell sx={{ color: 'primary.contrastText', fontWeight: 'bold' }}>Author</TableCell>
-                      <TableCell sx={{ color: 'primary.contrastText', fontWeight: 'bold' }}>Created At</TableCell>
-                      <TableCell sx={{ color: 'primary.contrastText', fontWeight: 'bold' }}>Updated At</TableCell>
-                      {isAdmin && <TableCell align="right" sx={{ color: 'primary.contrastText', fontWeight: 'bold' }}>Actions</TableCell>}
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {articles
-                      .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                      .map((article) => (
-                        <TableRow
-                          key={article.id}
-                          sx={{
-                            '&:last-child td, &:last-child th': { border: 0 },
-                            '&:hover': {
-                              backgroundColor: 'action.hover',
-                              cursor: 'pointer',
-                            },
-                            transition: 'background-color 0.3s ease',
-                          }}
-                        >
-                          <TableCell component="th" scope="row">
-                            {article.title}
-                          </TableCell>
-                          <TableCell>{article.category}</TableCell>
-                          <TableCell>{article.authorName || 'N/A'}</TableCell>
-                          <TableCell>{formatDate(article.createdAt)}</TableCell>
-                          <TableCell>{formatDate(article.updatedAt)}</TableCell>
-                          {isAdmin && (
-                            <TableCell align="right">
-                              <IconButton
-                                aria-label="edit"
-                                component={Link}
-                                to={`/admin/articles/edit/${article.id}`}
-                                color="primary"
-                              >
-                                <EditIcon />
-                              </IconButton>
-                              <IconButton
-                                aria-label="delete"
-                                color="error"
-                                onClick={() => confirmDelete(article.id)}
-                              >
-                                <DeleteIcon />
-                              </IconButton>
-                            </TableCell>
-                          )}
-                        </TableRow>
-                      ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-              <TablePagination
-                rowsPerPageOptions={[5, 10, 25]}
-                component="div"
-                count={articles.length}
-                rowsPerPage={rowsPerPage}
-                page={page}
-                onPageChange={handleChangePage}
-                onRowsPerPageChange={handleChangeRowsPerPage}
-              />
-            </Paper>
-          )}
+            />
+          </Paper>
         </Container>
 
-        {/* Confirmation Modal */}
         <ConfirmationModal
           open={isModalOpen}
-          onClose={handleCloseModal}
+          onClose={() => setIsModalOpen(false)}
           onConfirm={handleConfirmDelete}
-          title="Confirm Deletion"
-          description="Are you sure you want to delete this article? This action cannot be undone."
-          confirmText="Delete"
+          title={`Confirm Permanent Deletion`}
+          description={`Are you sure you want to delete this ${deleteType === 'articles' ? 'article' : 'comment'}? This cannot be undone.`}
         />
 
-        {/* Snackbar for notifications */}
         <Snackbar
           open={snackbar.open}
-          autoHideDuration={5000}
-          onClose={handleCloseSnackbar}
+          autoHideDuration={4000}
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
           anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         >
-          <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+          <Alert
+            severity={snackbar.severity}
+            variant="filled"
+            sx={{ width: '100%', borderRadius: 2 }}
+          >
             {snackbar.message}
           </Alert>
         </Snackbar>

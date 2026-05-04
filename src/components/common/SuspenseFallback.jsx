@@ -92,6 +92,7 @@ const SuspenseFallback = ({ message = "Calculating wealth projections..." }) => 
                             color: theme.palette.text.secondary,
                             fontFamily: 'monospace'
                         }}
+                        data-testid="suspense-message"
                     >
                         {message}
                     </Typography>

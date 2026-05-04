@@ -1,24 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import {
   Container,
-  Typography,
-  Box, // Ensure Box is imported
+  Box,
   Paper,
-  Button,
-  TextField,
   CircularProgress,
   Snackbar,
   Alert,
-  Stack,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  Divider,
   Fade,
 } from '@mui/material';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import PersonIcon from '@mui/icons-material/Person';
 import PageHeader from '../../components/common/PageHeader';
 import { useAuth } from '../../hooks/useAuth';
@@ -35,14 +25,22 @@ import {
 } from 'firebase/auth';
 import SuspenseFallback from '../../components/common/SuspenseFallback';
 
+// New Components
+import ProfileDetailsForm from '../../components/admin/ProfileDetailsForm';
+import PasswordUpdateModal from '../../components/admin/PasswordUpdateModal';
+import DeleteOptionsModal from '../../components/admin/DeleteOptionsModal';
+import ReauthenticateModal from '../../components/admin/ReauthenticateModal';
+
 const AdminProfile = () => {
   const { user, loading: authLoading, logout } = useAuth();
   const navigate = useNavigate();
 
-  const [profileData, setProfileData] = useState({
-    displayName: '',
-    bio: '',
-  });
+  const hasPassword = user?.providerData.some(
+    (provider) => provider.providerId === 'password',
+  );
+
+  // --- States ---
+  const [profileData, setProfileData] = useState({ displayName: '', bio: '' });
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [snackbar, setSnackbar] = useState({
@@ -50,436 +48,224 @@ const AdminProfile = () => {
     message: '',
     severity: 'success',
   });
-  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
-  const [reauthenticateOpen, setReauthenticateOpen] = useState(false);
-  const [reauthPassword, setReauthPassword] = useState('');
-  const [reauthError, setReauthError] = useState('');
 
+  // Modal States
+  const [passwordModalOpen, setPasswordModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [reauthenticateOpen, setReauthenticateOpen] = useState(false);
+
+  // Password & Deletion Logic States
+  const [deletionType, setDeletionType] = useState('profile'); // 'profile' or 'full'
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
   const [passwordChangeLoading, setPasswordChangeLoading] = useState(false);
   const [passwordChangeError, setPasswordChangeError] = useState('');
+  const [reauthPassword, setReauthPassword] = useState('');
+  const [reauthError, setReauthError] = useState('');
 
+  // --- Effects ---
   useEffect(() => {
-    if (!authLoading && !user) {
-      navigate('/admin/login');
-    }
+    if (!authLoading && !user) navigate('/admin/login');
   }, [user, authLoading, navigate]);
 
   useEffect(() => {
     const fetchProfile = async () => {
-      if (user) {
-        try {
-          setLoadingProfile(true);
-          const profileRef = doc(db, 'authorProfiles', user.uid);
-          // FIX: Changed docRef to profileRef
-          const docSnap = await getDoc(profileRef);
-
-          if (docSnap.exists()) {
-            setProfileData(docSnap.data());
-          } else {
-            setProfileData({
-              displayName: user.displayName || '',
-              bio: '',
-            });
-          }
-        } catch (error) {
-          console.error('Error fetching author profile:', error);
-          setSnackbar({
-            open: true,
-            message: 'Error loading profile.',
-            severity: 'error',
-          });
-        } finally {
-          setLoadingProfile(false);
+      if (!user) return;
+      try {
+        setLoadingProfile(true);
+        const userId = user.uid || user.id;
+        const docSnap = await getDoc(doc(db, 'authorProfiles', userId));
+        if (docSnap.exists()) {
+          setProfileData(docSnap.data());
+        } else {
+          setProfileData({ displayName: user.displayName || '', bio: '' });
         }
+      } catch (error) {
+        console.error('Fetch Error:', error);
+      } finally {
+        setLoadingProfile(false);
       }
     };
-
-    if (!authLoading && user) {
-      fetchProfile();
-    }
+    if (!authLoading && user) fetchProfile();
   }, [user, authLoading]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setProfileData((prev) => ({ ...prev, [name]: value }));
-  };
-
+  // --- Handlers ---
   const handleSaveProfile = async () => {
-    if (!user) return;
     setIsSubmitting(true);
     try {
-      await updateProfile(user, {
-        displayName: profileData.displayName,
+      await updateProfile(user, { displayName: profileData.displayName });
+      await setDoc(doc(db, 'authorProfiles', user.uid), profileData, {
+        merge: true,
       });
-
-      const profileRef = doc(db, 'authorProfiles', user.uid);
-      await setDoc(profileRef, profileData, { merge: true });
-
       setSnackbar({
         open: true,
         message: 'Profile updated successfully!',
         severity: 'success',
       });
-    } catch (error) {
-      console.error('Error saving profile:', error);
-      setSnackbar({
-        open: true,
-        message: `Error saving profile: ${error.message}`,
-        severity: 'error',
-      });
+    } catch (e) {
+      setSnackbar({ open: true, message: e.message, severity: 'error' });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleChangePassword = async () => {
-    if (!user) return;
-    setPasswordChangeLoading(true);
+  const handlePasswordSubmit = async () => {
     setPasswordChangeError('');
+    if (hasPassword && !currentPassword)
+      return setPasswordChangeError('Current password required.');
+    if (newPassword.length < 6)
+      return setPasswordChangeError('Password too short.');
+    if (newPassword !== confirmNewPassword)
+      return setPasswordChangeError('Passwords do not match.');
 
-    if (!currentPassword || !newPassword || !confirmNewPassword) {
-      setPasswordChangeError('All password fields are required.');
-      setPasswordChangeLoading(false);
-      return;
-    }
-
-    if (newPassword !== confirmNewPassword) {
-      setPasswordChangeError('New password and confirm password do not match.');
-      setPasswordChangeLoading(false);
-      return;
-    }
-
-    if (newPassword.length < 6) {
-      setPasswordChangeError(
-        'New password must be at least 6 characters long.',
-      );
-      setPasswordChangeLoading(false);
-      return;
-    }
-
+    setPasswordChangeLoading(true);
     try {
-      const credential = EmailAuthProvider.credential(
-        user.email,
-        currentPassword,
-      );
-      await reauthenticateWithCredential(user, credential);
-
+      if (hasPassword) {
+        const cred = EmailAuthProvider.credential(user.email, currentPassword);
+        await reauthenticateWithCredential(user, cred);
+      }
       await updatePassword(user, newPassword);
-
       setSnackbar({
         open: true,
-        message: 'Password updated successfully!',
+        message: 'Security updated!',
         severity: 'success',
       });
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmNewPassword('');
-    } catch (error) {
-      console.error('Error changing password:', error);
-      let errorMessage = 'Failed to change password.';
-      if (error.code === 'auth/wrong-password') {
-        errorMessage = 'Incorrect current password.';
-      } else if (error.code === 'auth/weak-password') {
-        errorMessage =
-          'Password is too weak. Please choose a stronger password.';
-      } else if (error.code === 'auth/requires-recent-login') {
-        errorMessage = 'Please log in again to update your password.';
-      } else {
-        errorMessage = `Error: ${error.message}`;
-      }
-      setPasswordChangeError(errorMessage);
+      setPasswordModalOpen(false);
+      resetPasswordFields();
+    } catch (e) {
+      setPasswordChangeError(e.message);
     } finally {
       setPasswordChangeLoading(false);
     }
   };
 
-  const handleDeleteProfileClick = () => {
-    setConfirmDeleteOpen(true);
+  const resetPasswordFields = () => {
+    setCurrentPassword('');
+    setNewPassword('');
+    setConfirmNewPassword('');
+    setPasswordChangeError('');
   };
 
-  const handleConfirmDelete = async () => {
-    setConfirmDeleteOpen(false);
-    if (!user) return;
-
+  const handleExecuteDeletion = async () => {
+    setIsSubmitting(true);
     try {
-      await deleteUser(user);
+      const userId = user.uid || user.id;
 
-      const profileRef = doc(db, 'authorProfiles', user.uid);
-      await deleteDoc(profileRef);
+      // 1. Always delete the Firestore profile data
+      await deleteDoc(doc(db, 'authorProfiles', userId));
 
-      setSnackbar({
-        open: true,
-        message: 'Profile and account deleted successfully!',
-        severity: 'success',
-      });
-      logout();
-    } catch (error) {
-      console.error('Error deleting account:', error);
-      if (error.code === 'auth/requires-recent-login') {
-        setReauthenticateOpen(true);
+      // 2. If 'full' deletion is selected, delete the Auth account
+      if (deletionType === 'full') {
+        await deleteUser(user);
+        logout();
       } else {
+        // Just profile deleted
+        setProfileData({ displayName: user.displayName || '', bio: '' });
         setSnackbar({
           open: true,
-          message: `Error deleting account: ${error.message}`,
-          severity: 'error',
+          message: 'Public profile deleted. Account remains active.',
+          severity: 'info',
         });
+        setDeleteModalOpen(false);
       }
+    } catch (e) {
+      if (e.code === 'auth/requires-recent-login') {
+        setDeleteModalOpen(false);
+        setReauthenticateOpen(true);
+      } else {
+        setSnackbar({ open: true, message: e.message, severity: 'error' });
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleReauthenticate = async () => {
-    setReauthError('');
-    if (!user || !user.email || !reauthPassword) {
-      setReauthError('Email and password are required.');
-      return;
-    }
-
     try {
-      const credential = EmailAuthProvider.credential(
-        user.email,
-        reauthPassword,
-      );
-      await reauthenticateWithCredential(user, credential);
+      const cred = EmailAuthProvider.credential(user.email, reauthPassword);
+      await reauthenticateWithCredential(user, cred);
       setReauthenticateOpen(false);
-      setReauthPassword('');
-      handleConfirmDelete();
-    } catch (error) {
-      console.error('Re-authentication error:', error);
-      setReauthError(`Re-authentication failed: ${error.message}`);
+      setDeleteModalOpen(true); // Re-open delete modal to finish action
+    } catch (e) {
+      setReauthError('Invalid password. Please try again.');
     }
   };
 
-  if (authLoading) {
+  if (authLoading || loadingProfile)
     return (
-      <Container maxWidth="md" sx={{ py: 8, textAlign: 'center' }}>
+      <Container sx={{ py: 8, textAlign: 'center' }}>
         <CircularProgress />
       </Container>
     );
-  }
-
-  if (!user) {
-    return null;
-  }
-
-  if (loadingProfile) {
-    return (
-      <Container maxWidth="md" sx={{ py: 8, textAlign: 'center' }}>
-        <SuspenseFallback message="" />
-      </Container>
-    );
-  }
 
   return (
-    <Fade in={!loadingProfile} timeout={1000}>
+    <Fade in={!loadingProfile} timeout={800}>
       <Container maxWidth="md" sx={{ py: 4 }}>
         <PageHeader
           title="My Author Profile"
-          subtitle="Manage your public author information and account settings."
+          subtitle="Manage your identity and security."
           icon={PersonIcon}
         />
 
         <Paper
           elevation={3}
-          sx={{
-            p: { xs: 2, md: 4 },
-            mt: 3,
-            borderRadius: 2, // Rounded corners
-            boxShadow: 3, // Subtle shadow
-          }}
+          sx={{ p: { xs: 3, md: 5 }, mt: 3, borderRadius: 3 }}
         >
-          <Typography variant="h6" gutterBottom color="primary.main">
-            {' '}
-            {/* Use primary color for section title */}
-            Profile Details
-          </Typography>
-          <Stack spacing={3} sx={{ mb: 4 }}>
-            <TextField
-              label="Display Name"
-              name="displayName"
-              variant="outlined"
-              fullWidth
-              value={profileData.displayName}
-              onChange={handleChange}
-              helperText="This name will appear on your articles."
-            />
-            <TextField
-              label="Bio"
-              name="bio"
-              variant="outlined"
-              fullWidth
-              multiline
-              rows={4}
-              value={profileData.bio}
-              onChange={handleChange}
-              helperText="Tell readers a bit about yourself."
-            />
-          </Stack>
-          <Stack direction="row" spacing={2} justifyContent="flex-end">
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleSaveProfile}
-              disabled={isSubmitting}
-              startIcon={
-                isSubmitting && <CircularProgress size={20} color="inherit" />
-              }
-            >
-              {isSubmitting ? 'Saving...' : 'Save Profile'}
-            </Button>
-          </Stack>
-          <Divider sx={{ my: 4, borderColor: 'divider' }} />{' '}
-          {/* Use theme divider color */}
-          <Typography variant="h6" gutterBottom color="primary.main">
-            {' '}
-            {/* Use primary color for section title */}
-            Change Password
-          </Typography>
-          <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
-            {' '}
-            {/* Use secondary text color */}
-            Use your email ({user.email}) as your username for normal login.
-          </Typography>
-          <Stack spacing={3} sx={{ mb: 4 }}>
-            <TextField
-              label="Current Password"
-              type="password"
-              variant="outlined"
-              fullWidth
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-            />
-            <TextField
-              label="New Password"
-              type="password"
-              variant="outlined"
-              fullWidth
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              helperText="Minimum 6 characters."
-            />
-            <TextField
-              label="Confirm New Password"
-              type="password"
-              variant="outlined"
-              fullWidth
-              value={confirmNewPassword}
-              onChange={(e) => setConfirmNewPassword(e.target.value)}
-              error={!!passwordChangeError}
-              helperText={passwordChangeError}
-            />
-          </Stack>
-          <Stack direction="row" spacing={2} justifyContent="flex-end">
-            <Button
-              variant="contained"
-              color="secondary"
-              onClick={handleChangePassword}
-              disabled={passwordChangeLoading}
-              startIcon={
-                passwordChangeLoading && (
-                  <CircularProgress size={20} color="inherit" />
-                )
-              }
-            >
-              {passwordChangeLoading ? 'Changing...' : 'Change Password'}
-            </Button>
-          </Stack>
-          <Divider sx={{ my: 4, borderColor: 'divider' }} />
-          <Typography variant="h6" color="error" gutterBottom>
-            Danger Zone
-          </Typography>
-          <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
-            Permanently delete your author profile and account. This action
-            cannot be undone.
-          </Typography>
-          <Button
-            variant="outlined"
-            color="error"
-            onClick={handleDeleteProfileClick}
-            disabled={isSubmitting}
-          >
-            Delete My Account
-          </Button>
+          <ProfileDetailsForm
+            profileData={profileData}
+            setProfileData={setProfileData}
+            handleSaveProfile={handleSaveProfile}
+            isSubmitting={isSubmitting}
+            setPasswordModalOpen={setPasswordModalOpen}
+            setDeleteModalOpen={setDeleteModalOpen}
+            hasPassword={hasPassword}
+            userEmail={user.email}
+          />
         </Paper>
+
+        <DeleteOptionsModal
+          deleteModalOpen={deleteModalOpen}
+          setDeleteModalOpen={setDeleteModalOpen}
+          deletionType={deletionType}
+          setDeletionType={setDeletionType}
+          handleExecuteDeletion={handleExecuteDeletion}
+          isSubmitting={isSubmitting}
+        />
+
+        <PasswordUpdateModal
+          passwordModalOpen={passwordModalOpen}
+          setPasswordModalOpen={setPasswordModalOpen}
+          hasPassword={hasPassword}
+          currentPassword={currentPassword}
+          setCurrentPassword={setCurrentPassword}
+          newPassword={newPassword}
+          setNewPassword={setNewPassword}
+          confirmNewPassword={confirmNewPassword}
+          setConfirmNewPassword={setConfirmNewPassword}
+          handlePasswordSubmit={handlePasswordSubmit}
+          passwordChangeLoading={passwordChangeLoading}
+          passwordChangeError={passwordChangeError}
+        />
+
+        <ReauthenticateModal
+          reauthenticateOpen={reauthenticateOpen}
+          setReauthenticateOpen={setReauthenticateOpen}
+          reauthPassword={reauthPassword}
+          setReauthPassword={setReauthPassword}
+          handleReauthenticate={handleReauthenticate}
+          reauthError={reauthError}
+        />
 
         <Snackbar
           open={snackbar.open}
-          autoHideDuration={5000}
+          autoHideDuration={4000}
           onClose={() => setSnackbar({ ...snackbar, open: false })}
         >
-          <Alert
-            onClose={() => setSnackbar({ ...snackbar, open: false })}
-            severity={snackbar.severity}
-            variant="filled"
-          >
+          <Alert severity={snackbar.severity} variant="filled">
             {snackbar.message}
           </Alert>
         </Snackbar>
-
-        {/* Delete Confirmation Dialog */}
-        <Dialog
-          open={confirmDeleteOpen}
-          onClose={() => setConfirmDeleteOpen(false)}
-          aria-labelledby="alert-dialog-title"
-          aria-describedby="alert-dialog-description"
-        >
-          <DialogTitle id="alert-dialog-title">
-            {'Confirm Account Deletion'}
-          </DialogTitle>
-          <DialogContent>
-            <DialogContentText id="alert-dialog-description">
-              Are you absolutely sure you want to delete your account? All your
-              profile data will be removed, and you will no longer be able to
-              log in. This action cannot be undone.
-            </DialogContentText>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setConfirmDeleteOpen(false)}>Cancel</Button>
-            <Button onClick={handleConfirmDelete} color="error" autoFocus>
-              Delete Account
-            </Button>
-          </DialogActions>
-        </Dialog>
-
-        {/* Re-authentication Dialog */}
-        <Dialog
-          open={reauthenticateOpen}
-          onClose={() => setReauthenticateOpen(false)}
-          aria-labelledby="reauth-dialog-title"
-        >
-          <DialogTitle id="reauth-dialog-title">
-            {'Re-authenticate to Delete Account'}
-          </DialogTitle>
-          <DialogContent>
-            <DialogContentText>
-              For security reasons, you must re-authenticate to delete your
-              account. Please enter your password. (Note: If you signed in with
-              Google/GitHub, you might need to set a password for your account
-              in Firebase Auth settings first, or re-authenticate via that
-              provider if Firebase supports it directly for re-auth.)
-            </DialogContentText>
-            <TextField
-              autoFocus
-              margin="dense"
-              label="Password"
-              type="password"
-              fullWidth
-              variant="standard"
-              value={reauthPassword}
-              onChange={(e) => setReauthPassword(e.target.value)}
-              error={!!reauthError}
-              helperText={reauthError}
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleReauthenticate} color="primary">
-              Re-authenticate
-            </Button>
-            <Button onClick={() => setReauthenticateOpen(false)}>Cancel</Button>
-          </DialogActions>
-        </Dialog>
       </Container>
     </Fade>
   );
