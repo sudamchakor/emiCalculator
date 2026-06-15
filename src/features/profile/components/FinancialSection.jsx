@@ -62,7 +62,10 @@ export default function FinancialSection({
   const theme = useTheme();
   const [isOptimizerOpen, setOptimizerOpen] = useState(false);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
-  const [detailsModalData, setDetailsModalData] = useState({ title: '', items: [] });
+  const [detailsModalData, setDetailsModalData] = useState({
+    title: '',
+    items: [],
+  });
 
   const incomes = useSelector(selectIncomes) || [];
   const totalIncome = useSelector(selectTotalMonthlyIncome);
@@ -93,8 +96,7 @@ export default function FinancialSection({
   const flexibleExpenses = useMemo(
     () =>
       expenses.filter(
-        (exp) =>
-          exp.category === 'basic' || exp.category === 'discretionary',
+        (exp) => exp.category === 'basic' || exp.category === 'discretionary',
       ),
     [expenses],
   );
@@ -172,9 +174,14 @@ export default function FinancialSection({
         category: 'loan',
       });
     }
-    Object.values(groupedGoals).forEach(goal => {
-      const correspondingPrioritizedGoal = prioritizedGoals.find(pg => pg.id === goal.id);
-      if (correspondingPrioritizedGoal && correspondingPrioritizedGoal.status !== 'Fully Funded') {
+    Object.values(groupedGoals).forEach((goal) => {
+      const correspondingPrioritizedGoal = prioritizedGoals.find(
+        (pg) => pg.id === goal.id,
+      );
+      if (
+        correspondingPrioritizedGoal &&
+        correspondingPrioritizedGoal.status !== 'Fully Funded'
+      ) {
         list.push({
           id: goal.id,
           name: `${goal.name} (Goal Contribution)`,
@@ -188,20 +195,21 @@ export default function FinancialSection({
   }, [expenses, isLoanActive, monthlyEmi, groupedGoals, prioritizedGoals]);
 
   const oneTimeInvestmentsList = useMemo(() => {
-    return individualGoalInvestments.filter(inv => inv.frequency === 'one-time').map(inv => {
-      const goal = goals.find(g => g.id === inv.goalId);
-      return {
-        id: inv.id,
-        name: `${goal?.name || 'Goal'} (One-Time Investment)`,
-        amount: inv.amount,
-        frequency: 'one-time',
-        category: 'goal-one-time',
-        year: inv.year,
-        isFunded: inv.isFunded,
-      };
-    });
+    return individualGoalInvestments
+      .filter((inv) => inv.frequency === 'one-time')
+      .map((inv) => {
+        const goal = goals.find((g) => g.id === inv.goalId);
+        return {
+          id: inv.id,
+          name: `${goal?.name || 'Goal'} (One-Time Investment)`,
+          amount: inv.amount,
+          frequency: 'one-time',
+          category: 'goal-one-time',
+          year: inv.year,
+          isFunded: inv.isFunded,
+        };
+      });
   }, [individualGoalInvestments, goals]);
-
 
   return (
     <>
@@ -301,7 +309,10 @@ export default function FinancialSection({
                   >
                     No income streams added.
                   </Typography>
-                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                  <Typography
+                    variant="caption"
+                    sx={{ color: 'text.secondary' }}
+                  >
                     Add your salary, rental income, or other inflows.
                   </Typography>
                 </Box>
@@ -341,7 +352,7 @@ export default function FinancialSection({
                   opacity: 0.6,
                   textAlign: 'center',
                 }}
-                >
+              >
                 <ReceiptLongOutlinedIcon
                   sx={{ fontSize: 64, mb: 2, color: 'text.secondary' }}
                 />
@@ -363,7 +374,7 @@ export default function FinancialSection({
                       id: 'home-loan-emi',
                       name: 'Home Loan EMI',
                       amount: monthlyEmi,
-                      frequency: 'monthly'
+                      frequency: 'monthly',
                     }}
                     currency={currency}
                     isExpense={true}
@@ -372,7 +383,7 @@ export default function FinancialSection({
                     formatCurrency={formatCurrency}
                     onConfirmDelete={() => dispatch(resetHomeLoanForm())}
                     isReadOnly={false}
-                    onEdit={() => navigate('/calculator')}
+                    onEdit={() => navigate('/home-loan-emi-calculator')}
                     deletionImpactMessage="This will permanently clear your EMI calculator data, including your full loan schedule, property details, and prepayments. This action cannot be undone."
                   />
                 )}
@@ -439,7 +450,14 @@ export default function FinancialSection({
               </Typography>
             </Box>
           ) : (
-            <Grid container sx={{ mt: 'auto', borderRadius: '0 0 12px 12px', overflow: 'hidden' }}>
+            <Grid
+              container
+              sx={{
+                mt: 'auto',
+                borderRadius: '0 0 12px 12px',
+                overflow: 'hidden',
+              }}
+            >
               <Grid item xs={12} md={4}>
                 <Box
                   sx={{
@@ -455,14 +473,22 @@ export default function FinancialSection({
                   }}
                 >
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                    <Typography variant="caption" sx={{ opacity: 0.9, display: 'block' }}>
+                    <Typography
+                      variant="caption"
+                      sx={{ opacity: 0.9, display: 'block' }}
+                    >
                       Total Monthly Expenses
                     </Typography>
                     <Tooltip title="View monthly expense details">
                       <InfoIcon
                         fontSize="small"
                         sx={{ cursor: 'pointer', opacity: 0.8 }}
-                        onClick={() => handleOpenDetailsModal('Monthly Expense Details', monthlyExpensesList)}
+                        onClick={() =>
+                          handleOpenDetailsModal(
+                            'Monthly Expense Details',
+                            monthlyExpensesList,
+                          )
+                        }
                       />
                     </Tooltip>
                   </Box>
@@ -485,7 +511,10 @@ export default function FinancialSection({
                     justifyContent: 'center',
                   }}
                 >
-                  <Typography variant="caption" sx={{ opacity: 0.9, display: 'block' }}>
+                  <Typography
+                    variant="caption"
+                    sx={{ opacity: 0.9, display: 'block' }}
+                  >
                     Total Yearly Expenses
                   </Typography>
                   <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
@@ -507,14 +536,22 @@ export default function FinancialSection({
                   }}
                 >
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                    <Typography variant="caption" sx={{ opacity: 0.9, display: 'block' }}>
+                    <Typography
+                      variant="caption"
+                      sx={{ opacity: 0.9, display: 'block' }}
+                    >
                       Total One-Time Expenses
                     </Typography>
                     <Tooltip title="View one-time expense details">
                       <InfoIcon
                         fontSize="small"
                         sx={{ cursor: 'pointer', opacity: 0.8 }}
-                        onClick={() => handleOpenDetailsModal('One-Time Expense Details', oneTimeInvestmentsList)}
+                        onClick={() =>
+                          handleOpenDetailsModal(
+                            'One-Time Expense Details',
+                            oneTimeInvestmentsList,
+                          )
+                        }
                       />
                     </Tooltip>
                   </Box>

@@ -45,7 +45,7 @@ const systemModules = [
     description:
       'View amortization schedule, home loan interest, and plan prepayment savings easily.',
     icon: <MapsHomeWorkIcon sx={{ fontSize: 32, color: '#00796B' }} />,
-    path: '/calculator',
+    path: '/home-loan-emi-calculator',
     colorHex: '#00796B', // Teal
   },
   {

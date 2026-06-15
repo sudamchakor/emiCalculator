@@ -16,11 +16,6 @@ export const themePresets = {
 // --- 2. EXPANDED COLOR PALETTE ---
 export const themeColors = [
   {
-    name: 'System',
-    value: 'system',
-    colors: ['#0061A4', '#D1E4FF', '#F8FAFF', '#001D35', '#535F70'],
-  },
-  {
     name: 'DodgerBlue',
     value: 'dodgerblue',
     colors: ['#0061A4', '#D1E4FF', '#F8FAFF', '#001D35', '#535F70'],

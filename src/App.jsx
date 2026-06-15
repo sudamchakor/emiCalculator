@@ -129,7 +129,7 @@ const AppContent = () => {
               <Routes>
                 {/* 1. PUBLIC ROUTES (Zero Firebase loaded here) */}
                 <Route path="/" element={<Home />} />
-                <Route path="/calculator" element={<Calculator />} />
+                <Route path="/home-loan-emi-calculator" element={<Calculator />} />
                 <Route path="/profile" element={<UserProfile />} />
                 <Route path="/settings" element={<SettingsPage />} />
                 <Route
