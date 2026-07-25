@@ -103,7 +103,7 @@ export default function UserProfile() {
             },
           }}
         >
-          <Tab label="My Plan" />
+          <Tab label="Planner" />
           <Tab label="Financial Goals" />
           <Tab label="Wealth Dashboard" />
         </Tabs>

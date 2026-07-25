@@ -28,12 +28,10 @@ import {
 import {
   Calculate as CalculateIcon,
   KeyboardArrowDown as ArrowDownIcon,
-  AccountCircle as ProfileIcon,
   Menu as MenuIcon,
   FileDownload as ExportIcon,
   HelpOutline as HelpIcon,
   Person as PersonIcon,
-  EmojiEvents as GoalsIcon,
   Settings as SettingsIcon,
   RestartAlt as ResetIcon,
   ExpandLess,
@@ -41,12 +39,17 @@ import {
   Article as ArticleIcon,
   CloudUpload as CloudUploadIcon,
   CloudDownload as CloudDownloadIcon,
+  EmojiEvents as GoalsIcon,
 } from '@mui/icons-material';
 
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectCalculatedValues } from '../../features/emiCalculator/utils/emiCalculator';
-import { resetEmiState, selectEmiState, setEmiState } from '../../store/emiSlice';
+import {
+  resetEmiState,
+  selectEmiState,
+  setEmiState,
+} from '../../store/emiSlice';
 import { selectProfileState, setProfileState } from '../../store/profileSlice';
 import { useSnackbar } from 'notistack';
 import storage from 'redux-persist/lib/storage';
@@ -104,9 +107,10 @@ const Header = () => {
     [location.pathname],
   );
 
-  const showExport = useMemo(() => isExportPage(location.pathname), [
-    location.pathname,
-  ]);
+  const showExport = useMemo(
+    () => isExportPage(location.pathname),
+    [location.pathname],
+  );
 
   const showCloudActions = useMemo(
     () => isCloudPage(location.pathname) && Boolean(authUser),
@@ -129,12 +133,9 @@ const Header = () => {
       });
     } catch (error) {
       console.error('Firestore save error:', error);
-      enqueueSnackbar(
-        error?.message || 'Unable to save data to Firestore',
-        {
-          variant: 'error',
-        },
-      );
+      enqueueSnackbar(error?.message || 'Unable to save data to Firestore', {
+        variant: 'error',
+      });
     } finally {
       setCloudBusy(false);
     }
@@ -368,7 +369,7 @@ const Header = () => {
             color="inherit"
             sx={{ borderRadius: theme.shape.borderRadius }}
           >
-            <ProfileIcon />
+            <SettingsIcon />
           </IconButton>
         </Stack>
 
@@ -396,7 +397,7 @@ const Header = () => {
           ))}
         </Menu>
 
-        {/* 🟢 PROFILE MENU */}
+        {/* 🟢 SETTINGS MENU */}
         <Menu
           anchorEl={profileAnchorEl}
           open={Boolean(profileAnchorEl)}
@@ -430,6 +431,13 @@ const Header = () => {
             </ListItemIcon>{' '}
             Wealth Dashboard
           </MenuItem>
+          <Divider sx={{ my: 1 }} />
+          <MenuItem onClick={() => handleNavigation('/settings')}>
+            <ListItemIcon>
+              <SettingsIcon fontSize="small" />
+            </ListItemIcon>{' '}
+            Global Settings
+          </MenuItem>
           {showCloudActions && (
             <>
               <Divider sx={{ my: 1 }} />
@@ -459,13 +467,6 @@ const Header = () => {
               </MenuItem>
             </>
           )}
-          <Divider sx={{ my: 1 }} />
-          <MenuItem onClick={() => handleNavigation('/settings')}>
-            <ListItemIcon>
-              <SettingsIcon fontSize="small" />
-            </ListItemIcon>{' '}
-            Global Settings
-          </MenuItem>
           <Divider sx={{ my: 1 }} />
           <MenuItem onClick={handleResetData} sx={{ color: 'error.main' }}>
             <ListItemIcon>
@@ -569,7 +570,7 @@ const Header = () => {
                 <PersonIcon />
               </ListItemIcon>
               <ListItemText
-                primary="My Account"
+                primary="Planner"
                 primaryTypographyProps={{ fontWeight: 'bold' }}
               />
               {openProfile ? <ExpandLess /> : <ExpandMore />}
@@ -580,7 +581,13 @@ const Header = () => {
                   sx={{ pl: 4, borderRadius: theme.shape.borderRadius }}
                   onClick={() => handleNavigation('/profile?tab=personal')}
                 >
-                  <ListItemText primary="Profile Details" />
+                  <ListItemText primary="My Planner" />
+                </ListItemButton>
+                <ListItemButton
+                  sx={{ pl: 4, borderRadius: theme.shape.borderRadius }}
+                  onClick={() => handleNavigation('/profile?tab=goals')}
+                >
+                  <ListItemText primary="Financial Goals" />
                 </ListItemButton>
                 <ListItemButton
                   sx={{ pl: 4, borderRadius: theme.shape.borderRadius }}
