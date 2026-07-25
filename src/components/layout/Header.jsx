@@ -407,19 +407,19 @@ const Header = () => {
           transformOrigin={{ horizontal: 'right', vertical: 'top' }}
           anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
         >
-          <MenuItem onClick={() => handleNavigation('/profile?tab=personal')}>
+          <MenuItem onClick={() => handleNavigation('/profile')}>
             <ListItemIcon>
               <PersonIcon fontSize="small" />
             </ListItemIcon>{' '}
             Personal Profile
           </MenuItem>
-          <MenuItem onClick={() => handleNavigation('/profile?tab=goals')}>
+          <MenuItem onClick={() => handleNavigation('/profile/goals')}>
             <ListItemIcon>
               <GoalsIcon fontSize="small" />
             </ListItemIcon>{' '}
             Financial Goals
           </MenuItem>
-          <MenuItem onClick={() => handleNavigation('/profile?tab=wealth')}>
+          <MenuItem onClick={() => handleNavigation('/profile/wealth')}>
             <ListItemIcon>
               <img
                 src={`${process.env.PUBLIC_URL}/android-chrome-192x192.png`}
@@ -579,19 +579,19 @@ const Header = () => {
               <List component="div" disablePadding>
                 <ListItemButton
                   sx={{ pl: 4, borderRadius: theme.shape.borderRadius }}
-                  onClick={() => handleNavigation('/profile?tab=personal')}
+                  onClick={() => handleNavigation('/profile')}
                 >
                   <ListItemText primary="My Planner" />
                 </ListItemButton>
                 <ListItemButton
                   sx={{ pl: 4, borderRadius: theme.shape.borderRadius }}
-                  onClick={() => handleNavigation('/profile?tab=goals')}
+                  onClick={() => handleNavigation('/profile/goals')}
                 >
                   <ListItemText primary="Financial Goals" />
                 </ListItemButton>
                 <ListItemButton
                   sx={{ pl: 4, borderRadius: theme.shape.borderRadius }}
-                  onClick={() => handleNavigation('/profile?tab=wealth')}
+                  onClick={() => handleNavigation('/profile/wealth')}
                 >
                   <ListItemText primary="Wealth Dashboard" />
                 </ListItemButton>

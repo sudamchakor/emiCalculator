@@ -267,7 +267,7 @@ describe('Header Component', () => {
       renderComponent('/');
       fireEvent.click(screen.getByTestId('AccountCircleIcon'));
       fireEvent.click(screen.getByText('Financial Goals'));
-      expect(mockNavigate).toHaveBeenCalledWith('/profile?tab=goals');
+      expect(mockNavigate).toHaveBeenCalledWith('/profile/goals');
     });
 
     it('calls handleResetData when "Reset All Data" is clicked and confirmed', () => {
@@ -352,22 +352,22 @@ describe('Header Component', () => {
       expect(mockNavigate).toHaveBeenCalledWith('/articles');
     });
 
-    it('toggles My Account collapse in drawer', () => {
+    it('toggles Planner collapse in drawer', () => {
       renderComponent('/', true);
       fireEvent.click(screen.getByTestId('MenuIcon'));
-      const myAccountButton = screen.getByRole('button', {
-        name: 'My Account',
+      const plannerButton = screen.getByRole('button', {
+        name: 'Planner',
       });
-      fireEvent.click(myAccountButton); // Open
-      expect(screen.getByText('Profile Details')).toBeInTheDocument();
+      fireEvent.click(plannerButton); // Open
+      expect(screen.getByText('My Planner')).toBeInTheDocument();
     });
 
     it('navigates to profile tabs from drawer', () => {
       renderComponent('/', true);
       fireEvent.click(screen.getByTestId('MenuIcon'));
-      fireEvent.click(screen.getByRole('button', { name: 'My Account' })); // Open collapse
+      fireEvent.click(screen.getByRole('button', { name: 'Planner' })); // Open collapse
       fireEvent.click(screen.getByText('Wealth Dashboard'));
-      expect(mockNavigate).toHaveBeenCalledWith('/profile?tab=wealth');
+      expect(mockNavigate).toHaveBeenCalledWith('/profile/wealth');
     });
 
     it('navigates to Settings from drawer', () => {

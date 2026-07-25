@@ -194,10 +194,10 @@ export default function SettingsPage() {
                 >
                   <Box>
                     <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                      Cloud Sync
+                      Auto-save
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
-                      Auto-save data
+                      Auto-save data in Browser Storage.
                     </Typography>
                   </Box>
                   <Switch

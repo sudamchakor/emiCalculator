@@ -30,12 +30,12 @@ export default function UserProfile() {
 
   // Tab Logic
   const getTabIndex = (tabParam) => {
-    const map = { goals: 1, wealth: 2 };
+    const map = { goals: 1, wealth: 2, personal: 0 };
     return map[tabParam] || 0;
   };
 
-  const searchParams = new URLSearchParams(location.search);
-  const tabParam = searchParams.get('tab');
+  const pathSegments = location.pathname.split('/').filter(Boolean);
+  const tabParam = pathSegments[1] || 'personal';
 
   const [tabValue, setTabValue] = useState(() => getTabIndex(tabParam));
   const [goalToEditId, setGoalToEditId] = useState(null);
@@ -49,13 +49,14 @@ export default function UserProfile() {
 
   const handleTabChange = (event, newValue) => {
     const tabs = ['personal', 'goals', 'wealth'];
-    navigate(`/profile?tab=${tabs[newValue]}`);
+    const targetPath = newValue === 0 ? '/profile' : `/profile/${tabs[newValue]}`;
+    navigate(targetPath);
     setGoalToEditId(null);
   };
 
   const handleEditGoal = (goalId) => {
     setGoalToEditId(goalId);
-    navigate(`/profile?tab=goals`);
+    navigate('/profile/goals');
   };
 
   const handleModalOpen = (type) => {

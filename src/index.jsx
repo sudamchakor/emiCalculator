@@ -1,9 +1,9 @@
 import React from 'react';
-import ReactDOM from 'react-dom/client';
+import { createRoot, hydrateRoot } from 'react-dom/client';
 import './styles/global.css'; // Updated import
 import './styles/theme.css'; // New import
 import App from './App';
-import { HashRouter } from 'react-router-dom'; // Changed to HashRouter
+import { BrowserRouter } from 'react-router-dom';
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 
 import {
@@ -24,14 +24,20 @@ const _MUI_SHIELD = {
   CssBaseline,
 };
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(
+const container = document.getElementById('root');
+const app = (
   <React.StrictMode>
-    <HashRouter>
+    <BrowserRouter basename="/smart-fund-manager">
       <App />
-    </HashRouter>
-  </React.StrictMode>,
+    </BrowserRouter>
+  </React.StrictMode>
 );
+
+if (container.hasChildNodes()) {
+  hydrateRoot(container, app);
+} else {
+  createRoot(container).render(app);
+}
 
 // If you want your app to work offline and load faster, you can change
 // unregister() to register() below. Note this comes with some pitfalls.

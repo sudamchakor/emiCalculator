@@ -1,4 +1,5 @@
 import React, { useState } from 'react'; // Import useState
+import { Helmet } from 'react-helmet-async';
 import {
   Grid,
   Box,
@@ -101,7 +102,19 @@ const Calculator = () => {
   };
 
   return (
-    <Box
+    <>
+      <Helmet>
+        <title>Home Loan EMI Calculator with Amortization Schedule | SmartFund Manager</title>
+        <meta
+          name="description"
+          content="Calculate home loan EMIs, review amortization schedules, and plan prepayments with SmartFund Manager."
+        />
+        <meta
+          name="keywords"
+          content="Home Loan EMI Calculator, Amortization Schedule, Prepayment Calculator"
+        />
+      </Helmet>
+      <Box
       sx={{
         minHeight: '100vh',
         background: `linear-gradient(180deg, ${alpha(
@@ -202,6 +215,7 @@ const Calculator = () => {
         onApplyPrepayment={handleApplyPrepayment}
       />
     </Box>
+    </>
   );
 };
 

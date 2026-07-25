@@ -120,8 +120,10 @@ describe('UserProfile Page', () => {
       ...initialState,
       profile: profileState,
     });
+    const url = new URL(window.location.origin + initialPath);
     mockUseLocation.mockReturnValue({
-      search: new URL(window.location.origin + initialPath).search,
+      pathname: url.pathname,
+      search: url.search,
     });
     window.history.pushState({}, 'Test page', initialPath); // Set actual URL for useLocation to pick up
 
@@ -143,7 +145,7 @@ describe('UserProfile Page', () => {
   // --- Initial Rendering and Tabs ---
   it('renders without crashing and displays tabs', async () => {
     renderComponent();
-    expect(screen.getByRole('tab', { name: 'My Plan' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Planner' })).toBeInTheDocument();
     expect(
       screen.getByRole('tab', { name: 'Financial Goals' }),
     ).toBeInTheDocument();
@@ -156,17 +158,17 @@ describe('UserProfile Page', () => {
   it('switches to Financial Goals tab when "Financial Goals" tab is clicked', async () => {
     renderComponent();
     fireEvent.click(screen.getByRole('tab', { name: 'Financial Goals' }));
-    expect(mockUseNavigate).toHaveBeenCalledWith('/profile?tab=goals');
+    expect(mockUseNavigate).toHaveBeenCalledWith('/profile/goals');
   });
 
   it('switches to Wealth Dashboard tab when "Wealth Dashboard" tab is clicked', async () => {
     renderComponent();
     fireEvent.click(screen.getByRole('tab', { name: 'Wealth Dashboard' }));
-    expect(mockUseNavigate).toHaveBeenCalledWith('/profile?tab=wealth');
+    expect(mockUseNavigate).toHaveBeenCalledWith('/profile/wealth');
   });
 
   it('selects goals tab based on URL parameter on initial load', async () => {
-    renderComponent('/profile?tab=goals');
+    renderComponent('/profile/goals');
     await waitFor(() => {
     expect(
       screen.getByRole('tab', { name: 'Financial Goals' }),
@@ -179,7 +181,7 @@ describe('UserProfile Page', () => {
   });
 
   it('selects wealth tab based on URL parameter on initial load', async () => {
-    renderComponent('/profile?tab=wealth');
+    renderComponent('/profile/wealth');
     await waitFor(() => {
     expect(
       screen.getByRole('tab', { name: 'Wealth Dashboard' }),
@@ -218,20 +220,20 @@ describe('UserProfile Page', () => {
   it('sets goalToEditId and navigates to goals tab when onEditGoal is called', async () => {
     renderComponent();
     fireEvent.click(await screen.findByText('Edit Goal')); // Button from mocked PersonalProfileTab
-    expect(mockUseNavigate).toHaveBeenCalledWith('/profile?tab=goals');
+    expect(mockUseNavigate).toHaveBeenCalledWith('/profile/goals');
   });
 
   it('clears goalToEditId when switching tabs manually', async () => {
     renderComponent();
     fireEvent.click(await screen.findByText('Edit Goal')); // Set goalToEditId
-    expect(mockUseNavigate).toHaveBeenCalledWith('/profile?tab=goals');
+    expect(mockUseNavigate).toHaveBeenCalledWith('/profile/goals');
 
   });
 
   // --- Edge Cases / Negative Scenarios ---
   it('handles unknown tab parameter by defaulting to My Profile', async () => {
-    renderComponent('/profile?tab=unknown');
-    expect(screen.getByRole('tab', { name: 'My Plan' })).toHaveAttribute(
+    renderComponent('/profile/unknown');
+    expect(screen.getByRole('tab', { name: 'Planner' })).toHaveAttribute(
       'aria-selected',
       'true',
     );

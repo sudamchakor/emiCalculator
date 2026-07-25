@@ -1,7 +1,7 @@
 {
   "homepage": "https://sudamchakor.github.io/smart-fund-manager/",
   "name": "smart-fund-manager",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "private": true,
   "dependencies": {
     "@emotion/react": "^11.11.0",
@@ -22,6 +22,7 @@
     "react-redux": "^9.2.0",
     "react-router-dom": "^6.22.3",
     "react-scripts": "5.0.1",
+    "react-snap": "^1.23.0",
     "recharts": "^2.5.0",
     "redux-persist": "^6.0.0",
     "reselect": "^5.1.0",
@@ -30,12 +31,33 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build && node inline-css.js",
+    "prerender": "react-snap",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d build -t",
+    "deploy": "npx gh-pages -d build -t --repo https://github.com/sudamchakor/smart-fund-manager.git",
     "analyze": "npm run build && source-map-explorer 'build/static/js/*.js'",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,md}\""
+  },
+  "reactSnap": {
+    "include": [
+      "/",
+      "/home-loan-emi-calculator",
+      "/credit-card-emi",
+      "/personal-loan",
+      "/investment",
+      "/investment/sip",
+      "/investment/lumpsum",
+      "/investment/step-up-sip",
+      "/investment/swp",
+      "/investment/fd",
+      "/tax-calculator",
+      "/faq",
+      "/privacy-policy",
+      "/terms-of-service",
+      "/contact-us",
+      "/articles"
+    ]
   },
   "eslintConfig": {
     "extends": [

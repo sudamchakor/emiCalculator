@@ -1,4 +1,5 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
+import { Helmet } from 'react-helmet-async';
 import {
   Grid,
   Box,
@@ -41,7 +42,7 @@ const InvestmentChart = lazy(
 );
 
 const TAB_ROUTES = [
-  '/investment',
+  '/investment/sip',
   '/investment/lumpsum',
   '/investment/step-up-sip',
   '/investment/swp',
@@ -137,7 +138,19 @@ export default function InvestmentCalculator() {
   );
 
   return (
-    <Box
+    <>
+      <Helmet>
+        <title>SIP Investment Projector & Mutual Fund Returns Calculator | SmartFund Manager</title>
+        <meta
+          name="description"
+          content="Project SIP returns, compare mutual fund growth, and model investments with SmartFund Manager."
+        />
+        <meta
+          name="keywords"
+          content="SIP Investment Projector, Mutual Fund Returns, SIP Calculator"
+        />
+      </Helmet>
+      <Box
       sx={{
         width: '100%',
         p: { xs: 2, md: 4 },
@@ -414,5 +427,6 @@ export default function InvestmentCalculator() {
         </Box>
       </Box>
     </Box>
+    </>
   );
 }
