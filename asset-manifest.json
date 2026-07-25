@@ -1,12 +1,12 @@
 {
   "files": {
     "main.css": "/smart-fund-manager/static/css/main.97e21cc2.css",
-    "main.js": "/smart-fund-manager/static/js/main.a9745dd9.js",
+    "main.js": "/smart-fund-manager/static/js/main.5fc066f4.js",
     "static/js/7652.effec4b3.chunk.js": "/smart-fund-manager/static/js/7652.effec4b3.chunk.js",
     "static/js/2850.ea319006.chunk.js": "/smart-fund-manager/static/js/2850.ea319006.chunk.js",
     "static/js/8052.7b1725a2.chunk.js": "/smart-fund-manager/static/js/8052.7b1725a2.chunk.js",
     "static/js/514.e5876d6f.chunk.js": "/smart-fund-manager/static/js/514.e5876d6f.chunk.js",
-    "static/js/4014.47c7255c.chunk.js": "/smart-fund-manager/static/js/4014.47c7255c.chunk.js",
+    "static/js/4014.92ace433.chunk.js": "/smart-fund-manager/static/js/4014.92ace433.chunk.js",
     "static/js/5982.7a9f49da.chunk.js": "/smart-fund-manager/static/js/5982.7a9f49da.chunk.js",
     "static/js/1684.1b69cf79.chunk.js": "/smart-fund-manager/static/js/1684.1b69cf79.chunk.js",
     "static/js/7024.4e0c5c17.chunk.js": "/smart-fund-manager/static/js/7024.4e0c5c17.chunk.js",
@@ -79,12 +79,12 @@
     "service-worker.js": "/smart-fund-manager/service-worker.js",
     "index.html": "/smart-fund-manager/index.html",
     "main.97e21cc2.css.map": "/smart-fund-manager/static/css/main.97e21cc2.css.map",
-    "main.a9745dd9.js.map": "/smart-fund-manager/static/js/main.a9745dd9.js.map",
+    "main.5fc066f4.js.map": "/smart-fund-manager/static/js/main.5fc066f4.js.map",
     "7652.effec4b3.chunk.js.map": "/smart-fund-manager/static/js/7652.effec4b3.chunk.js.map",
     "2850.ea319006.chunk.js.map": "/smart-fund-manager/static/js/2850.ea319006.chunk.js.map",
     "8052.7b1725a2.chunk.js.map": "/smart-fund-manager/static/js/8052.7b1725a2.chunk.js.map",
     "514.e5876d6f.chunk.js.map": "/smart-fund-manager/static/js/514.e5876d6f.chunk.js.map",
-    "4014.47c7255c.chunk.js.map": "/smart-fund-manager/static/js/4014.47c7255c.chunk.js.map",
+    "4014.92ace433.chunk.js.map": "/smart-fund-manager/static/js/4014.92ace433.chunk.js.map",
     "5982.7a9f49da.chunk.js.map": "/smart-fund-manager/static/js/5982.7a9f49da.chunk.js.map",
     "1684.1b69cf79.chunk.js.map": "/smart-fund-manager/static/js/1684.1b69cf79.chunk.js.map",
     "7024.4e0c5c17.chunk.js.map": "/smart-fund-manager/static/js/7024.4e0c5c17.chunk.js.map",
@@ -157,6 +157,6 @@
   },
   "entrypoints": [
     "static/css/main.97e21cc2.css",
-    "static/js/main.a9745dd9.js"
+    "static/js/main.5fc066f4.js"
   ]
 }
