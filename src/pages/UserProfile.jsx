@@ -8,7 +8,6 @@ import {
 } from '../store/profileSlice';
 import { selectCurrency } from '../store/emiSlice';
 import CustomTabPanel from '../components/CustomTabPanel';
-import PreviewBanner from '../components/PreviewBanner';
 import FloatingStatusIsland from '../components/FloatingStatusIsland';
 import SuspenseFallback from '../components/common/SuspenseFallback';
 
@@ -20,9 +19,6 @@ const FutureGoalsTab = lazy(
   () => import('../features/profile/tabs/FutureGoalsTab'),
 );
 const WealthTab = lazy(() => import('../features/profile/tabs/WealthTab'));
-const OnboardingModal = lazy(
-  () => import('../features/profile/tabs/OnboardingModal'),
-);
 const FinancialModal = lazy(
   () => import('../features/profile/components/FinancialModal'),
 );
@@ -43,14 +39,8 @@ export default function UserProfile() {
 
   const [tabValue, setTabValue] = useState(() => getTabIndex(tabParam));
   const [goalToEditId, setGoalToEditId] = useState(null);
-  const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalType, setModalType] = useState('');
-
-  // Profile Status
-  const [isProfileCreated, setIsProfileCreated] = useState(
-    localStorage.getItem('isProfileCreated') === 'true',
-  );
 
   useEffect(() => {
     setTabValue(getTabIndex(tabParam));
@@ -81,13 +71,6 @@ export default function UserProfile() {
   return (
     // FIX: Greatly increased 'pb' (padding-bottom) so the user can scroll past the floating footer
     <Box sx={{ width: '100%', pb: { xs: 16, sm: 20 } }}>
-      {/* 1. Integrated Action Banner */}
-      {!isProfileCreated && (
-        <Suspense fallback={<SuspenseFallback />}>
-          <PreviewBanner onOpenOnboarding={() => setOnboardingOpen(true)} />
-        </Suspense>
-      )}
-
       {/* 2. Command Center Navigation (Tabs) */}
       <Box
         sx={{
@@ -120,7 +103,7 @@ export default function UserProfile() {
             },
           }}
         >
-          <Tab label="My Profile" />
+          <Tab label="My Plan" />
           <Tab label="Financial Goals" />
           <Tab label="Wealth Dashboard" />
         </Tabs>
@@ -146,15 +129,6 @@ export default function UserProfile() {
 
       {/* Modals */}
       <Suspense fallback={<SuspenseFallback />}>
-        <OnboardingModal
-          open={onboardingOpen}
-          onClose={() => {
-            setOnboardingOpen(false);
-            setIsProfileCreated(
-              localStorage.getItem('isProfileCreated') === 'true',
-            );
-          }}
-        />
         <FinancialModal
           open={modalOpen}
           onClose={() => setModalOpen(false)}

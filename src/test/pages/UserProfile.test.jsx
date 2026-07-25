@@ -29,18 +29,6 @@ jest.mock('../../features/profile/tabs/WealthTab', () => ({
   __esModule: true,
   default: () => <div data-testid="wealth-tab">Wealth Tab</div>,
 }));
-jest.mock('../../features/profile/tabs/OnboardingModal', () => {
-  const MockOnboardingModal = ({ open, onClose }) => (
-    <div
-      data-testid="onboarding-modal"
-      style={{ display: open ? 'block' : 'none' }}
-    >
-      Onboarding Modal
-      <button onClick={onClose}>Close Onboarding</button>
-    </div>
-  );
-  return { __esModule: true, default: MockOnboardingModal };
-});
 jest.mock('../../features/profile/components/FinancialModal', () => {
   const MockFinancialModal = ({ open, onClose, type }) => (
     <div
@@ -61,12 +49,6 @@ jest.mock(
         <div data-testid={`custom-tab-panel-${index}`}>{children}</div>
       ) : null,
 );
-jest.mock('../../components/PreviewBanner', () => ({ onOpenOnboarding }) => (
-  <div data-testid="preview-banner">
-    Preview Banner
-    <button onClick={onOpenOnboarding}>Create Profile</button>
-  </div>
-));
 jest.mock(
   '../../components/FloatingStatusIsland',
   () =>
@@ -161,7 +143,7 @@ describe('UserProfile Page', () => {
   // --- Initial Rendering and Tabs ---
   it('renders without crashing and displays tabs', async () => {
     renderComponent();
-    expect(screen.getByRole('tab', { name: 'My Profile' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'My Plan' })).toBeInTheDocument();
     expect(
       screen.getByRole('tab', { name: 'Financial Goals' }),
     ).toBeInTheDocument();
@@ -189,65 +171,10 @@ describe('UserProfile Page', () => {
     expect(
       screen.getByRole('tab', { name: 'Financial Goals' }),
     ).toHaveAttribute('aria-selected', 'true');
-    expect(await screen.findByTestId('future-goals-tab')).toBeInTheDocument();
+    expect(screen.queryByTestId('future-goals-tab')).toBeInTheDocument();
     expect(
       screen.queryByTestId('personal-profile-tab'),
-    ).not.toBeInTheDocument();// src/test/features/investment/tabs/LumpsumCalculatorForm.test.jsx
-import { screen } from '@testing-library/react';
-// Import your custom render method
-import { render } from '../../../../test/test-utils';
-import LumpsumCalculatorForm from '../../../../features/investment/tabs/LumpsumCalculatorForm';
-
-it('renders without crashing', () => {
-  // Make sure the 'settings' reducer (or whichever provides 'selectCurrency')
-  // is included in your test-utils store setup.
-  render(<LumpsumCalculatorForm />);
-});// src/test/features/profile/components/AutoBalancer.test.jsx
-import { screen } from '@testing-library/react';
-// Import your custom render method
-import { render } from '../../../../test/test-utils';
-import AutoBalancer from '../../../../features/profile/components/AutoBalancer';
-
-it('renders without crashing', () => {
-  // The custom render will wrap AutoBalancer in a Provider
-  render(<AutoBalancer />);
-  // You can add assertions here to make the test more meaningful
-});// src/test/test-utils.jsx
-import React from 'react';
-import { render as rtlRender } from '@testing-library/react';
-import { configureStore } from '@reduxjs/toolkit';
-import { Provider } from 'react-redux';
-
-// Import your reducers
-// You'll need to import all reducers used by the components you are testing.
-import profileReducer from '../store/profileSlice';
-// import settingsReducer from '../store/settingsSlice'; // for LumpsumCalculatorForm
-
-function render(
-  ui,
-  {
-    preloadedState,
-    // Automatically create a store instance if no store is passed in
-    store = configureStore({
-      reducer: {
-        profile: profileReducer,
-        // settings: settingsReducer,
-      },
-      preloadedState,
-    }),
-    ...renderOptions
-  } = {}
-) {
-  function Wrapper({ children }) {
-    return <Provider store={store}>{children}</Provider>;
-  }
-  return rtlRender(ui, { wrapper: Wrapper, ...renderOptions });
-}
-
-// re-export everything
-export * from '@testing-library/react';
-// override render method
-export { render };
+    ).not.toBeInTheDocument();
     });
   });
 
@@ -257,46 +184,10 @@ export { render };
     expect(
       screen.getByRole('tab', { name: 'Wealth Dashboard' }),
     ).toHaveAttribute('aria-selected', 'true');
-    expect(await screen.findByTestId('wealth-tab')).toBeInTheDocument();
+    expect(screen.queryByTestId('wealth-tab')).toBeInTheDocument();
     expect(
       screen.queryByTestId('personal-profile-tab'),
     ).not.toBeInTheDocument();
-    });
-  });
-
-  // --- Preview Banner and Onboarding Modal ---
-  it('shows PreviewBanner and OnboardingModal if isProfileCreated is false', async () => {
-    localStorage.setItem('isProfileCreated', 'false');
-    renderComponent();
-    expect(await screen.findByTestId('preview-banner')).toBeInTheDocument();
-    expect(screen.queryByTestId('onboarding-modal')).not.toBeVisible(); // Modal is initially closed
-  });
-
-  it('opens OnboardingModal when "Create Profile" button in PreviewBanner is clicked', async () => {
-    localStorage.setItem('isProfileCreated', 'false');
-    renderComponent();
-    fireEvent.click(await screen.findByRole('button', { name: 'Create Profile' }));
-    expect(screen.getByTestId('onboarding-modal')).toBeVisible();
-  });
-
-  it('closes OnboardingModal and updates isProfileCreated status', async () => {
-    localStorage.setItem('isProfileCreated', 'false');
-    renderComponent();
-    fireEvent.click(await screen.findByRole('button', { name: 'Create Profile' }));
-    expect(screen.getByTestId('onboarding-modal')).toBeVisible();
-
-    localStorage.setItem('isProfileCreated', 'true'); // Simulate onboarding completion
-    fireEvent.click(screen.getByText('Close Onboarding'));
-    await waitFor(() => {
-      expect(screen.getByTestId('onboarding-modal')).not.toBeVisible();
-    });
-  });
-
-  it('does not show PreviewBanner if isProfileCreated is true', async () => {
-    localStorage.setItem('isProfileCreated', 'true');
-    renderComponent();
-    await waitFor(() => {
-      expect(screen.queryByTestId('preview-banner')).not.toBeInTheDocument();
     });
   });
 
@@ -340,7 +231,7 @@ export { render };
   // --- Edge Cases / Negative Scenarios ---
   it('handles unknown tab parameter by defaulting to My Profile', async () => {
     renderComponent('/profile?tab=unknown');
-    expect(screen.getByRole('tab', { name: 'My Profile' })).toHaveAttribute(
+    expect(screen.getByRole('tab', { name: 'My Plan' })).toHaveAttribute(
       'aria-selected',
       'true',
     );

@@ -22,10 +22,6 @@ import {
   ChevronRight as ChevronRightIcon,
 } from '@mui/icons-material';
 
-const OnboardingModal = lazy(
-  () => import('../features/profile/tabs/OnboardingModal'),
-);
-
 const moduleBootUp = keyframes`
   0% { opacity: 0; transform: translateY(20px) scale(0.98); }
   100% { opacity: 1; transform: translateY(0) scale(1); }
@@ -84,17 +80,6 @@ const systemModules = [
 
 export default function Home() {
   const theme = useTheme();
-  const [showOnboarding, setShowOnboarding] = useState(false);
-
-  useEffect(() => {
-    const hasOnboarded = localStorage.getItem('hasOnboarded');
-    if (!hasOnboarded) setShowOnboarding(true);
-  }, []);
-
-  const handleCloseOnboarding = () => {
-    localStorage.setItem('hasOnboarded', 'true');
-    setShowOnboarding(false);
-  };
 
   return (
     <Container maxWidth="lg" sx={{ mt: { xs: 4, md: 8 }, mb: 8 }}>
@@ -266,15 +251,6 @@ export default function Home() {
           );
         })}
       </Grid>
-
-      {showOnboarding && (
-        <Suspense fallback={null}>
-          <OnboardingModal
-            open={showOnboarding}
-            onClose={handleCloseOnboarding}
-          />
-        </Suspense>
-      )}
     </Container>
   );
 }
