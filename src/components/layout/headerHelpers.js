@@ -9,7 +9,11 @@ import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { getDataBase } from '../../firebaseConfig';
 
 export const CALCULATORS = [
-  { path: '/home-loan-emi-calculator', label: 'Home Loan EMI', icon: CalculateIcon },
+  {
+    path: '/home-loan-emi-calculator',
+    label: 'Home Loan EMI',
+    icon: CalculateIcon,
+  },
   {
     path: '/credit-card-emi',
     label: 'Credit Card EMI',
@@ -30,9 +34,15 @@ export const isExportPage = (pathname) =>
   );
 
 export const isCloudPage = (pathname) =>
-  ['/home-loan-emi-calculator', '/profile'].some((path) => pathname.startsWith(path));
+  ['/home-loan-emi-calculator', '/profile'].some((path) =>
+    pathname.startsWith(path),
+  );
 
-export const exportSchedule = async ({ format, calculatedValues, enqueueSnackbar }) => {
+export const exportSchedule = async ({
+  format,
+  calculatedValues,
+  enqueueSnackbar,
+}) => {
   if (format === 'pdf') {
     window.print();
     return;

@@ -22,7 +22,9 @@ import ErrorBoundary from './components/common/ErrorBoundary';
 
 // Lazy load UpdatePrompt
 const UpdatePrompt = lazy(() => import('./components/common/UpdatePrompt'));
-const PWAInstallPrompt = lazy(() => import('./components/common/PWAInstallPrompt'));
+const PWAInstallPrompt = lazy(
+  () => import('./components/common/PWAInstallPrompt'),
+);
 
 // Lazy Loaded Pages
 const Home = lazy(() => import('./pages/Home'));
@@ -129,7 +131,10 @@ const AppContent = () => {
               <Routes>
                 {/* 1. PUBLIC ROUTES (Zero Firebase loaded here) */}
                 <Route path="/" element={<Home />} />
-                <Route path="/home-loan-emi-calculator" element={<Calculator />} />
+                <Route
+                  path="/home-loan-emi-calculator"
+                  element={<Calculator />}
+                />
                 <Route path="/profile" element={<UserProfile />} />
                 <Route path="/settings" element={<SettingsPage />} />
                 <Route

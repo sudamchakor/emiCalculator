@@ -1,4 +1,4 @@
-import { createTheme, alpha } from '@mui/material';
+import { createTheme } from '@mui/material';
 import { getMotionProfile } from './motionProfiles';
 
 // --- 1. PRE-CONFIGURED GALLERY PRESETS ---
@@ -59,8 +59,6 @@ export const getAppTheme = (themeMode, designSystem, visualStyle) => {
   const [primary, secondary, background, textPrimary, textSecondary] =
     selectedTheme.colors;
 
-  const isDarkMode =
-    themeMode === 'dark' || themeMode === 'zinc' || themeMode === 'slate';
   const isGlass = visualStyle === 'glass';
   const isNeumorphic = visualStyle === 'neumorphic';
   const isMinimalist = visualStyle === 'minimalist';
@@ -72,31 +70,23 @@ export const getAppTheme = (themeMode, designSystem, visualStyle) => {
     designSystem === 'apple'
       ? '14px'
       : designSystem === 'fluent'
-        ? '0px'
-        : '8px';
+      ? '0px'
+      : '8px';
   const innerRadius =
     designSystem === 'apple'
       ? '8px'
       : designSystem === 'fluent'
-        ? '0px'
-        : '4px';
+      ? '0px'
+      : '4px';
 
   return createTheme({
     palette: {
-      mode: isDarkMode ? 'dark' : 'light',
+      mode: 'light',
       primary: { main: primary },
       secondary: { main: secondary },
       background: {
-        default: isNeumorphic
-          ? isDarkMode
-            ? '#1e1e1e'
-            : '#f3f4f6'
-          : background,
-        paper: isDarkMode
-          ? themeMode === 'slate'
-            ? '#1E293B'
-            : '#1C1B1F'
-          : '#ffffff',
+        default: isNeumorphic ? '#f3f4f6' : background,
+        paper: '#ffffff',
       },
       text: { primary: textPrimary, secondary: textSecondary },
     },
@@ -134,18 +124,15 @@ export const getAppTheme = (themeMode, designSystem, visualStyle) => {
           },
         },
       },
-      // 🟢 THE FIX: Explicitly target the Mobile Drawer from Header.jsx
       MuiDrawer: {
         styleOverrides: {
           paper: {
             ...(isGlass && {
-              backgroundColor: isDarkMode
-                ? 'rgba(18, 18, 18, 0.65) !important'
-                : 'rgba(255, 255, 255, 0.45) !important',
+              backgroundColor: 'rgba(255, 255, 255, 0.45) !important',
               backdropFilter: 'blur(24px) saturate(200%) !important',
               WebkitBackdropFilter: 'blur(24px) saturate(200%) !important',
               backgroundImage: 'none !important',
-              borderRight: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.1)'} !important`,
+              borderRight: `1px solid rgba(0, 0, 0, 0.1) !important`,
             }),
             ...(isMinimalist && {
               borderRight: '1px solid #e0e0e0 !important',
@@ -154,7 +141,6 @@ export const getAppTheme = (themeMode, designSystem, visualStyle) => {
           },
         },
       },
-      // 🟢 THE FIX: Add hover & select styles to the Mobile Drawer Lists
       MuiListItemButton: {
         styleOverrides: {
           root: {
@@ -164,28 +150,21 @@ export const getAppTheme = (themeMode, designSystem, visualStyle) => {
             transition: 'all 0.15s ease',
             ...(isGlass && {
               '&:hover': {
-                backgroundColor: isDarkMode
-                  ? 'rgba(255, 255, 255, 0.1)'
-                  : 'rgba(0, 0, 0, 0.05)',
+                backgroundColor: 'rgba(0, 0, 0, 0.05)',
                 color: primary,
               },
               '&.Mui-selected': {
-                backgroundColor: isDarkMode
-                  ? 'rgba(255, 255, 255, 0.15)'
-                  : 'rgba(0, 0, 0, 0.08)',
+                backgroundColor: 'rgba(0, 0, 0, 0.08)',
                 color: primary,
                 fontWeight: 600,
                 '&:hover': {
-                  backgroundColor: isDarkMode
-                    ? 'rgba(255, 255, 255, 0.2)'
-                    : 'rgba(0, 0, 0, 0.12)',
+                  backgroundColor: 'rgba(0, 0, 0, 0.12)',
                 },
               },
             }),
           },
         },
       },
-      // Forces Icons inside the Mobile Drawer to change color when you select/hover them
       MuiListItemIcon: {
         styleOverrides: {
           root: {
@@ -200,13 +179,11 @@ export const getAppTheme = (themeMode, designSystem, visualStyle) => {
           paper: {
             borderRadius: baseRadius + ' !important',
             ...(isGlass && {
-              backgroundColor: isDarkMode
-                ? 'rgba(18, 18, 18, 0.6) !important'
-                : 'rgba(255, 255, 255, 0.4) !important',
+              backgroundColor: 'rgba(255, 255, 255, 0.4) !important',
               backdropFilter: 'blur(24px) saturate(200%) !important',
               WebkitBackdropFilter: 'blur(24px) saturate(200%) !important',
               backgroundImage: 'none !important',
-              border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.08)'} !important`,
+              border: `1px solid rgba(0, 0, 0, 0.08) !important`,
               boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12) !important',
             }),
             ...(isMinimalist && {
@@ -222,13 +199,11 @@ export const getAppTheme = (themeMode, designSystem, visualStyle) => {
           paper: {
             borderRadius: baseRadius + ' !important',
             ...(isGlass && {
-              backgroundColor: isDarkMode
-                ? 'rgba(18, 18, 18, 0.6) !important'
-                : 'rgba(255, 255, 255, 0.4) !important',
+              backgroundColor: 'rgba(255, 255, 255, 0.4) !important',
               backdropFilter: 'blur(24px) saturate(200%) !important',
               WebkitBackdropFilter: 'blur(24px) saturate(200%) !important',
               backgroundImage: 'none !important',
-              border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.08)'} !important`,
+              border: `1px solid rgba(0, 0, 0, 0.08) !important`,
               boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12) !important',
             }),
             ...(isMinimalist && {
@@ -243,13 +218,11 @@ export const getAppTheme = (themeMode, designSystem, visualStyle) => {
           paper: {
             borderRadius: baseRadius + ' !important',
             ...(isGlass && {
-              backgroundColor: isDarkMode
-                ? 'rgba(18, 18, 18, 0.6) !important'
-                : 'rgba(255, 255, 255, 0.4) !important',
+              backgroundColor: 'rgba(255, 255, 255, 0.4) !important',
               backdropFilter: 'blur(24px) saturate(200%) !important',
               WebkitBackdropFilter: 'blur(24px) saturate(200%) !important',
               backgroundImage: 'none !important',
-              border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.08)'} !important`,
+              border: `1px solid rgba(0, 0, 0, 0.08) !important`,
               boxShadow: '0 24px 64px rgba(0, 0, 0, 0.2) !important',
             }),
           },
@@ -264,21 +237,15 @@ export const getAppTheme = (themeMode, designSystem, visualStyle) => {
             fontSize: '0.94rem',
             ...(isGlass && {
               '&:hover': {
-                backgroundColor: isDarkMode
-                  ? 'rgba(255, 255, 255, 0.1)'
-                  : 'rgba(0, 0, 0, 0.05)',
+                backgroundColor: 'rgba(0, 0, 0, 0.05)',
                 color: primary,
               },
               '&.Mui-selected': {
-                backgroundColor: isDarkMode
-                  ? 'rgba(255, 255, 255, 0.15)'
-                  : 'rgba(0, 0, 0, 0.08)',
+                backgroundColor: 'rgba(0, 0, 0, 0.08)',
                 color: primary,
                 fontWeight: 600,
                 '&:hover': {
-                  backgroundColor: isDarkMode
-                    ? 'rgba(255, 255, 255, 0.2)'
-                    : 'rgba(0, 0, 0, 0.12)',
+                  backgroundColor: 'rgba(0, 0, 0, 0.12)',
                 },
               },
             }),
@@ -290,14 +257,10 @@ export const getAppTheme = (themeMode, designSystem, visualStyle) => {
           root: {
             borderRadius: innerRadius,
             ...(isGlass && {
-              backgroundColor: isDarkMode
-                ? 'rgba(255, 255, 255, 0.05)'
-                : 'rgba(255, 255, 255, 0.35)',
+              backgroundColor: 'rgba(255, 255, 255, 0.35)',
               backdropFilter: 'blur(8px)',
               '& .MuiOutlinedInput-notchedOutline': {
-                borderColor: isDarkMode
-                  ? 'rgba(255, 255, 255, 0.15)'
-                  : 'rgba(0, 0, 0, 0.1)',
+                borderColor: 'rgba(0, 0, 0, 0.1)',
               },
             }),
           },
@@ -310,17 +273,13 @@ export const getAppTheme = (themeMode, designSystem, visualStyle) => {
             borderRadius: baseRadius,
             ...(isGlass && {
               '&.MuiCard-root, &.MuiTableContainer-root': {
-                backgroundColor: isDarkMode
-                  ? 'rgba(30, 30, 30, 0.5)'
-                  : 'rgba(255, 255, 255, 0.5)',
+                backgroundColor: 'rgba(255, 255, 255, 0.5)',
                 backdropFilter: 'blur(20px)',
-                border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)'}`,
+                border: `1px solid rgba(0, 0, 0, 0.05)`,
               },
             }),
             ...(isNeumorphic && {
-              boxShadow: isDarkMode
-                ? '12px 12px 24px #0b0b0b, -12px -12px 24px #252525'
-                : '10px 10px 20px #d1d5db, -10px -10px 20px #ffffff',
+              boxShadow: '10px 10px 20px #d1d5db, -10px -10px 20px #ffffff',
             }),
             ...(isMinimalist && {
               boxShadow: 'none',
