@@ -110,9 +110,34 @@ const useGoalForm = (initialGoal, currentYear, onSave) => {
     calculateTotalFutureValue,
   ]);
 
-  const handleGoalFieldChange = useCallback((field, value) => {
-    setEditedGoal((prev) => ({ ...prev, [field]: value }));
-  }, []);
+  const handleGoalFieldChange = useCallback(
+    (field, value) => {
+      setEditedGoal((prevGoal) => {
+        const newGoal = { ...prevGoal, [field]: value };
+
+        // If the target year changes, we must recalculate all plans
+        if (field === 'targetYear') {
+          const goalStartYear = newGoal.startYear || currentYear;
+          const goalTargetYear = value;
+
+          if (goalTargetYear && goalTargetYear > goalStartYear) {
+            const updatedPlans = newGoal.investmentPlans.map((plan) => {
+              const baseTimePeriod = goalTargetYear - goalStartYear;
+              const newTimePeriod = Math.max(
+                1,
+                baseTimePeriod - (plan.startDelay || 0),
+              );
+              const updatedPlan = { ...plan, timePeriod: newTimePeriod };
+              return calculatePlanResults(updatedPlan);
+            });
+            return { ...newGoal, investmentPlans: updatedPlans };
+          }
+        }
+        return newGoal;
+      });
+    },
+    [currentYear],
+  );
 
   const handleAddPlan = useCallback(() => {
     const currentTargetAmount = editedGoal.targetAmount || 0;
@@ -169,7 +194,10 @@ const useGoalForm = (initialGoal, currentYear, onSave) => {
               const baseTimePeriod = prevGoal.targetYear
                 ? prevGoal.targetYear - currentStartYear
                 : 10;
-              const currentTimePeriod = Math.max(1, baseTimePeriod - (plan.startDelay || 0));
+              const currentTimePeriod = Math.max(
+                1,
+                baseTimePeriod - (plan.startDelay || 0),
+              );
 
               // Calculate total future value of OTHER plans
               const otherPlans = prevGoal.investmentPlans.filter(
@@ -190,12 +218,21 @@ const useGoalForm = (initialGoal, currentYear, onSave) => {
                 currentStartYear, // Pass currentStartYear
                 prevGoal,
               );
-              tempUpdatedPlan = { ...newDefaultPlan, id: plan.id, startDelay: plan.startDelay || 0 }; // Keep original ID and delay
+              tempUpdatedPlan = {
+                ...newDefaultPlan,
+                id: plan.id,
+                startDelay: plan.startDelay || 0,
+              }; // Keep original ID and delay
             } else if (field === 'startDelay') {
               tempUpdatedPlan = { ...plan, [field]: value };
               const currentStartYear = prevGoal.startYear || currentYear;
-              const baseTimePeriod = prevGoal.targetYear ? prevGoal.targetYear - currentStartYear : 10;
-              tempUpdatedPlan.timePeriod = Math.max(1, baseTimePeriod - (value || 0));
+              const baseTimePeriod = prevGoal.targetYear
+                ? prevGoal.targetYear - currentStartYear
+                : 10;
+              tempUpdatedPlan.timePeriod = Math.max(
+                1,
+                baseTimePeriod - (value || 0),
+              );
             } else {
               tempUpdatedPlan = { ...plan, [field]: value };
             }
@@ -234,19 +271,22 @@ const useGoalForm = (initialGoal, currentYear, onSave) => {
     const portionOfTarget = targetAmount / numberOfPlans;
 
     // Generate and calculate the first N-1 plans
-    const firstPlansRaw = accumulatingPlanTypes.slice(0, -1).map((type) =>
-      getDefaultPlanState(
-        type,
-        portionOfTarget,
-        totalTimePeriod,
-        planStartYear, // Pass planStartYear
-        editedGoal,
-      ),
-    );
+    const firstPlansRaw = accumulatingPlanTypes
+      .slice(0, -1)
+      .map((type) =>
+        getDefaultPlanState(
+          type,
+          portionOfTarget,
+          totalTimePeriod,
+          planStartYear, // Pass planStartYear
+          editedGoal,
+        ),
+      );
     const calculatedFirstPlans = firstPlansRaw.map(calculatePlanResults);
 
     // Calculate the total value from the first N-1 plans and determine the remainder for the last plan
-    const totalFromFirstPlans = calculateTotalFutureValue(calculatedFirstPlans);
+    const totalFromFirstPlans =
+      calculateTotalFutureValue(calculatedFirstPlans);
     const remainingTarget = targetAmount - totalFromFirstPlans;
     const lastPlanType = accumulatingPlanTypes[numberOfPlans - 1];
 

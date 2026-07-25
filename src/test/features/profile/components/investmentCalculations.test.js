@@ -2,8 +2,26 @@ import {
   calculateSipFutureValue,
   calculateLumpsumFutureValue,
 } from '../../../../features/profile/components/investmentCalculations.js'; // Corrected path
+import { calculatePlanResults } from '../../../../features/profile/components/goalFormUtils.js';
 
 describe.skip('investmentCalculations', () => {
+  it('calculatePlanResults should use recurring FD monthly investment for invested amount', () => {
+    const plan = {
+      type: 'fd',
+      principalAmount: 100000,
+      monthlyInvestment: 5000,
+      interestRate: 7,
+      timePeriod: 3,
+      compoundingFrequency: 'annually',
+      depositType: 'recurring',
+    };
+
+    const result = calculatePlanResults(plan);
+
+    expect(result.investedAmount).toBe(180000);
+    expect(result.totalValue).toBeGreaterThan(result.investedAmount);
+  });
+
   it('calculateSipFutureValue should correctly calculate future value of SIP', () => {
     const monthlyInvestment = 1000;
     const annualReturnRate = 0.12; // 12% annual return

@@ -75,6 +75,7 @@ export default function InvestmentCalculator() {
     principalAmount: 100000,
     interestRate: 7,
     compoundingFrequency: 'annually',
+    recurringFrequency: 'monthly',
   });
 
   const handleSharedStateChange = (field, value) => {

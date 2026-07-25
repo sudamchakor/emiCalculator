@@ -797,13 +797,31 @@ export const selectFinancialIndependenceYear = createSelector(
 );
 
 // Helper function for SIP calculation
-const calculateRequiredSip = (futureValue, annualRate, years) => {
-  if (years <= 0 || annualRate <= 0) return futureValue / (years * 12 || 1);
-  const monthlyRate = annualRate / 12;
-  const months = years * 12;
+const calculateRequiredSip = (
+  futureValue,
+  annualRate,
+  years,
+  compoundingFrequency = 'annually'
+) => {
+  if (years <= 0) return futureValue / 12 || 0;
+  if (annualRate <= 0) return futureValue / (years * 12);
+
+  let n = 1;
+  if (compoundingFrequency === 'quarterly') n = 4;
+  else if (compoundingFrequency === 'half-yearly') n = 2;
+  else if (compoundingFrequency === 'monthly') n = 12;
+
+  const effectiveMonthlyRate = Math.pow(1 + annualRate / n, n / 12) - 1;
+  const totalMonths = years * 12;
+
+  if (effectiveMonthlyRate === 0) return futureValue / totalMonths;
+
   const requiredSip =
-    (futureValue * monthlyRate) /
-    ((Math.pow(1 + monthlyRate, months) - 1) * (1 + monthlyRate));
+    futureValue /
+    (((Math.pow(1 + effectiveMonthlyRate, totalMonths) - 1) /
+      effectiveMonthlyRate) *
+      (1 + effectiveMonthlyRate));
+
   return requiredSip;
 };
 

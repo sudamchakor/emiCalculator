@@ -88,7 +88,10 @@ const InvestmentPlanCard = ({
             ? (results.monthlyInvestment ??
               results.initialMonthlyInvestment ??
               0)
-            : 0,
+            : (results.monthlyInvestment ??
+              results.initialMonthlyInvestment ??
+              plan.monthlyContribution ??
+              0),
         totalWithdrawn: results.totalWithdrawn ?? 0,
       };
 
@@ -395,7 +398,11 @@ const InvestmentPlanCard = ({
         )}
         {plan.type === 'fd' && (
           <FdCalculatorForm
-            sharedState={plan}
+            sharedState={{
+              ...plan,
+              monthlyInvestment: plan.monthlyContribution,
+              monthlyContribution: plan.monthlyContribution,
+            }}
             onSharedStateChange={(field, value) =>
               handlePlanChange(plan.id, field, value)
             }

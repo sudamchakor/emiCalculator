@@ -22,7 +22,10 @@ export const calculatePlanResults = (plan) => {
 
   // Ensure numeric values for calculations
   const monthlyContribution =
-    Number(updatedPlanDetails.monthlyContribution) || 0;
+    Number(updatedPlanDetails.monthlyContribution) ||
+    Number(updatedPlanDetails.monthlyInvestment) ||
+    0;
+  const recurringFrequency = updatedPlanDetails.recurringFrequency || 'monthly';
   const totalInvestment = Number(updatedPlanDetails.totalInvestment) || 0;
   const expectedReturnRate = Number(updatedPlanDetails.expectedReturnRate) || 0;
   const timePeriod = Number(updatedPlanDetails.timePeriod) || 0;
@@ -32,6 +35,16 @@ export const calculatePlanResults = (plan) => {
   const interestRate = Number(updatedPlanDetails.interestRate) || 0;
   const compoundingFrequency =
     updatedPlanDetails.compoundingFrequency || 'annually';
+  const depositType = updatedPlanDetails.depositType || 'single';
+  const hasExplicitDepositType = Object.prototype.hasOwnProperty.call(
+    updatedPlanDetails,
+    'depositType',
+  );
+  const isRecurringDeposit =
+    hasExplicitDepositType ? depositType === 'recurring' : monthlyContribution > 0;
+  const recurringContribution = isRecurringDeposit
+    ? monthlyContribution
+    : 0;
 
   switch (updatedPlanDetails.type) {
     case 'sip':
@@ -87,9 +100,17 @@ export const calculatePlanResults = (plan) => {
         interestRate,
         timePeriod,
         compoundingFrequency,
+        recurringFrequency,
+        recurringContribution,
+        depositType,
       );
-      updatedPlanDetails.details = `FD: ₹${principalAmount.toLocaleString()} for ${timePeriod} years @ ${interestRate}% (${compoundingFrequency})`;
-      updatedPlanDetails.frequency = 'one-time';
+      if (isRecurringDeposit) {
+        updatedPlanDetails.details = `Recurring FD: ₹${monthlyContribution.toLocaleString()} / ${recurringFrequency} for ${timePeriod} years @ ${interestRate}%`;
+        updatedPlanDetails.frequency = recurringFrequency;
+      } else {
+        updatedPlanDetails.details = `FD: ₹${principalAmount.toLocaleString()} for ${timePeriod} years @ ${interestRate}% (${compoundingFrequency})`;
+        updatedPlanDetails.frequency = 'one-time';
+      }
       break;
     default:
       console.error(
@@ -142,6 +163,8 @@ export const getDefaultPlanState = (
     principalAmount: 100000, // Default for FD
     interestRate: interestRate,
     compoundingFrequency: compoundingFrequency,
+    recurringFrequency: 'monthly',
+    depositType: 'single',
   };
 
   // Perform inverse calculations to set initial investment amounts to meet targetAmountForPlan
@@ -173,6 +196,9 @@ export const getDefaultPlanState = (
         );
         break;
       case 'fd':
+        // For FD, we need to decide if it's recurring or single.
+        // For now, we'll assume the inverse calculation is for a single deposit.
+        // The user can then switch to recurring and input a monthly amount.
         newPlan.principalAmount = Math.round(
           targetAmountForPlan / Math.pow(1 + fdAnnualRate, newPlan.timePeriod),
         );

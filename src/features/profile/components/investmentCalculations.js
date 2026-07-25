@@ -81,13 +81,21 @@ export const calculateFd = (
   annualRate,
   timePeriod,
   compoundingFrequency,
+  recurringFrequency = 'monthly',
+  monthlyInvestment = 0,
+  depositType = 'single',
 ) => {
+  const r = annualRate / 100;
+  const t = timePeriod;
+  const M = monthlyInvestment;
+
   let n;
   switch (compoundingFrequency) {
     case 'annually':
       n = 1;
       break;
     case 'semi-annually':
+    case 'half-yearly':
       n = 2;
       break;
     case 'quarterly':
@@ -100,9 +108,51 @@ export const calculateFd = (
       n = 1;
   }
 
-  const futureValue =
-    principal * Math.pow(1 + annualRate / 100 / n, n * timePeriod);
-  const investedAmount = principal;
-  const estimatedReturns = futureValue - investedAmount;
-  return { investedAmount, estimatedReturns, totalValue: futureValue };
+  const isRecurringDeposit = depositType === 'recurring' || M > 0;
+
+  let totalValue = 0;
+  let investedAmount = 0;
+
+  if (isRecurringDeposit) {
+    const totalMonths = t * 12;
+    const frequencyPeriods =
+      recurringFrequency === 'monthly'
+        ? 12
+        : recurringFrequency === 'quarterly'
+        ? 4
+        : recurringFrequency === 'half-yearly'
+        ? 2
+        : recurringFrequency === 'yearly'
+        ? 1
+        : 12;
+    const monthsPerContribution = 12 / frequencyPeriods;
+    const totalContributions = t * frequencyPeriods;
+    investedAmount = M * totalContributions;
+
+    if (r > 0 && M > 0 && t > 0) {
+      const monthlyRate = r / 12;
+      totalValue = 0;
+      for (let contribution = 1; contribution <= totalContributions; contribution += 1) {
+        const contributionMonth = contribution * monthsPerContribution;
+        const remainingMonths = totalMonths - contributionMonth;
+        totalValue += M * Math.pow(1 + monthlyRate, remainingMonths);
+      }
+    } else {
+      totalValue = investedAmount;
+    }
+  } else {
+    investedAmount = principal;
+    if (r > 0 && t > 0) {
+      totalValue = principal * Math.pow(1 + r / n, n * t);
+    } else {
+      totalValue = principal;
+    }
+  }
+
+  const estimatedReturns = totalValue - investedAmount;
+  return {
+    investedAmount: Math.round(investedAmount),
+    estimatedReturns: Math.round(estimatedReturns),
+    totalValue: Math.round(totalValue),
+  };
 };
